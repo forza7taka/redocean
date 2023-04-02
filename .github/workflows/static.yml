@@ -38,9 +38,6 @@ jobs:
         env:
           GA_TRACKING_ID: ${{ secrets.GA_TRACKING_ID }}
           run: echo "GA_TRACKING_ID=$GA_TRACKING_ID" >> $GITHUB_ENV
-      - name: Set up vue-gtag
-        run: |
-          echo "GA_TRACKING_ID=$GA_TRACKING_ID" >> .env.production
       - run: npm run build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
