@@ -45,22 +45,22 @@
         menuItems: [
         {
           icon: "mdi-home",
-          name: "home",
+          name: "Home",
           link: "/",
         },
         {
          icon: "mdi-view-list",
-          name: "timeline",
+          name: "Timeline",
           link: "/timeline",
         },
         {
           icon: "mdi-face-profile",
-          name: "profile",
+          name: "Profile",
           link: "/profile"
         },
         {
           icon: "mdi-fire",
-          name: "popular",
+          name: "Popular",
           link: "/popular"
         },
         {
