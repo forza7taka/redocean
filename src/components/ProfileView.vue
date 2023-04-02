@@ -36,7 +36,7 @@
               </v-list-item-subtitle>-->
             </v-list-item>
           </v-card-actions>
-        <v-card-text>
+        <v-card-text class="text-pre-wrap">
           <div v-if="profile && profile.description" v-html="this.replaceUrls(profile.description)"></div>
         </v-card-text>
       </v-card>
