@@ -35,9 +35,7 @@ jobs:
         uses: actions/configure-pages@v3
       - run: npm ci
       - name: Set environment variables
-        env:
-          GA_TRACKING_ID: ${{ secrets.GA_TRACKING_ID }}
-          run: echo "GA_TRACKING_ID=$GA_TRACKING_ID" >> $GITHUB_ENV
+        run: echo GA_TRACKING_ID=${{ secrets.GA_TRACKING_ID }} >> $GITHUB_ENV
       - run: npm run build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
