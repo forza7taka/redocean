@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {},
+	"launch": {
+		"configurations": [
+			{
+				"type": "chrome",
+				"name": "http://localhost:8080/",
+				"request": "launch",
+				"url": "http://localhost:8080/"
+			}
+		]
+	}
+}
