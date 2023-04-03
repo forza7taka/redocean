@@ -61,17 +61,16 @@
         const blob = await response.blob();
         return blob;
       },
-      async getCid(blob) {
+      async uploadImage(blob) {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        const response =await this.axios.post('https://bsky.social/xrpc/com.atproto.blob.upload', blob)
-        console.log(response)
-        return response.data.cid
+        const response =await this.axios.post('https://bsky.social/xrpc/com.atproto.repo.uploadBlob', blob)
+        return response.data.blob
       },
       async post() {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
           this.axios.post('https://bsky.social/xrpc/com.atproto.repo.createRecord', {
             collection: "app.bsky.feed.post",
-            did:  this.$store.getters.getDid,
+            repo:  this.$store.getters.getDid,
             record: {text: this.contents, createdAt: new Date()}
           })
           .then(response => {
@@ -87,13 +86,14 @@
           for (let i = 0; i < this.images.length; i++) {
             const img = this.images[i]
             const blob = await this.getBlob(img);
-            const id = await this.getCid(blob)
-            imgs.push({alt: "", image:{cid: String(id), mimeType:blob.type}})
+            const image = await this.uploadImage(blob)
+            imgs.push({alt: "", image })
           }
+          console.log(imgs)
           this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
           this.axios.post('https://bsky.social/xrpc/com.atproto.repo.createRecord', {
             collection: "app.bsky.feed.post",
-            did:  this.$store.getters.getDid,
+            repo:  this.$store.getters.getDid,
             record: {text: this.contents, createdAt: new Date(), 
               embed:{
                 $type:"app.bsky.embed.images",
@@ -166,8 +166,8 @@
           for (let i = 0; i < this.images.length; i++) {
           const img = this.images[i]
           const blob = await this.getBlob(img);
-          const id = await this.getCid(blob)
-          imgs.push({alt: "", image:{cid: String(id), mimeType:blob.type}})
+          const image = await this.uploadImage(blob)
+          imgs.push({alt: "", image })
           } 
           let parent = {}
           let root = {}
@@ -181,7 +181,7 @@
           this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
           this.axios.post('https://bsky.social/xrpc/com.atproto.repo.createRecord', {
             collection: "app.bsky.feed.post",
-            did:  this.$store.getters.getDid,
+            repo:  this.$store.getters.getDid,
             record: {text: this.contents,
                      createdAt: new Date(),
                      embed:{

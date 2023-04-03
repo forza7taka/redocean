@@ -12,9 +12,10 @@ loadFonts()
 
 createApp(App)
   .use(router)
-  .use(vuetify)
   .use(vueAxios, axios)
+  .use(vuetify)
+  .use(createGtag, {config: {id: process.env.GA_TRACKING_ID}}, router)
   .use(store)
-  .use(createGtag, { config: { id: process.env.GA_TRACKING_ID }})
   .mount('#app')
-
+  
+  

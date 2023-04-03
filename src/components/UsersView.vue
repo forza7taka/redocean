@@ -23,8 +23,7 @@
                   <v-btn v-if="this.$store.getters.getFollows.includes(f.did)" 
                   @click.prevent="unFollow(this.$store.getters.getDid, f.did)">UnFollow</v-btn>
                   <v-btn v-if="!this.$store.getters.getFollows.includes(f.did)"
-                   @click.prevent="follow(f.did, f.declaration
-.cid)">Follow</v-btn>
+                   @click.prevent="follow(f.did)">Follow</v-btn>
                   <!-- <v-btn v-if="f.viewer && f.viewer.muted" @click.prevent="">UnMute</v-btn>
                   <v-btn v-if="!(f.viewer && f.viewer.muted)" @click.prevent="mute(f.did)">Mute</v-btn> -->
                 </div>
@@ -67,40 +66,7 @@ export default {
     },
   },
   methods: {
-    // async follow(did, cid) {
-    //   this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-    //   await this.axios.post("https://bsky.social/xrpc/com.atproto.repo.createRecord", {
-    //     collection: "app.bsky.graph.follow",
-    //     did: this.$store.getters.getDid,
-    //     record: {
-    //       subject:{
-    //         did: did,
-    //         declarationCid: cid
-    //       },
-    //       createdAt: new Date()}
-    //   })
-    //   .then(response => {
-    //     console.log(response.data)
-    //   })
-    //   .catch(err => {
-    //     console.error(err)
-    //   })
-    // },
-    // async unFollow(did, tid) {
-    //   console.log(tid)
-    //   this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-    //   await this.axios.post("https://bsky.social/xrpc/com.atproto.repo.deleteRecord", {
-    //     collection: "app.bsky.graph.follow",
-    //     did: did,
-    //     rkey: String(tid).substr(-13)
-    //   })
-    //   .then(response => {
-    //     console.log(response.data)
-    //   })
-    //   .catch(err => {
-    //     console.error(err)
-    //   })
-    // }
+
   }
 }
 </script>

@@ -8,6 +8,7 @@ import Follows from '@/components/FollowsView.vue';
 import Popular from '@/components/PopularFeedView.vue';
 import Suggestions from '@/components/SuggestionsView.vue';
 import PrivacyPolicy from '@/components/PrivacyPolicyView.vue';
+import AccountCreate from '@/components/AccountCreateView.vue';
 
 const routes = [
   {
@@ -73,7 +74,12 @@ const routes = [
     path: '/privacypolicy',
     name: 'privacypolicy',
     component: PrivacyPolicy
-   },
+  },
+  {
+    path: '/accountCreate',
+    name: 'accountCreate',
+    component: AccountCreate
+  },
   {
     path: '/',
     name: 'login',

@@ -36,7 +36,7 @@
               </v-list-item-subtitle>-->
             </v-list-item>
           </v-card-actions>
-        <v-card-text>
+        <v-card-text class="text-pre-wrap">
           <div v-if="profile && profile.description" v-html="this.replaceUrls(profile.description)"></div>
         </v-card-text>
       </v-card>
@@ -98,7 +98,7 @@ import FeedView from './FeedView.vue'
     },
     methods: {
       async doFollow() {
-        await this.follow(this.profile.did, this.profile.declaration.cid)
+        await this.follow(this.profile.did)
         await this.getProfile(this.handle)
       },
       async doUnFollow() {
@@ -141,9 +141,9 @@ import FeedView from './FeedView.vue'
       getAuthorFeed(handle, cursor) {
         let params = {}
         if (!cursor) {
-          params = {author: handle}
+          params = {actor: handle}
         } else {
-          params = {author: handle, before: cursor}
+          params = {actor: handle, cursor: cursor}
         }
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
         this.axios.get('https://bsky.social/xrpc/app.bsky.feed.getAuthorFeed', {params})
