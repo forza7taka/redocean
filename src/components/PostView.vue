@@ -115,7 +115,7 @@
         }
       },
       async submit() {
-        if (this.mode == "post") {
+        if (this.mode == "Post") {
           if (this.images.length != 0) { 
             await this.postWithImage()
           } else {
