@@ -1,14 +1,18 @@
 <template>
-<div v-if="complated == true" v-scroll="onScroll">
-<FeedView :timeline="timeline"></FeedView>
+  <div v-if="complated == true">    
+      <FeedView :timeline="timeline"></FeedView>
+      <infinite-loading @infinite="infiniteHandler">
+      </infinite-loading>
 </div>
 </template>
 
 <script>
 import FeedView from "./FeedView.vue"
+import InfiniteLoading from 'v3-infinite-loading'
 export default {
   components: {
-    FeedView
+    FeedView,
+    InfiniteLoading
   },
   name:'App',
   data() {
@@ -29,18 +33,14 @@ export default {
     this.get()
   },
   methods: {
-    onScroll() {
+    infiniteHandler($state) {
       if (this.isComplete) {
-        return;
-      }
-      const scrollHeight = document.documentElement.scrollHeight;
-      const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-      const clientHeight = document.documentElement.clientHeight;
-
-      if (scrollHeight - scrollTop <= clientHeight) {
+        $state.complete()
+      } else {
         this.getTimeline(this.cursor)
+        $state.loaded()
       }
-    },    
+    },
     async get() {
       await this.getUri()
       if (this.uri) {
@@ -61,14 +61,14 @@ export default {
       if (!cursor) {
         params = {}
       } else {
-        params = {before: cursor}
+        params = {cursor: cursor}
       }
-      console.log(params)
       this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-      this.axios.get('https://bsky.social/xrpc/app.bsky.feed.getTimeline', { params })
+      await this.axios.get('https://bsky.social/xrpc/app.bsky.feed.getTimeline', { params })
           .then(response => {
             console.log(response) 
             this.timeline.feed = this.timeline.feed.concat(response.data.feed)
+            console.log(this.timeline.feed) 
             this.complated = true
             this.cursor = response.data.cursor
             if (response.data.feed.length == 0) {

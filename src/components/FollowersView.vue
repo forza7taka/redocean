@@ -1,5 +1,5 @@
 <template>
-  <div v-scroll="onScroll">
+  <div>
 
     <v-card width="400px" class="mx-auto mt-5">
         <v-card-title>
@@ -11,17 +11,21 @@
           @{{subject.handle}} followers
         </v-card-title>
       </v-card>
-    <div v-if="complated == true">
-      <UsersView :users="followers"></UsersView>
-    </div>
-  </div>
+      <div v-if="complated == true">
+        <UsersView :users="followers"></UsersView>
+        <infinite-loading @infinite="infiniteHandler">
+        </infinite-loading>
+      </div>
+</div>
 </template>
 
 <script>
 import UsersView from './UsersView.vue'
+import InfiniteLoading from 'v3-infinite-loading'
 export default {
   components: {
-    UsersView
+    UsersView,
+    InfiniteLoading
   },
   data() {
     return {
@@ -36,15 +40,11 @@ export default {
     this.getFollowers(this.$route.params.handle, this.cursor)
   },
   methods :{
-    onScroll() {
+    infiniteHandler($state) {
       if (this.isComplete) {
-        return;
-      }
-      const scrollHeight = document.documentElement.scrollHeight;
-      const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-      const clientHeight = document.documentElement.clientHeight;
-
-      if (scrollHeight - scrollTop <= clientHeight) {
+        $state.complete()
+      } else {
+        $state.loaded()
         this.getFollowers(this.$route.params.handle, this.cursor)
       }
     },

@@ -1,5 +1,5 @@
 <template>
-    <div v-scroll="onScroll">
+    <div>
       <v-card width="400px" class="mx-auto mt-5">
         <v-card-actions>
             <v-list-item class="w-100">
@@ -42,7 +42,9 @@
       </v-card>
     </div>
     <div v-if="complated == true">
-    <FeedView :timeline="timeline"></FeedView>
+      <FeedView :timeline="timeline"></FeedView>
+      <infinite-loading @infinite="infiniteHandler">
+      </infinite-loading>
     </div>
 </template>
 
@@ -54,9 +56,12 @@ import { useUnMute } from "../common/unMute"
 import { provide} from 'vue'
 import { useStore } from 'vuex'
 import FeedView from './FeedView.vue'
+import InfiniteLoading from 'v3-infinite-loading'
+
   export default {
     components: {
-      FeedView
+      FeedView,
+      InfiniteLoading
     },
     setup() {
       provide('store', useStore())
@@ -105,15 +110,11 @@ import FeedView from './FeedView.vue'
         await this.unFollow(this.$store.getters.getDid, this.profile.did)
         await this.getProfile(this.handle)
       },
-      onScroll() {
+      infiniteHandler($state) {
         if (this.isComplete) {
-          return;
-        }
-        const scrollHeight = document.documentElement.scrollHeight;
-        const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-        const clientHeight = document.documentElement.clientHeight;
-
-        if (scrollHeight - scrollTop <= clientHeight) {
+          $state.complete()
+        } else {
+          $state.loaded()
           this.getAuthorFeed(this.handle, this.cursor)
         }
       },
