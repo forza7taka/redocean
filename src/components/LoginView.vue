@@ -24,9 +24,6 @@
       <v-row justify="center">
         <v-btn @click.prevent="login">Login</v-btn>
       </v-row>
-      <v-row justify="center">
-        <v-btn @click.prevent="this.$router.push('/accountCreate')">Create</v-btn>
-      </v-row>
   </div>
 </template>
 

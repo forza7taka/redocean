@@ -42,7 +42,7 @@
         ></v-text-field>
       </div>
       <v-row justify="center">
-        <v-btn @click.prevent="create">Login</v-btn>
+        <v-btn @click.prevent="create">Create</v-btn>
       </v-row>
   </div>
 </template>
@@ -63,9 +63,11 @@ export default {
   },
   methods: {
     async create() {
-      await this.axios.post('https://bsky.social/xrpc/com.atproto.session.create', {
+      await this.axios.post('https://bsky.social/xrpc/com.atproto.server.createAccount', {
+        email: this.mailAddress,
         handle: this.handle,
-        password: this.password
+        password: this.password,
+        inviteCode: this.inviteCode
       })
       .then(response => {
         console.log(response.data)

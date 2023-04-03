@@ -23,8 +23,8 @@ export function useUnFollow() {
 
     await axios.post("https://bsky.social/xrpc/com.atproto.repo.deleteRecord", {
       collection: "app.bsky.graph.follow",
-      did: ownDid,
-      rkey: String(profile.myState.follow).substr(-13)
+      repo: ownDid,
+      rkey: String(profile.viewer.following).substr(-13)
     })
     .then(response => {
       store.dispatch('removeFollow', followDid);

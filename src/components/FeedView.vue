@@ -1,6 +1,6 @@
 <template>
   <div v-if="dialog == true">
-    <PostView v-model="dialog" :feed="feed" @onClose="onClose" mode="reply"></PostView>    
+    <PostView v-model="dialog" :feed="feed" @onClose="onClose" mode="Reply"></PostView>    
   </div>
   <v-list>
     <v-list-item v-for="(f, fIndex) in timeline.feed" :key="fIndex">
@@ -65,12 +65,8 @@
         @click="repost(f);f.post.repostCount = f.post.repostCount +1"></v-btn>{{f.post.repostCount}}
         
         <v-btn class="ma-2" variant="text" icon="mdi-heart-outline" color="red"
-        @click="vote(f, 'up');f.post.upvoteCount = f.post.upvoteCount +1"></v-btn>{{f.post.upvoteCount}}
+        @click="like(f);f.post.likeCount = f.post.likeCount +1"></v-btn>{{f.post.likeCount}}
         
-        <v-btn class="ma-2" variant="text" icon="mdi-heart-outline" color="black"
-        @click="vote(f, 'down');f.post.downvoteCount = f.post.downvoteCount +1"></v-btn>{{f.post.downvoteCount}}
-
-
         </v-list-item-subtitle>
   
         <div v-if="f.reply && f.reply.parent">
@@ -118,7 +114,6 @@ export default {
       dialog: false,
       parent: {},
       root: {},
-      items: ['Menu Item 1', 'Menu Item 2', 'Menu Item 3']
     };
   },
   props: {
@@ -133,10 +128,10 @@ export default {
           this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
           this.axios.post('https://bsky.social/xrpc/com.atproto.repo.createRecord', {
             collection: "app.bsky.feed.repost",
-            did:  this.$store.getters.getDid,
+            repo:  this.$store.getters.getDid,
             record: {createdAt: new Date(),
                      $type:"app.bsky.feed.repost",
-                    subject: subject
+                     subject: subject
                     }
           })
           .then(response => {
@@ -146,12 +141,16 @@ export default {
             console.error(err)
           })
         },
-    async vote(feed, direction) {
+    async like(feed) {
           let subject = {uri: feed.post.uri, cid: feed.post.cid}
           this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-          this.axios.post('https://bsky.social/xrpc/app.bsky.feed.setVote', {
-            direction: direction,
-            subject: subject
+          this.axios.post('https://bsky.social/xrpc/com.atproto.repo.createRecord', {
+            collection: "app.bsky.feed.like",
+            repo: this.$store.getters.getDid,
+            record: {
+              subject: subject,
+              createdAt: new Date()
+            }
           })
           .then(response => {
             console.log(response) 

@@ -98,7 +98,7 @@ import FeedView from './FeedView.vue'
     },
     methods: {
       async doFollow() {
-        await this.follow(this.profile.did, this.profile.declaration.cid)
+        await this.follow(this.profile.did)
         await this.getProfile(this.handle)
       },
       async doUnFollow() {

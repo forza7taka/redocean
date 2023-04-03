@@ -23,7 +23,7 @@
   </div>
 
   <div v-if="dialog == true">
-      <PostView v-model="dialog" @onClose="onClose" mode="post"></PostView>    
+      <PostView v-model="dialog" @onClose="onClose" mode="Post"></PostView>    
   </div>
 </template>
 
@@ -43,6 +43,11 @@
         // contents: '',
         // cid: '',
         menuItems: [
+        {
+          icon: "mdi-account-plus",
+          name: "Account",
+          link: "/accountCreate",
+        },
         {
           icon: "mdi-home",
           name: "Home",

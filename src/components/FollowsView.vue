@@ -51,9 +51,9 @@ export default {
     async getFollows(handle, cursor) {
       let params = {}
       if (!cursor) {
-        params = {user: handle}
+        params = {actor: handle}
       } else {
-        params = {user: handle, before: cursor}
+        params = {actor: handle, cursor: cursor}
       } 
       this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
       await this.axios.get("https://bsky.social/xrpc/app.bsky.graph.getFollows", {params})

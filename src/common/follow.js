@@ -5,16 +5,13 @@ import axios from 'axios'
 export function useFollow() {
   const store = useStore()
   
-  async function follow(did, cid) {
+  async function follow(did) {
     axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getAccessJwt
     await axios.post("https://bsky.social/xrpc/com.atproto.repo.createRecord", {
       collection: "app.bsky.graph.follow",
-      did: store.getters.getDid,
+      repo: store.getters.getDid,
       record: {
-        subject:{
-          did: did,
-          declarationCid: cid
-        },
+        subject: did,
         createdAt: new Date()}
     })
     .then(response => {
