@@ -1,5 +1,5 @@
 <template>
-  <div v-scroll="onScroll">
+  <div>
     <div v-if="complated == true">
       <UsersView :users="follows"></UsersView>
     </div>
