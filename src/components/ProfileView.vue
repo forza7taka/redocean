@@ -141,9 +141,9 @@ import FeedView from './FeedView.vue'
       getAuthorFeed(handle, cursor) {
         let params = {}
         if (!cursor) {
-          params = {author: handle}
+          params = {actor: handle}
         } else {
-          params = {author: handle, before: cursor}
+          params = {actor: handle, cursor: cursor}
         }
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
         this.axios.get('https://bsky.social/xrpc/app.bsky.feed.getAuthorFeed', {params})

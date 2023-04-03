@@ -24,6 +24,9 @@
       <v-row justify="center">
         <v-btn @click.prevent="login">Login</v-btn>
       </v-row>
+      <v-row justify="center">
+        <v-btn @click.prevent="this.$router.push('/accountCreate')">Create</v-btn>
+      </v-row>
   </div>
 </template>
 
@@ -44,7 +47,7 @@ export default {
   mounted() {
     if ((this.$store.getters.getDid) && (this.$store.getters.getAccessJwt)) {
       this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getRefreshJwt
-      this.axios.post('https://bsky.social/xrpc/com.atproto.session.refresh')
+      this.axios.post('https://bsky.social/xrpc/com.atproto.server.refreshSession')
       .then(response => {
         this.$store.dispatch('doCreateSession', response.data)
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
@@ -59,7 +62,7 @@ export default {
   },
   methods: {
     async login() {
-      await this.axios.post('https://bsky.social/xrpc/com.atproto.session.create', {
+      await this.axios.post('https://bsky.social/xrpc/com.atproto.server.createSession', {
         handle: this.handle,
         password: this.password
       })
@@ -82,9 +85,9 @@ export default {
     async getFollows(handle, cursor) {
       let params = {}
       if (!cursor) {
-        params = {user: handle}
+        params = {actor: handle}
       } else {
-        params = {user: handle, before: cursor}
+        params = {actor: handle, cursor: cursor}
       } 
       this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
       await this.axios.get("https://bsky.social/xrpc/app.bsky.graph.getFollows", {params})
