@@ -1,6 +1,6 @@
 <template>
   <FeedView :timeline="timeline"></FeedView>
-  <infinite-loading @infinite="infiniteHandler" immediate-check="false">
+  <infinite-loading @infinite="infiniteHandler" :firstload=false>
   </infinite-loading>
 </template>
 
@@ -22,7 +22,7 @@ export default {
     };
   },
   beforeMount() {
-    // this.getPopular(this.cursor)
+    this.getPopular(this.cursor)
   },
   methods: {
     async infiniteHandler($state) {
@@ -42,7 +42,7 @@ export default {
       }
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = this.axios.get('https://bsky.social/xrpc/app.bsky.unspecced.getPopular', { params })
+        let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.unspecced.getPopular', { params })
         console.log(response)
         this.timeline.feed = this.timeline.feed.concat(response.data.feed)
         this.cursor = response.data.cursor
@@ -50,7 +50,8 @@ export default {
           this.complated = true
         }
       } catch (e) {
-        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
+        console.log(e)
+        this.$toast.show(e.data.error + " " + e.data.message, {
           type: "error",
           position: "top-right",
           duration: 8000

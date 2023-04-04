@@ -41,7 +41,7 @@
     </v-card>
   </div>
   <FeedView :timeline="timeline"></FeedView>
-  <infinite-loading @infinite="infiniteHandler" immediate-check="false">
+  <infinite-loading @infinite="infiniteHandler" :firstload=false>
   </infinite-loading>
 </template>
 
@@ -71,7 +71,7 @@ export default {
   data() {
     return {
       profile: [],
-      handle: '',
+      handle: "",
       did: "",
       timeline: { feed: [] },
       complated: false,
@@ -84,16 +84,19 @@ export default {
     }
   },
   watch: {
-    $route() {
-      this.handle = this.getHandle()
-      this.getProfile(this.handle)
-      // this.getAuthorFeed(this.handle, this.cursor)
+    '$route.params.handle': {
+      handler(n) {
+        this.timeline = { feed: [] }
+        this.handle = n
+        this.getProfile(n)
+        this.getAuthorFeed(n, null)
+      }
     }
   },
   async beforeMount() {
     this.handle = await this.getHandle()
     await this.getProfile(this.handle)
-    // await this.getAuthorFeed(this.handle, this.cursor)
+    await this.getAuthorFeed(this.handle, this.cursor)
   },
   mounted() {
   },

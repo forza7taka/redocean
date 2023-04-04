@@ -12,7 +12,7 @@
       </v-card-title>
     </v-card>
     <UsersView :users="followers"></UsersView>
-    <infinite-loading @infinite="infiniteHandler" immediate-check="false">
+    <infinite-loading @infinite="infiniteHandler" :firstload=false>
     </infinite-loading>
   </div>
 </template>
@@ -33,8 +33,8 @@ export default {
       subject: {}
     }
   },
-  async beforeMount() {
-    // await this.getFollowers(this.$route.params.handle, this.cursor)
+  beforeMount() {
+    this.getFollowers(this.$route.params.handle, this.cursor)
   },
   methods: {
     async infiniteHandler($state) {

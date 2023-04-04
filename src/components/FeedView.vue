@@ -2,7 +2,7 @@
   <div v-if="dialog == true">
     <PostView v-model="dialog" :feed="feed" @onClose="onClose" mode="Reply"></PostView>
   </div>
-  <v-list vif="timeline && timeline.feed">
+  <v-list>
     <v-list-item v-for="(f, fIndex) in timeline.feed" :key="fIndex">
       <v-row>
         <v-col class="d-flex justify-center align-center">
