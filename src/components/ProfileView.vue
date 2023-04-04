@@ -8,8 +8,18 @@
               <v-img cover v-bind:src=profile.avatar alt="avatar"></v-img>
             </v-avatar>
           </template>
-          <v-list-item-title>{{ profile.displayName }}</v-list-item-title>
-          <v-list-item-subtitle>@{{ profile.handle }}</v-list-item-subtitle>
+          <v-list-item-title>
+            {{ profile.displayName }}
+            <v-btn size=12 icon>
+              <v-icon size=12>mdi-pencil</v-icon>
+            </v-btn>
+          </v-list-item-title>
+          <v-list-item-subtitle>
+            @{{ profile.handle }}
+            <v-btn size=12 icon>
+              <v-icon size=12>mdi-pencil</v-icon>
+            </v-btn>
+          </v-list-item-subtitle>
           <v-list-item-subtitle>
             <router-link :to="`/followers/${encodeURIComponent(profile.handle)}`"
               style="text-decoration: none; color: inherit;">
@@ -36,8 +46,11 @@
         </v-list-item>
       </v-card-actions>
       <v-card-text class="text-pre-wrap">
-        <div v-if="profile && profile.description" v-html="this.replaceUrls(profile.description)"></div>
+        <div v-if="profile && profile.description" v-html="this.replaceUrls(profile.description)">
+        </div>
       </v-card-text>
+      <v-btn icon="mdi-pencil" small></v-btn>
+        
     </v-card>
   </div>
   <FeedView :timeline="timeline"></FeedView>
