@@ -7,8 +7,8 @@ import axios from 'axios'
 import vueAxios from 'vue-axios'
 import store from './store'
 import createGtag from 'vue-gtag-next';
-import InfiniteLoading from "v3-infinite-loading";
-
+import infiniteLoading from "v3-infinite-loading";
+import toaster from '@meforma/vue-toaster';
 
 loadFonts()
 
@@ -18,7 +18,8 @@ createApp(App)
   .use(vuetify)
   .use(createGtag, {config: {id: process.env.GA_TRACKING_ID}}, router)
   .use(store)
-  .component("infinite-loading", InfiniteLoading)
+  .use(toaster)
+  .component("infinite-loading", infiniteLoading)
   .mount('#app')
   
   

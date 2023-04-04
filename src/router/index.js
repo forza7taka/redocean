@@ -9,7 +9,7 @@ import Popular from '@/components/PopularFeedView.vue';
 import Suggestions from '@/components/SuggestionsView.vue';
 import PrivacyPolicy from '@/components/PrivacyPolicyView.vue';
 import AccountCreate from '@/components/AccountCreateView.vue';
-
+import { trackRouter } from "vue-gtag-next";
 const routes = [
   {
     path: '/login',
@@ -20,55 +20,55 @@ const routes = [
     path: '/timeline',
     name: 'timeline',
     component: TimeLine
-   },
-   {
+  },
+  {
     path: '/timeline/:uri',
     name: 'timeline_uri',
     component: TimeLine
-   },
-   {
+  },
+  {
     path: '/popular/',
     name: 'popular',
     component: Popular
-   },
-   {
+  },
+  {
     path: '/suggestions/',
     name: 'suggestions',
     component: Suggestions
-   },
-   {
+  },
+  {
     path: '/profile',
     name: 'profile',
     component: Profile
-   },
-   {
+  },
+  {
     path: '/profile/:handle',
     name: 'profile_handle',
     component: Profile
-   },
-   {
+  },
+  {
     path: '/logout',
     name: 'logout',
     component: TimeLine
-   },
-   {
+  },
+  {
     path: '/followers/:handle',
     name: 'followers',
     component: Followers
-   },
-   {
+  },
+  {
     path: '/follows/:handle',
     name: 'follows',
     component: Follows
-   },
-   {
+  },
+  {
     path: '/search',
     name: 'search',
     component: Search
-//   }
-//   {
-//     path: '*',
-//     redirect: '/login'
+    //   }
+    //   {
+    //     path: '*',
+    //     redirect: '/login'
   },
   {
     path: '/privacypolicy',
@@ -88,8 +88,8 @@ const routes = [
 ];
 
 const router = createRouter({
-    history: createWebHistory(process.env.BASE_URL),
-    routes
-  })
-
+  history: createWebHistory(process.env.BASE_URL),
+  routes
+})
+trackRouter(router);
 export default router;
