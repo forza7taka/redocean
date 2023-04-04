@@ -2,21 +2,19 @@
   <div>
 
     <v-card width="400px" class="mx-auto mt-5">
-        <v-card-title>
-          <router-link :to="`/profile/${this.$route.params.handle}`">
+      <v-card-title>
+        <router-link :to="`/profile/${this.$route.params.handle}`">
           <v-avatar color="surface-variant">
-            <v-img cover v-bind:src=subject.avatar alt="avatar"></v-img>          
+            <v-img cover v-bind:src=subject.avatar alt="avatar"></v-img>
           </v-avatar>
-          </router-link>
-          @{{subject.handle}} followers
-        </v-card-title>
-      </v-card>
-      <div v-if="complated == true">
-        <UsersView :users="followers"></UsersView>
-        <infinite-loading @infinite="infiniteHandler">
-        </infinite-loading>
-      </div>
-</div>
+        </router-link>
+        @{{ subject.handle }} followers
+      </v-card-title>
+    </v-card>
+    <UsersView :users="followers"></UsersView>
+    <infinite-loading @infinite="infiniteHandler" :firstload=false>
+    </infinite-loading>
+  </div>
 </template>
 
 <script>
@@ -32,45 +30,48 @@ export default {
       complated: false,
       followers: [],
       cursor: null,
-      isComplete: false,
       subject: {}
     }
   },
   beforeMount() {
     this.getFollowers(this.$route.params.handle, this.cursor)
   },
-  methods :{
-    infiniteHandler($state) {
+  methods: {
+    async infiniteHandler($state) {
       if (this.isComplete) {
         $state.complete()
       } else {
         $state.loaded()
-        this.getFollowers(this.$route.params.handle, this.cursor)
+        await this.getFollowers(this.$route.params.handle, this.cursor)
       }
     },
     async getFollowers(handle, cursor) {
       let params = {}
       if (!cursor) {
-        params = {actor: handle}
+        params = { actor: handle }
       } else {
-        params = {actor: handle, cursor: cursor}
-      } 
-      this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-      await this.axios.get("https://bsky.social/xrpc/app.bsky.graph.getFollowers", {params})
-      .then(response => {
-        console.log(response.data)
-        this.cursor = response.data.cursor
-        if (response.data.followers.length == 0) {
-          this.isComplete = true
-        }
-        this.followers = this.followers.concat(response.data.followers)
-        this.subject = response.data.subject
-        this.complated = true
-
-      })
-      .catch(err => {
-        console.error(err)
-      })
+        params = { actor: handle, cursor: cursor }
+      }
+      try {
+        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
+        let response = await this.axios.get("https://bsky.social/xrpc/app.bsky.graph.getFollowers", { params })
+          .then(response => {
+            console.log(response.data)
+            this.cursor = response.data.cursor
+            if (response.data.followers.length == 0) {
+              this.complated = true
+            }
+            this.followers = this.followers.concat(response.data.followers)
+            this.subject = response.data.subject
+          })
+        console.log(response)
+      } catch (e) {
+        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
+          type: "error",
+          position: "top-right",
+          duration: 8000
+        })
+      }
     }
   }
 }

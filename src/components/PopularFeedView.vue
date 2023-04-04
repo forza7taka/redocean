@@ -1,11 +1,7 @@
 <template>
-    <div v-if="complated == true">
-
-      <FeedView :timeline="timeline"></FeedView>
-      <infinite-loading @infinite="infiniteHandler"></infinite-loading>
-
-  </div>
-  
+  <FeedView :timeline="timeline"></FeedView>
+  <infinite-loading @infinite="infiniteHandler" :firstload=false>
+  </infinite-loading>
 </template>
 
 <script>
@@ -17,46 +13,24 @@ export default {
     FeedView,
     InfiniteLoading
   },
-  name:'App',
+  name: 'App',
   data() {
     return {
       complated: false,
-      timeline: {feed:[]},
-      uri: null,
+      timeline: { feed: [] },
       cursor: null,
-      isComplete: false
     };
   },
-  watch: {
-      $route() {
-        this.get()
-      },
-  },
   beforeMount() {
-    this.get()
+    this.getPopular(this.cursor)
   },
   methods: {
-    infiniteHandler($state) {
-      if (this.isComplete) {
+    async infiniteHandler($state) {
+      if (this.complated) {
         $state.complete()
       } else {
         $state.loaded()
-        this.getPopular(this.cursor)
-      }
-    },
-    async get() {
-      await this.getUri()
-      if (this.uri) {
-      await this.getTimelineByUri()
-      } else {
-      await this.getPopular(this.cursor)
-      }
-    },
-    async getUri() {
-      if (this.$route.params.uri) {
-        this.uri = this.$route.params.uri  
-      } else {
-        this.uri = null
+        await this.getPopular(this.cursor)
       }
     },
     async getPopular(cursor) {
@@ -64,40 +38,26 @@ export default {
       if (!cursor) {
         params = {}
       } else {
-        params = {cursor: cursor}
+        params = { cursor: cursor }
       }
-      console.log(params)
-      this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-      this.axios.get('https://bsky.social/xrpc/app.bsky.unspecced.getPopular', { params })
-          .then(response => {
-            console.log(response) 
-            this.timeline.feed = this.timeline.feed.concat(response.data.feed)
-            this.complated = true
-            this.cursor = response.data.cursor
-            if (response.data.feed.length == 0) {
-              this.isComplete = true
-            }
-          })
-          .catch(err => {
-            console.error(err)
-          })
-    },
-    async getTimelineByUri() {
-      this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-      this.axios.get('https://bsky.social/xrpc/app.bsky.feed.getPostThread', {
-        params: {
-          uri: this.uri
+      try {
+        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
+        let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.unspecced.getPopular', { params })
+        console.log(response)
+        this.timeline.feed = this.timeline.feed.concat(response.data.feed)
+        this.cursor = response.data.cursor
+        if (response.data.feed.length == 0) {
+          this.complated = true
         }
+      } catch (e) {
+        console.log(e)
+        this.$toast.show(e.data.error + " " + e.data.message, {
+          type: "error",
+          position: "top-right",
+          duration: 8000
         })
-        .then(response => {
-            console.log(response.data)
-            this.timeline = response.data
-            this.complated = true
-        })
-        .catch(err => {
-          console.error(err)
-        })
-    },
-  } 
+      }
+    }
+  }
 };
 </script>
