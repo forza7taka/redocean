@@ -10,15 +10,9 @@
           </template>
           <v-list-item-title>
             {{ profile.displayName }}
-            <v-btn size=12 icon>
-              <v-icon size=12>mdi-pencil</v-icon>
-            </v-btn>
           </v-list-item-title>
           <v-list-item-subtitle>
             @{{ profile.handle }}
-            <v-btn size=12 icon>
-              <v-icon size=12>mdi-pencil</v-icon>
-            </v-btn>
           </v-list-item-subtitle>
           <v-list-item-subtitle>
             <router-link :to="`/followers/${encodeURIComponent(profile.handle)}`"
@@ -39,6 +33,10 @@
             <v-btn v-if="follows.includes(profile.did)" @click.prevent="doUnFollow()">UnFollow</v-btn>
             <v-btn v-if="!follows.includes(profile.did)" @click.prevent="doFollow()">Follow</v-btn>
           </v-list-item-subtitle>
+              <v-btn size=15 v-if="profile.did == this.$store.getters.getDid" icon to="ProfileEdit">
+                <v-icon size="15">mdi-pencil</v-icon>
+              </v-btn>
+
           <!-- <v-list-item-subtitle>
                 <v-btn v-if="profile.viewer && profile.viewer.muted" @click.prevent="unMute(profile.did)">UnMute</v-btn>
                 <v-btn v-if="!(profile.viewer && profile.viewer.muted)" @click.prevent="mute(profile.did)">Mute</v-btn>
@@ -49,10 +47,9 @@
         <div v-if="profile && profile.description" v-html="this.replaceUrls(profile.description)">
         </div>
       </v-card-text>
-      <v-btn icon="mdi-pencil" small></v-btn>
-        
     </v-card>
   </div>
+
   <FeedView :timeline="timeline"></FeedView>
   <infinite-loading @infinite="infiniteHandler" :firstload=false>
   </infinite-loading>
@@ -89,6 +86,7 @@ export default {
       timeline: { feed: [] },
       complated: false,
       cursor: null,
+      displayNameDialogVisible: false
     };
   },
   computed: {
