@@ -33,14 +33,15 @@
             <v-btn v-if="follows.includes(profile.did)" @click.prevent="doUnFollow()">UnFollow</v-btn>
             <v-btn v-if="!follows.includes(profile.did)" @click.prevent="doFollow()">Follow</v-btn>
           </v-list-item-subtitle>
-              <v-btn size=15 v-if="profile.did == this.$store.getters.getDid" icon to="ProfileEdit">
-                <v-icon size="15">mdi-pencil</v-icon>
-              </v-btn>
-
-          <!-- <v-list-item-subtitle>
-                <v-btn v-if="profile.viewer && profile.viewer.muted" @click.prevent="unMute(profile.did)">UnMute</v-btn>
-                <v-btn v-if="!(profile.viewer && profile.viewer.muted)" @click.prevent="mute(profile.did)">Mute</v-btn>
-              </v-list-item-subtitle>-->
+          <v-btn size=15 v-if="profile.did == this.$store.getters.getDid" icon to="ProfileEdit">
+             <v-icon size="15">mdi-pencil</v-icon>
+          </v-btn>
+          <v-list-item-subtitle v-if="profile.did != this.$store.getters.getDid">
+                <v-btn v-if="profile.viewer && profile.viewer.muted" 
+                @click.prevent="unMute(profile.did);profile.viewer.muted=!profile.viewer.muted">UnMute</v-btn>
+                <v-btn v-if="!(profile.viewer && profile.viewer.muted)" 
+                @click.prevent="mute(profile.did); profile.viewer.muted=!profile.viewer.muted">Mute</v-btn>
+          </v-list-item-subtitle>
         </v-list-item>
       </v-card-actions>
       <v-card-text class="text-pre-wrap">

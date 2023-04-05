@@ -1,22 +1,26 @@
 import { provide } from 'vue'
 import { useStore } from 'vuex'
 import axios from 'axios'
+import {createToaster} from '@meforma/vue-toaster'
+
 
 export function useMute() {
   const store = useStore()
-  
-  async function mute(did) {
-    axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getAccessJwt
-    await axios.post("app.bsky.graph.mute", {
-      user: did
-    })
-    .then(response => {
-      console.log(response.data)
-    })
-    .catch(err => {
-      console.error(err)
-    })
+  const toast = createToaster()
 
+  async function mute(did) {
+    try {
+      axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getAccessJwt
+      await axios.post("https://bsky.social/xrpc/app.bsky.graph.muteActor", {
+        actor: did
+      })
+    } catch (e) {
+      toast.show(e.response.data.error + " " + e.response.data.message, {
+        type: "error",
+        position: "top-right",
+        duration: 8000
+      })
+    }
     return {mute}
   }
 
