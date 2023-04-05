@@ -7,7 +7,7 @@
       </v-card-text>
       <v-card-text>
         <v-row>
-          <div v-for="(image, index) in images" :key="index">
+          <div v-for="(image, index) in imageUrls" :key="index">
             <v-col>
               <v-img width="50" id="image" :src=image></v-img>
             </v-col>
@@ -33,7 +33,7 @@ export default {
   data() {
     return {
       files: [],
-      images: [],
+      imageUrls: [],
       contents: '',
       cid: ''
     };
@@ -48,12 +48,11 @@ export default {
       for (let i = 0; i < files.length; i++) {
         const element = files[i]
         this.files.push(element);
-        this.images.push(URL.createObjectURL(element));
+        this.imageUrls.push(URL.createObjectURL(element));
       }
     },
-    async getBlob(url) {
-      const response = await fetch(url);
-      const blob = await response.blob();
+    async getBlob(file) {
+      const blob = new Blob([file], { type: file.type });
       return blob;
     },
     async uploadImage(blob) {
@@ -76,11 +75,11 @@ export default {
         })
     },
     async postWithImage() {
-      if (this.images.length != 0) {
+      if (this.files.length != 0) {
         let imgs = []
-        for (let i = 0; i < this.images.length; i++) {
-          const img = this.images[i]
-          const blob = await this.getBlob(img);
+        for (let i = 0; i < this.files.length; i++) {
+          const file = this.files[i]
+          const blob = await this.getBlob(file);
           const image = await this.uploadImage(blob)
           imgs.push({ alt: "", image })
         }
@@ -113,13 +112,13 @@ export default {
     },
     async submit() {
       if (this.mode == "Post") {
-        if (this.images.length != 0) {
+        if (this.files.length != 0) {
           await this.postWithImage()
         } else {
           await this.post()
         }
       } else {
-        if (this.images.length != 0) {
+        if (this.files.length != 0) {
           await this.replyWithImage()
         } else {
           await this.reply()
@@ -159,11 +158,11 @@ export default {
         })
     },
     async replyWithImage() {
-      let imgs = []
-      if (this.images.length != 0) {
-        for (let i = 0; i < this.images.length; i++) {
-          const img = this.images[i]
-          const blob = await this.getBlob(img);
+      if (this.files.length != 0) {
+        let imgs = []
+        for (let i = 0; i < this.files.length; i++) {
+          const file = this.files[i]
+          const blob = await this.getBlob(file);
           const image = await this.uploadImage(blob)
           imgs.push({ alt: "", image })
         }
