@@ -4,7 +4,7 @@
   </infinite-loading>
 </template>
 
-<script>
+<script >
 import FeedView from "./FeedView.vue"
 import InfiniteLoading from 'v3-infinite-loading'
 export default {

@@ -24,8 +24,10 @@
                     @click.prevent="unFollow(this.$store.getters.getDid, f.did)">UnFollow</v-btn>
                   <v-btn v-if="!this.$store.getters.getFollows.includes(f.did)"
                     @click.prevent="follow(f.did)">Follow</v-btn>
-                  <!-- <v-btn v-if="f.viewer && f.viewer.muted" @click.prevent="">UnMute</v-btn>
-                  <v-btn v-if="!(f.viewer && f.viewer.muted)" @click.prevent="mute(f.did)">Mute</v-btn> -->
+                  <v-btn v-if="f.viewer && f.viewer.muted" 
+                  @click.prevent="unMute(f.did); f.viewer.muted = !f.viewer.muted">UnMute</v-btn>
+                  <v-btn v-if="!(f.viewer && f.viewer.muted)" 
+                  @click.prevent="mute(f.did); f.viewer.muted = !f.viewer.muted">Mute</v-btn>
                 </div>
               </template>
             </v-list-item>
