@@ -9,7 +9,9 @@ import Popular from '@/components/PopularFeedView.vue';
 import Suggestions from '@/components/SuggestionsView.vue';
 import PrivacyPolicy from '@/components/PrivacyPolicyView.vue';
 import AccountCreate from '@/components/AccountCreateView.vue';
+import ProfileEdit from '@/components/ProfileEditView.vue';
 import { trackRouter } from "vue-gtag-next";
+
 const routes = [
   {
     path: '/login',
@@ -45,6 +47,11 @@ const routes = [
     path: '/profile/:handle',
     name: 'profile_handle',
     component: Profile
+  },
+  {
+    path: '/profileEdit',
+    name: 'profileEdit',
+    component: ProfileEdit
   },
   {
     path: '/logout',
