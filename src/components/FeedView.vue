@@ -70,8 +70,9 @@
 
 
               <v-menu>
-                <template v-slot:[`activator${fIndex}`]="{ props }">
-                  <v-btn v-bind="props" class="ma-2" variant="text" icon="mdi-dots-vertical" />
+                <!--<template v-if=true v-slot:[`activator${fIndex}`]="{ props }">-->
+                <template #activator="{ on }">
+                  <v-btn v-bind="on" class="ma-2" variant="text" icon="mdi-dots-vertical" />
                 </template>
                 <v-list>
                   <v-list-item>
