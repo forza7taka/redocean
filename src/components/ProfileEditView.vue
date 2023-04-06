@@ -18,6 +18,7 @@
       </v-card-text>
       <v-card-actions>
         <v-btn icon @click="updateProfile"><v-icon>mdi-content-save</v-icon></v-btn>
+<!--        <v-btn icon @click="createInviteCode"><v-icon>mdi-content-save</v-icon></v-btn>-->
       </v-card-actions>
     </v-card>
   </div>
@@ -44,6 +45,23 @@ export default {
   mounted() {
   },
   methods: {
+    async createInviteCode() {
+      try {
+        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
+        let response = await this.axios.post('https://bsky.social/xrpc/com.atproto.server.createInviteCode', {
+          params: {
+            useCount: 5
+          }
+        })
+        console.log(response.data)
+      } catch (e) {
+        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
+          type: "error",
+          position: "top-right",
+          duration: 8000
+        })
+      }
+    },
     selectAvator(event) {
       const file = event.target.files[0];
       this.avatar = file;
