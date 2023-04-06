@@ -1,64 +1,67 @@
 <template>
   <div>
-    <div v-if="complated == true">
-      <UsersView :users="follows"></UsersView>
-    </div>
+
+    <v-card width="400px" class="mx-auto mt-5">
+      <v-card-title>
+        suggestions
+      </v-card-title>
+    </v-card>
+    <UsersView :users="actors"></UsersView>
+    <infinite-loading @infinite="infiniteHandler" :firstload=false>
+    </infinite-loading>
   </div>
 </template>
-
 <script>
 import UsersView from './UsersView.vue'
+
+import InfiniteLoading from 'v3-infinite-loading'
 export default {
   components: {
-    UsersView
+    UsersView,
+    InfiniteLoading
   },
   data() {
     return {
       complated: false,
-      follows: [],
+      actors: [],
       cursor: null,
-      isComplete: false,
-      subject: {}
     }
   },
   beforeMount() {
-    this.getSuggestions(this.$route.params.handle, this.cursor)
+    this.getSuggestions(this.cursor)
   },
   methods :{
-    onScroll() {
-      if (this.isComplete) {
-        return;
-      }
-      const scrollHeight = document.documentElement.scrollHeight;
-      const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-      const clientHeight = document.documentElement.clientHeight;
-
-      if (scrollHeight - scrollTop <= clientHeight) {
-        this.getSuggestions(this.$route.params.handle, this.cursor)
+    async infiniteHandler($state) {
+      if (this.complated) {
+        $state.complete()
+      } else {
+        $state.loaded()
+        await this.getSuggestions(this.cursor)
       }
     },
-    async getSuggestions(handle, cursor) {
-      let params = {}
-      if (!cursor) {
-        params = {user: handle}
-      } else {
-        params = {user: handle, before: cursor}
-      } 
-      this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-      await this.axios.post("app.bsky.actor.getSuggestions", {params})
-      .then(response => {
+    async getSuggestions(cursor) {
+      try {
+        let params = {}
+        if (!cursor) {
+          params = {}
+        } else {
+          params = { cursor: cursor }
+        }
+        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
+        let response = await this.axios.get("https://bsky.social/xrpc/app.bsky.actor.getSuggestions", { params })
         console.log(response.data)
         this.cursor = response.data.cursor
-        if (response.data.follows.length == 0) {
-          this.isComplete = true
+        if (response.data.actors.length == 0) {
+          this.complated = true
         }
-        this.follows = this.follows.concat(response.data.follows)
-        this.subject = response.data.subject
-        this.complated = true
-      })
-      .catch(err => {
-        console.error(err)
-      })
+        this.actors = response.data.actors
+      } catch (e) {
+        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
+          type: "error",
+          position: "top-right",
+          duration: 8000
+        })
+      }
     }
   }
 }
