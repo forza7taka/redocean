@@ -2,6 +2,7 @@
   <div v-if="dialog == true">
     <PostView v-model="dialog" :feed="feed" @onClose="onClose" mode="Reply"></PostView>
   </div>
+
   <v-list>
     <v-list-item v-for="(f, fIndex) in timeline.feed" :key="fIndex">
       <v-row>
@@ -67,25 +68,27 @@
               <v-btn class="ma-2" variant="text" icon="mdi-heart-outline" color="red"
                 @click="like(f); f.post.likeCount = f.post.likeCount + 1"></v-btn>{{ f.post.likeCount }}
 
+
               <v-menu>
-                <template v-slot:activator="{ on }">
-                  <v-btn v-on="on">Menu</v-btn>
+                <template v-slot:[`activator${fIndex}`]="{ props }">
+                  <v-btn v-bind="props" class="ma-2" variant="text" icon="mdi-dots-vertical" />
                 </template>
                 <v-list>
-                  <v-list-item v-for="(item, index) in popUpMenus" :key="index">
-                    <v-list-item-content>
-                      <v-list-item-title>{{ item.title }}</v-list-item-title>
-                    </v-list-item-content>
+                  <v-list-item>
+                    <v-list-item-title>
+                      トップ
+                    </v-list-item-title>
                   </v-list-item>
                 </v-list>
               </v-menu>
 
 
-          </v-list-item-subtitle>
 
+
+
+            </v-list-item-subtitle>
 
             <div v-if="f.reply && f.reply.parent">
-
               <v-card width="350px" class="mx-auto mt-5">
                 <v-card-actions>
                   <v-list-item class="w-100">
@@ -130,7 +133,7 @@ export default {
       dialog: false,
       parent: {},
       root: {},
-      popUpMenus: [{title: "delete"}]
+      popUpMenus: [{ title: "delete" }]
     };
   },
   props: {
