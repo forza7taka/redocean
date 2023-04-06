@@ -29,18 +29,30 @@
           <v-list-item-subtitle>
             Posts: {{ profile.postsCount }}
           </v-list-item-subtitle>
+          <div v-if="inviteCodes">
+            <v-list-item-subtitle>
+              inviteCode
+            </v-list-item-subtitle>
+            <div v-for="(c, cIndex) in inviteCodes" :key="cIndex">
+
+              <v-list-item-subtitle v-if="!c.disable">
+                {{ c.code }}
+              </v-list-item-subtitle>
+            </div>
+          </div>
+
           <v-list-item-subtitle>
             <v-btn v-if="follows.includes(profile.did)" @click.prevent="doUnFollow()">UnFollow</v-btn>
             <v-btn v-if="!follows.includes(profile.did)" @click.prevent="doFollow()">Follow</v-btn>
           </v-list-item-subtitle>
           <v-btn size=15 v-if="profile.did == this.$store.getters.getDid" icon to="ProfileEdit">
-             <v-icon size="15">mdi-pencil</v-icon>
+            <v-icon size="15">mdi-pencil</v-icon>
           </v-btn>
           <v-list-item-subtitle v-if="profile.did != this.$store.getters.getDid">
-                <v-btn v-if="profile.viewer && profile.viewer.muted" 
-                @click.prevent="unMute(profile.did);profile.viewer.muted=!profile.viewer.muted">UnMute</v-btn>
-                <v-btn v-if="!(profile.viewer && profile.viewer.muted)" 
-                @click.prevent="mute(profile.did); profile.viewer.muted=!profile.viewer.muted">Mute</v-btn>
+            <v-btn v-if="profile.viewer && profile.viewer.muted"
+              @click.prevent="unMute(profile.did); profile.viewer.muted = !profile.viewer.muted">UnMute</v-btn>
+            <v-btn v-if="!(profile.viewer && profile.viewer.muted)"
+              @click.prevent="mute(profile.did); profile.viewer.muted = !profile.viewer.muted">Mute</v-btn>
           </v-list-item-subtitle>
         </v-list-item>
       </v-card-actions>
@@ -50,7 +62,6 @@
       </v-card-text>
     </v-card>
   </div>
-
   <FeedView :timeline="timeline"></FeedView>
   <infinite-loading @infinite="infiniteHandler" :firstload=false>
   </infinite-loading>
@@ -87,7 +98,8 @@ export default {
       timeline: { feed: [] },
       complated: false,
       cursor: null,
-      displayNameDialogVisible: false
+      displayNameDialogVisible: false,
+      inviteCodes: null
     };
   },
   computed: {
@@ -109,10 +121,29 @@ export default {
     this.handle = await this.getHandle()
     await this.getProfile(this.handle)
     await this.getAuthorFeed(this.handle, this.cursor)
+    if (this.handle == this.$store.getters.getHandle) {
+      await this.getInviteCodes()
+    }
   },
   mounted() {
   },
   methods: {
+    async getInviteCodes() {
+      try {
+        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
+        let response = await this.axios.get('https://bsky.social/xrpc/com.atproto.server.getAccountInviteCodes', {
+          params: {
+          }
+        })
+        this.inviteCodes = response.data.codes
+      } catch (e) {
+        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
+          type: "error",
+          position: "top-right",
+          duration: 8000
+        })
+      }
+    },
     async doFollow() {
       await this.follow(this.profile.did)
       await this.getProfile(this.handle)
