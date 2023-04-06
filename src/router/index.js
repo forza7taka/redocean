@@ -10,8 +10,9 @@ import Suggestions from '@/components/SuggestionsView.vue';
 import PrivacyPolicy from '@/components/PrivacyPolicyView.vue';
 import AccountCreate from '@/components/AccountCreateView.vue';
 import ProfileEdit from '@/components/ProfileEditView.vue';
-import { trackRouter } from "vue-gtag-next";
+import HandleEdit from '@/components/HandleEditView.vue';
 
+import { trackRouter } from "vue-gtag-next";
 const routes = [
   {
     path: '/login',
@@ -54,6 +55,11 @@ const routes = [
     component: ProfileEdit
   },
   {
+    path: '/handleEdit',
+    name: 'handleEdit',
+    component: HandleEdit
+  },
+  {
     path: '/logout',
     name: 'logout',
     component: TimeLine
@@ -81,6 +87,12 @@ const routes = [
     path: '/privacypolicy',
     name: 'privacypolicy',
     component: PrivacyPolicy
+  },
+  
+  {
+    path: '/suggestions',
+    name: 'suggestions',
+    component: Suggestions
   },
   {
     path: '/accountCreate',

@@ -40,7 +40,11 @@ export default createStore({
     },
     removeFollow(state, index) {
       state.follows.splice(index, 1);
+    },
+    setandle(state, session) {
+      state.handle = session.handle;
     }
+
   },
   actions: {
     doCreateSession({
@@ -62,7 +66,14 @@ export default createStore({
       if (index > -1) {
         commit('removeFollow', index);
       }
-    }
+    },
+    doSetHandle({
+      commit
+    }, session) {
+      commit('setHandle', 
+        session
+      )
+    },
   },
   modules: {
   },

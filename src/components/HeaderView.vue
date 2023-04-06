@@ -69,15 +69,15 @@
           link: "/popular"
         },
         {
+          icon: "mdi-star",
+          name: "Suggestions",
+          link: "/suggestions"
+        },
+        {
           icon: "mdi-shield-account",
           name: "PrivacyPolicy",
           link: "/privacypolicy"
         },
-        // {
-        //   icon: "mdi-fire",
-        //   name: "suggestions",
-        //   link: "/suggestions"
-        // },
         ]
       }
     },
