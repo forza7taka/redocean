@@ -68,25 +68,18 @@
               <v-btn class="ma-2" variant="text" icon="mdi-heart-outline" color="red"
                 @click="like(f); f.post.likeCount = f.post.likeCount + 1"></v-btn>{{ f.post.likeCount }}
 
-
-              <v-menu>
-                <!--<template v-if=true v-slot:[`activator${fIndex}`]="{ props }">-->
-                <template #activator="{ on }">
-                  <v-btn v-bind="on" class="ma-2" variant="text" icon="mdi-dots-vertical" />
+              <v-menu offset-y>
+                <template  v-slot:activator="{ props }">
+                  <v-btn v-bind="props" class="ma-2" variant="text" icon="mdi-dots-vertical" />
                 </template>
-                <v-list>
-                  <v-list-item>
-                    <v-list-item-title>
-                      トップ
-                    </v-list-item-title>
+                <v-list v-if="f.post.author.handle==this.$store.getters.getHandle">
+                  <v-list-item  v-for="(m, mIndex) in popUpMenus" :key="mIndex">
+                    <v-list-item-subtitle @click="deletePost(f.post.uri)">
+                      {{ m.title }}
+                    </v-list-item-subtitle>
                   </v-list-item>
                 </v-list>
               </v-menu>
-
-
-
-
-
             </v-list-item-subtitle>
 
             <div v-if="f.reply && f.reply.parent">
@@ -134,7 +127,7 @@ export default {
       dialog: false,
       parent: {},
       root: {},
-      popUpMenus: [{ title: "delete" }]
+      popUpMenus: [{ title: "delete" }],
     };
   },
   props: {
@@ -143,6 +136,23 @@ export default {
   methods: {
     getUri(uri) {
       return Buffer.from(uri).toString('base64')
+    },
+    async deletePost(uri) {
+      console.log(uri)
+      try {      
+        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
+        await this.axios.post('https://bsky.social/xrpc/com.atproto.repo.deleteRecord', {
+          collection: "app.bsky.feed.post",
+          repo: this.$store.getters.getDid,
+          rkey: String(uri).substr(-13)
+        })
+      } catch(e) {
+        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
+          type: "error",
+          position: "top-right",
+          duration: 8000
+       })
+      }
     },
     async repost(feed) {
       try {

@@ -31,12 +31,14 @@
           </v-list-item-subtitle>
           <div v-if="inviteCodes">
             <v-list-item-subtitle>
-              inviteCode
+              InviteCode:
             </v-list-item-subtitle>
             <div v-for="(c, cIndex) in inviteCodes" :key="cIndex">
 
               <v-list-item-subtitle v-if="!c.disable">
-                {{ c.code }}
+                <div v-if="c.available - c.uses.length != 0">
+                {{ c.code }}  last:{{ c.available - c.uses.length}}
+                </div>
               </v-list-item-subtitle>
             </div>
           </div>
@@ -45,7 +47,7 @@
             <v-btn v-if="follows.includes(profile.did)" @click.prevent="doUnFollow()">UnFollow</v-btn>
             <v-btn v-if="!follows.includes(profile.did)" @click.prevent="doFollow()">Follow</v-btn>
           </v-list-item-subtitle>
-          <v-btn size=15 v-if="profile.did == this.$store.getters.getDid" icon to="ProfileEdit">
+          <v-btn size=15 v-if="profile.did == this.$store.getters.getDid" icon to="profileEdit">
             <v-icon size="15">mdi-pencil</v-icon>
           </v-btn>
           <v-list-item-subtitle v-if="profile.did != this.$store.getters.getDid">
@@ -109,11 +111,11 @@ export default {
   },
   watch: {
     '$route.params.handle': {
-      handler(n) {
+      async handler() {
         this.timeline = { feed: [] }
-        this.handle = n
-        this.getProfile(n)
-        this.getAuthorFeed(n, null)
+        this.handle = await this.getHandle()
+        await this.getProfile(this.handle)
+        await this.getAuthorFeed(this.handle, null)
       }
     }
   },
@@ -135,6 +137,7 @@ export default {
           params: {
           }
         })
+        console.log(response.data.codes)
         this.inviteCodes = response.data.codes
       } catch (e) {
         this.$toast.show(e.response.data.error + " " + e.response.data.message, {
