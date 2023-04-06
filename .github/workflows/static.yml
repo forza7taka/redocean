@@ -35,7 +35,7 @@ jobs:
         uses: actions/configure-pages@v3
       - run: npm ci
       - name: Set environment variables
-        run: echo VUE_APP_GA_TRACKING_ID=${{ secrets.GA_TRACKING_ID }} >> .env
+        run: echo "VUE_APP_GA_TRACKING_ID=${{ secrets.GA_TRACKING_ID }}" >> .env
       - run: cat .env
       - run: npm run build
       - name: Upload artifact
