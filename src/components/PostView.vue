@@ -107,7 +107,7 @@ export default {
             this.images = []
             this.files = []
           })
-        this.$emit('onClose', false)
+        this.$emit('onPostDialogClose', false)
       }
     },
     async submit() {
@@ -124,7 +124,7 @@ export default {
           await this.reply()
         }
       }
-      this.$emit('onClose', false)
+      this.$emit('onPostDialogClose', false)
     },
     async reply() {
       let parent

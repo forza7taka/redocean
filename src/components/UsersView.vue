@@ -21,13 +21,13 @@
               <template v-slot:append>
                 <div class="justify-self-end">
                   <v-btn v-if="this.$store.getters.getFollows.includes(f.did)"
-                    @click.prevent="unFollow(this.$store.getters.getDid, f.did)">UnFollow</v-btn>
+                    @click.prevent="unFollow(this.$store.getters.getDid, f.did)" icon><v-icon>mdi-account-remove</v-icon></v-btn>
                   <v-btn v-if="!this.$store.getters.getFollows.includes(f.did)"
-                    @click.prevent="follow(f.did)">Follow</v-btn>
+                    @click.prevent="follow(f.did)" icon><v-icon>mdi-account-check</v-icon></v-btn>
                   <v-btn v-if="f.viewer && f.viewer.muted" 
-                  @click.prevent="unMute(f.did); f.viewer.muted = !f.viewer.muted">UnMute</v-btn>
+                  @click.prevent="unMute(f.did); f.viewer.muted = !f.viewer.muted" icon><v-icon>mdi-volume-high</v-icon></v-btn>
                   <v-btn v-if="!(f.viewer && f.viewer.muted)" 
-                  @click.prevent="mute(f.did); f.viewer.muted = !f.viewer.muted">Mute</v-btn>
+                  @click.prevent="mute(f.did); f.viewer.muted = !f.viewer.muted" icon><v-icon>mdi-volume-mute</v-icon></v-btn>
                 </div>
               </template>
             </v-list-item>

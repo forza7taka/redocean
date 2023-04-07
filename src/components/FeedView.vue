@@ -73,11 +73,9 @@
                   <v-btn v-bind="props" class="ma-2" variant="text" icon="mdi-dots-vertical" />
                 </template>
                 <v-list v-if="f.post.author.handle==this.$store.getters.getHandle">
-                  <v-list-item  v-for="(m, mIndex) in popUpMenus" :key="mIndex">
-                    <v-list-item-subtitle @click="deletePost(f.post.uri)">
-                      {{ m.title }}
-                    </v-list-item-subtitle>
-                  </v-list-item>
+                  <v-list-item @click="deletePost(f.post.uri)">
+                      <v-icon small>mdi-delete</v-icon>
+                    </v-list-item>
                 </v-list>
               </v-menu>
             </v-list-item-subtitle>
@@ -127,7 +125,6 @@ export default {
       dialog: false,
       parent: {},
       root: {},
-      popUpMenus: [{ title: "delete" }],
     };
   },
   props: {

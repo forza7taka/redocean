@@ -29,6 +29,12 @@ export default {
     onClose(value) {
       this.dialog = value;
     },
+  },
+  mounted() {
+    // 最初のページビューのみトラッキング
+    if (this.$route.path === '/') {
+     this.$gtag.pageview(window.location.pathname);
+    }
   }
 }
 </script>

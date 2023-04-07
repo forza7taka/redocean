@@ -44,6 +44,7 @@ export default {
         let params = {}
         if (!cursor) {
           params = {}
+          this.actors = []
         } else {
           params = { cursor: cursor }
         }
@@ -54,7 +55,7 @@ export default {
         if (response.data.actors.length == 0) {
           this.complated = true
         }
-        this.actors = response.data.actors
+        this.actors = this.actors.concat(response.data.actors)
       } catch (e) {
         this.$toast.show(e.response.data.error + " " + e.response.data.message, {
           type: "error",
