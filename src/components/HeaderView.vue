@@ -4,8 +4,8 @@
     <v-app-bar-nav-icon @click="drawer = true"></v-app-bar-nav-icon>
     <v-toolbar-title>RedOcean</v-toolbar-title>
     <v-spacer></v-spacer>
-    <v-btn v-if="this.$store.getters.getAccessJwt" @click="searchDialog = true"><v-icon>mdi-magnify</v-icon></v-btn>
-    
+<!--    <v-btn v-if="this.$store.getters.getAccessJwt" @click="searchDialog = true"><v-icon>mdi-magnify</v-icon></v-btn>
+-->    
     <div v-if="unReadCount != 0">
       <v-badge right top overlap color="blue">
         <template #badge>

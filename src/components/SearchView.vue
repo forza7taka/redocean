@@ -26,14 +26,9 @@ export default {
   methods: {
     async submit() {
 
-
-
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get('https://bsky.social/xrpc/com.atproto.repo.listRecords', { params:{
-          repo:this.$store.getters.getDid,
-          collection:"app.bsky.feed.like"
-        } })
+        let response = await this.axios.get('https://search.bsky.social/search/posts?q=%E3%81%82', {})
         console.log(response)
       } catch (e) {
         this.$toast.show(e.response.data.error + " " + e.response.data.message, {
