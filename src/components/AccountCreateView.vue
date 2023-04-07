@@ -1,11 +1,11 @@
 <template>
   <div>
     <div>
-      <v-text-field label="MailAddress" placeholder="xxxx@xxxx.xxx" color="green darken-5" clearable dense
+      <v-text-field label="mailAddress" placeholder="xxxx@xxxx.xxx" color="green darken-5" clearable dense
         v-model="mailAddress"></v-text-field>
     </div>
     <div>
-      <v-text-field label="handle" placeholder="xxxx" color="green darken-5" clearable dense
+      <v-text-field label="handle" placeholder="xxxx.bsky.social" color="green darken-5" clearable dense
         v-model="handle"></v-text-field>
     </div>
     <div>
@@ -13,7 +13,7 @@
         v-model="password"></v-text-field>
     </div>
     <div>
-      <v-text-field label="Invite Code" placeholder="" color="green darken-5" clearable dense
+      <v-text-field label="invite Code" placeholder="" color="green darken-5" clearable dense
         v-model="inviteCode"></v-text-field>
     </div>
     <v-row justify="center">

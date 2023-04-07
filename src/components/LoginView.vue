@@ -27,6 +27,7 @@ export default {
     }
   },
   mounted() {
+    this.getLikes()
     if ((this.$store.getters.getDid) && (this.$store.getters.getAccessJwt)) {
       this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getRefreshJwt
       this.axios.post('https://bsky.social/xrpc/com.atproto.server.refreshSession')
@@ -40,6 +41,7 @@ export default {
           console.error(err)
           this.message = err
         })
+        
     }
   },
   methods: {
@@ -54,6 +56,10 @@ export default {
         console.log(response.data)
         while (!this.isComplete) {
           await this.getFollows(this.handle, this.cursor)
+        }
+        this.isComplete = true
+        while (!this.isComplete) {
+          await this.getLikes()
         }
         this.$router.push('/timeline')
       } catch (e) {
@@ -85,6 +91,55 @@ export default {
           type: "error",
           position: "top-right",
           duration: 8000
+        })
+      }
+    },
+    async getLikes() {
+      try {
+        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
+        let response = await this.axios.get('https://bsky.social/xrpc/com.atproto.repo.listRecords', {
+          params: {
+            repo: this.$store.getters.getDid,
+            collection: "app.bsky.feed.like",
+            limit: 50
+          }
+        })
+        console.log(response)
+        
+        for (var i = 0; i < response.data.records.length; i++){
+              //response.data.records[i].uid
+              response.data.records[i].cid
+            
+        
+          this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
+          let response = await this.axios.get('https://bsky.social/xrpc/com.atproto.repo.getRecord', {
+            params: {
+              repo: this.$store.getters.getDid,
+              collection: "app.bsky.feed.post",
+              rkey: String(response.data.records[i].cid).substr(-13)
+            }
+          })
+          console.log(response.data)
+
+        
+        
+        
+        
+        
+        }
+
+
+
+
+
+
+
+
+      } catch(e) {
+        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
+        type: "error",
+        position: "top-right",
+        duration: 8000
         })
       }
     }
