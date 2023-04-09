@@ -139,7 +139,7 @@ export default {
       this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
       this.axios.post('https://bsky.social/xrpc/com.atproto.repo.createRecord', {
         collection: "app.bsky.feed.post",
-        did: this.$store.getters.getDid,
+        repo: this.$store.getters.getDid,
         record: {
           text: this.contents,
           createdAt: new Date(),
