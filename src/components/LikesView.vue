@@ -14,7 +14,7 @@
 
               <v-card-actions>
 
-                <v-list-item class="w-100">
+                <v-list-item class="w-100" v-if="authors.get(String(f.uri).substr(5,32))">
                   <template v-slot:prepend>
                     <div style="padding-right: 10px">
                       <router-link :to="`/profile/${authors.get(String(f.uri).substr(5,32)).handle}`">
