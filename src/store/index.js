@@ -7,7 +7,8 @@ export default createStore({
     did: '',
     accessJwt: '',
     refreshJwt: '',
-    follows: []
+    follows: [],
+    likes: new Map()
   },
   getters: {
     getHandle(state) {
@@ -24,16 +25,28 @@ export default createStore({
     },
     getFollows(state) {
       return state.follows;
+    },
+    getLikes(state) {
+      return state.likes;
+    },
+    hasLike: (state) => (key) => {
+      if (!(state.likes instanceof Map)) {
+        return false;
+      }
+      if (state.likes.size == 0) {
+        return false;
+      }
+      return state.likes.has(key);
     }
   },
   mutations: {
-    createSession (state, session) {
+    createSession(state, session) {
       state.did = session.did
       state.handle = session.handle
       state.accessJwt = session.accessJwt
       state.refreshJwt = session.refreshJwt
     },
-    addFollows (state, session) {
+    addFollows(state, session) {
       session.follows.forEach(element => {
         state.follows.push(element.did)
       });
@@ -41,7 +54,22 @@ export default createStore({
     removeFollow(state, index) {
       state.follows.splice(index, 1);
     },
-    setandle(state, session) {
+    addLikes(state, session) {
+      session.records.forEach(element => {
+        state.likes.set(element.value.subject.uri, element.uri)
+      });
+    },
+    addLike(state, {key, value}) {
+      console.log("addLike: "+ key + " " + value)
+      return state.likes.set(key, value);
+    },
+
+    removeLike(state, key) {
+      console.log("removeLike: "+ key)
+      state.likes.delete(key);
+    },
+
+    setHandle(state, session) {
       state.handle = session.handle;
     }
 
@@ -74,6 +102,22 @@ export default createStore({
         session
       )
     },
+    doAddLikes({
+      commit
+    }, session) {
+      commit('addLikes', 
+        session
+      )
+    },
+    doAddLike({ commit }, { key, value }) {
+      commit('addLike', { key, value }
+      )
+    },
+    doRemoveLike({ commit }, key) {
+      commit('removeLike',
+        key
+      )
+    }
   },
   modules: {
   },

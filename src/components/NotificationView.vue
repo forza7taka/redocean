@@ -22,10 +22,10 @@
                   </router-link>
                   {{ n.author.displayName }} 
           </v-card-text>
-            <v-card v-if="posts[n.reasonSubject]">
-                <v-card-subtitle>{{ posts[n.reasonSubject].value.createdAt }}</v-card-subtitle>
+            <v-card v-if="this.posts.get(n.reasonSubject)">
+                <v-card-subtitle>{{ this.posts.get(n.reasonSubject).value.createdAt }}</v-card-subtitle>
                 <v-card-text class="text-pre-wrap">
-                  {{ posts[n.reasonSubject].value.text }}
+                  {{ this.posts.get(n.reasonSubject).value.text }}
                 </v-card-text>
             </v-card>          
         </v-card>
@@ -33,6 +33,12 @@
     </v-list>
 
     <infinite-loading @infinite="infiniteHandler" :firstload=false>
+          <template #spinner>
+        <span>loading...</span>
+      </template>
+      <template #complete>
+        <span>No more data found!</span>
+      </template>
     </infinite-loading>
   </div>
 </template>
@@ -49,13 +55,13 @@ export default {
       complated: false,
       notifications: [],
       cursor: null,
-      posts:{}
+      posts: new Map()
     }
   },
   async beforeMount() {
     await this.getNotifications()
     await this.updateSeen()
-    await this.getPost(this.notifications)
+    await this.getPosts(this.notifications)
   },
   methods: {
     async infiniteHandler($state) {
@@ -103,14 +109,14 @@ export default {
         })
       }
     },
-    async getPost(notifications) {   
+    async getPosts(notifications) {   
       try {
 
         for (const n of notifications) {
           if (n.reason == "follow") {
             continue
           }
-          if (Object.keys(this.posts).includes(n.reasonSubject)) {
+          if (n.reasonSubject in this.posts) {
             continue
           }
           let params = {
@@ -121,9 +127,9 @@ export default {
           try {
             this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
             let response = await this.axios.get("https://bsky.social/xrpc/com.atproto.repo.getRecord", { params: params })
-            let data = response.data
-            this.posts[n.reasonSubject] = data
-            console.log(response.data)
+            this.posts.set(n.reasonSubject, response.data)
+            console.log(response.data.value)
+            console.log(this.posts.get(n.reasonSubject))
           } catch (e) {
             if (e.response && e.response.status === 400) {
               continue

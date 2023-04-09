@@ -1,6 +1,12 @@
 <template>
   <FeedView :timeline="timeline"></FeedView>
   <infinite-loading @infinite="infiniteHandler" :firstload="false">
+      <template #spinner>
+        <span>loading...</span>
+      </template>
+      <template #complete>
+        <span>No more data found!</span>
+      </template>
   </infinite-loading>
 </template>
 

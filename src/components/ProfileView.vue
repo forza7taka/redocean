@@ -69,7 +69,13 @@
   </div>
   <FeedView :timeline="timeline"></FeedView>
   <infinite-loading @infinite="infiniteHandler" :firstload=false>
-  </infinite-loading>
+    <template #spinner>
+      <span>loading...</span>
+    </template>
+    <template #complete>
+      <span>No more data found!</span>
+    </template>
+</infinite-loading>
 </template>
 
 <script>

@@ -13,6 +13,12 @@
     </v-card>
     <UsersView :users="follows"></UsersView>
     <infinite-loading @infinite="infiniteHandler" :firstload=false>
+        <template #spinner>
+        <span>loading...</span>
+      </template>
+      <template #complete>
+        <span>No more data found!</span>
+      </template>
     </infinite-loading>
   </div>
 </template>

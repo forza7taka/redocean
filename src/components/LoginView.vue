@@ -26,22 +26,17 @@ export default {
       isComplete: false
     }
   },
-  mounted() {
-    this.getLikes()
-    if ((this.$store.getters.getDid) && (this.$store.getters.getAccessJwt)) {
-      this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getRefreshJwt
-      this.axios.post('https://bsky.social/xrpc/com.atproto.server.refreshSession')
-        .then(response => {
-          this.$store.dispatch('doCreateSession', response.data)
-          this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-          console.log(response.data)
-          this.$router.push('/timeline')
-        })
-        .catch(err => {
-          console.error(err)
-          this.message = err
-        })
-        
+  async mounted() {
+    try {
+      if ((this.$store.getters.getDid) && (this.$store.getters.getAccessJwt)) {
+        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getRefreshJwt
+        let response = await this.axios.post('https://bsky.social/xrpc/com.atproto.server.refreshSession')
+        this.$store.dispatch('doCreateSession', response.data)
+        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
+        this.$router.push('/timeline')
+      }
+    } catch (e) {
+      console.log("error refresh")
     }
   },
   methods: {
@@ -53,13 +48,12 @@ export default {
         })
         this.$store.dispatch('doCreateSession', response.data)
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        console.log(response.data)
         while (!this.isComplete) {
           await this.getFollows(this.handle, this.cursor)
         }
-        this.isComplete = true
+        this.isComplete = false
         while (!this.isComplete) {
-          await this.getLikes()
+          await this.getLikes(this.cursor)
         }
         this.$router.push('/timeline')
       } catch (e) {
@@ -94,53 +88,51 @@ export default {
         })
       }
     },
-    async getLikes() {
+    async getLikes(cursor) {
       try {
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get('https://bsky.social/xrpc/com.atproto.repo.listRecords', {
-          params: {
+        let params = {}
+        if (!cursor) {
+          params = { 
             repo: this.$store.getters.getDid,
             collection: "app.bsky.feed.like",
             limit: 50
           }
-        })
-        console.log(response)
-        
-        for (var i = 0; i < response.data.records.length; i++){
-              //response.data.records[i].uid
-              response.data.records[i].cid
-            
-        
-          this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-          let response = await this.axios.get('https://bsky.social/xrpc/com.atproto.repo.getRecord', {
-            params: {
-              repo: this.$store.getters.getDid,
-              collection: "app.bsky.feed.post",
-              rkey: String(response.data.records[i].cid).substr(-13)
-            }
-          })
-          console.log(response.data)
-
-        
-        
-        
-        
-        
+        } else {
+          params = {
+            repo: this.$store.getters.getDid,
+            collection: "app.bsky.feed.like",
+            cursor: cursor
+          }
         }
 
-
-
-
-
-
-
-
-      } catch(e) {
+        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
+        let response = await this.axios.get('https://bsky.social/xrpc/com.atproto.repo.listRecords', {
+          params
+        })
+        this.cursor = response.data.cursor
+        if (response.data.records.length == 0) {
+          this.isComplete = true
+          return
+        }
+        this.$store.dispatch('doAddLikes', response.data)
+        // for (var i = 0; i < response.data.records.length; i++){
+        //   this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
+        //   let response2 = await this.axios.get('https://bsky.social/xrpc/com.atproto.repo.getRecord', {
+        //     params: {
+        //       repo: String(response.data.records[i].value.subject.uri).substr(5,32),
+        //       collection: "app.bsky.feed.post",
+        //       rkey: String(response.data.records[i].value.subject.uri).substr(-13)
+        //     }
+        //   })
+        //   console.log(response2.data)
+        // }
+      } catch (e) {
         this.$toast.show(e.response.data.error + " " + e.response.data.message, {
         type: "error",
         position: "top-right",
         duration: 8000
         })
+        this.isComplete = true
       }
     }
   }

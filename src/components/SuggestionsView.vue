@@ -1,13 +1,18 @@
 <template>
   <div>
-
-    <v-card width="400px" class="mx-auto mt-5">
+      <v-card width="400px" class="mx-auto mt-5">
       <v-card-title>
         suggestions
       </v-card-title>
     </v-card>
     <UsersView :users="actors"></UsersView>
     <infinite-loading @infinite="infiniteHandler" :firstload=false>
+      <template #spinner>
+        <span>loading...</span>
+      </template>
+      <template #complete>
+        <span>No more data found!</span>
+      </template>
     </infinite-loading>
   </div>
 </template>
