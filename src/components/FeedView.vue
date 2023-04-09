@@ -29,11 +29,13 @@
               </v-list-item>
             </v-card-actions>
 
-            <v-card-text class="text-pre-wrap">
-              <div v-if="f && f.post && f.post.record && f.post.record.text"
-                v-html="this.replaceUrls(f.post.record.text)"></div>
-            </v-card-text>
-
+            <router-link :to="`/thread/${encodeURIComponent(f.post.uri)}`">
+                         
+              <v-card-text class="text-pre-wrap">
+                <div v-if="f && f.post && f.post.record && f.post.record.text"
+                  v-html="this.replaceUrls(f.post.record.text)"></div>
+              </v-card-text>
+            </router-link>
             <div v-if="f.post.entities">
               <v-list-item v-for="(e, eIndex) in f.post.entities" :key="eIndex">
                 <div v-if="e.type = 'mention'">
