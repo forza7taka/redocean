@@ -65,6 +65,8 @@
         postDialog: false,
         searchDialog: false,
         unReadCount: 0,
+        isComplete: false,
+        cursor: null,
         menuItems: [
         {
           icon: "mdi-account-plus",
@@ -108,28 +110,82 @@
         },
         ]
       }
-    },
-    mounted() {
+  },
+  async beforeMount() {
+    try {
+      if ((this.$store.getters.getDid) && (this.$store.getters.getAccessJwt)) {
+        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getRefreshJwt
+        let response = await this.axios.post('https://bsky.social/xrpc/com.atproto.server.refreshSession')
+        this.$store.dispatch('doCreateSession', response.data)
+        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
+        this.$store.dispatch('doRemoveAllLikes')
+        this.isComplete = false
+        while (!this.isComplete) {
+          await this.getLikes(this.cursor)
+        }
+      }
+    } catch (e) {
+      console.log(e)
+      return
+    }
+  },
+  mounted() {
       setInterval(() => {
         this.getUnreadCount()
-        }, 60000);
+      }, 60000);
     },
     methods: {
       async getUnreadCount() {
+        try {
+          this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
+          let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.notification.getUnreadCount')
+          console.log(response.data)
+          this.unReadCount =  response.data.count
+        } catch (e) {
+          this.$toast.show(e.response.data.error + " " + e.response.data.message, {
+            type: "error",
+            position: "top-right",
+            duration: 8000
+          })
+        }
+      },
+      async getLikes(cursor) {
       try {
+        let params = {}
+        if (!cursor) {
+          params = {
+            repo: this.$store.getters.getDid,
+            collection: "app.bsky.feed.like",
+            limit: 50
+          }
+        } else {
+          params = {
+            repo: this.$store.getters.getDid,
+            collection: "app.bsky.feed.like",
+            cursor: cursor
+          }
+        }
+
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.notification.getUnreadCount')
-        console.log(response.data)
-        this.unReadCount =  response.data.count
+        let response = await this.axios.get('https://bsky.social/xrpc/com.atproto.repo.listRecords', {
+          params
+        })
+        this.cursor = response.data.cursor
+        if (response.data.records.length == 0) {
+          this.isComplete = true
+          return
+        }
+        this.$store.dispatch('doAddLikes', response.data)
       } catch (e) {
         this.$toast.show(e.response.data.error + " " + e.response.data.message, {
           type: "error",
           position: "top-right",
           duration: 8000
         })
+        this.isComplete = true
       }
-      },
-      onPostDialogClose(value) {
+    },
+    onPostDialogClose(value) {
          this.postDialog = value;
       },
       onSearchDialogClose(value) {
