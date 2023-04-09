@@ -29,13 +29,19 @@
               </v-list-item>
             </v-card-actions>
 
-            <router-link :to="`/thread/${encodeURIComponent(f.post.uri)}`">
-                         
+            <v-card-text class="text-pre-wrap">
+              <div v-if="f && f.post && f.post.record && f.post.record.text"
+                v-html="this.replaceUrls(f.post.record.text)"></div>
+            </v-card-text>
+            <!--            <router-link style="color: inherit; text-decoration: none; "
+              :to="`/thread/${encodeURIComponent(f.post.uri)}`">
+
               <v-card-text class="text-pre-wrap">
                 <div v-if="f && f.post && f.post.record && f.post.record.text"
                   v-html="this.replaceUrls(f.post.record.text)"></div>
               </v-card-text>
             </router-link>
+            -->
             <div v-if="f.post.entities">
               <v-list-item v-for="(e, eIndex) in f.post.entities" :key="eIndex">
                 <div v-if="e.type = 'mention'">
@@ -69,23 +75,23 @@
 
 
               <v-btn class="ma-2" variant="text" icon="mdi-heart" color="red"
-                  v-if="this.$store.getters.hasLike(f.post.uri)" @click="like(f);"></v-btn>
+                v-if="this.$store.getters.hasLike(f.post.uri)" @click="like(f);"></v-btn>
               <span class="font-weight-bold" v-if="this.$store.getters.hasLike(f.post.uri)">
                 {{ f.post.likeCount }}
               </span>
               <v-btn class="ma-2" variant="text" icon="mdi-heart-outline" color="red"
-                  v-if="!this.$store.getters.hasLike(f.post.uri)" @click="like(f);"></v-btn>
+                v-if="!this.$store.getters.hasLike(f.post.uri)" @click="like(f);"></v-btn>
               <span class="font-weight-bold" v-if="!this.$store.getters.hasLike(f.post.uri)">
                 {{ f.post.likeCount }}
-              </span>              
+              </span>
               <v-menu offset-y>
-                <template  v-slot:activator="{ props }">
+                <template v-slot:activator="{ props }">
                   <v-btn v-bind="props" class="ma-2" variant="text" icon="mdi-dots-vertical" />
                 </template>
-                <v-list v-if="f.post.author.handle==this.$store.getters.getHandle">
+                <v-list v-if="f.post.author.handle == this.$store.getters.getHandle">
                   <v-list-item @click="deletePost(f.post.uri)">
-                      <v-icon small>mdi-delete</v-icon>
-                    </v-list-item>
+                    <v-icon small>mdi-delete</v-icon>
+                  </v-list-item>
                 </v-list>
               </v-menu>
             </v-list-item-subtitle>
@@ -146,19 +152,19 @@ export default {
     },
     async deletePost(uri) {
       console.log(uri)
-      try {      
+      try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
         await this.axios.post('https://bsky.social/xrpc/com.atproto.repo.deleteRecord', {
           collection: "app.bsky.feed.post",
           repo: this.$store.getters.getDid,
           rkey: String(uri).substr(-13)
         })
-      } catch(e) {
+      } catch (e) {
         this.$toast.show(e.response.data.error + " " + e.response.data.message, {
           type: "error",
           position: "top-right",
           duration: 8000
-       })
+        })
       }
     },
     async repost(feed) {
