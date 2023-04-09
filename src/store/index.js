@@ -60,19 +60,20 @@ export default createStore({
       });
     },
     addLike(state, {key, value}) {
-      console.log("addLike: "+ key + " " + value)
       return state.likes.set(key, value);
     },
 
     removeLike(state, key) {
-      console.log("removeLike: "+ key)
       state.likes.delete(key);
     },
 
     setHandle(state, session) {
       state.handle = session.handle;
-    }
+    },
 
+    removeAllLikes(state) {
+      state.likes = new Map();
+    },
   },
   actions: {
     doCreateSession({
@@ -116,6 +117,12 @@ export default createStore({
     doRemoveLike({ commit }, key) {
       commit('removeLike',
         key
+      )
+    },
+    doRemoveAllLikes({ commit },
+      session) {
+      commit('removeAllLikes',
+        session
       )
     }
   },

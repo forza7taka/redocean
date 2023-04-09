@@ -115,17 +115,6 @@ export default {
           return
         }
         this.$store.dispatch('doAddLikes', response.data)
-        // for (var i = 0; i < response.data.records.length; i++){
-        //   this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        //   let response2 = await this.axios.get('https://bsky.social/xrpc/com.atproto.repo.getRecord', {
-        //     params: {
-        //       repo: String(response.data.records[i].value.subject.uri).substr(5,32),
-        //       collection: "app.bsky.feed.post",
-        //       rkey: String(response.data.records[i].value.subject.uri).substr(-13)
-        //     }
-        //   })
-        //   console.log(response2.data)
-        // }
       } catch (e) {
         this.$toast.show(e.response.data.error + " " + e.response.data.message, {
         type: "error",
