@@ -65,9 +65,17 @@
               <v-btn class="ma-2" variant="text" icon="mdi-repeat"
                 @click="repost(f); f.post.repostCount = f.post.repostCount + 1"></v-btn>{{ f.post.repostCount }}
 
-              <v-btn class="ma-2" variant="text" icon="mdi-heart-outline" color="red"
-                @click="like(f); f.post.likeCount = f.post.likeCount + 1"></v-btn>{{ f.post.likeCount }}
 
+              <v-btn class="ma-2" variant="text" icon="mdi-heart" color="red"
+                  v-if="this.$store.getters.hasLike(f.post.uri)" @click="like(f);"></v-btn>
+              <span class="font-weight-bold" v-if="this.$store.getters.hasLike(f.post.uri)">
+                {{ f.post.likeCount }}
+              </span>
+              <v-btn class="ma-2" variant="text" icon="mdi-heart-outline" color="red"
+                  v-if="!this.$store.getters.hasLike(f.post.uri)" @click="like(f);"></v-btn>
+              <span class="font-weight-bold" v-if="!this.$store.getters.hasLike(f.post.uri)">
+                {{ f.post.likeCount }}
+              </span>              
               <v-menu offset-y>
                 <template  v-slot:activator="{ props }">
                   <v-btn v-bind="props" class="ma-2" variant="text" icon="mdi-dots-vertical" />
@@ -175,18 +183,32 @@ export default {
     },
     async like(feed) {
       try {
-        let subject = { uri: feed.post.uri, cid: feed.post.cid }
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.post('https://bsky.social/xrpc/com.atproto.repo.createRecord', {
-          collection: "app.bsky.feed.like",
-          repo: this.$store.getters.getDid,
-          record: {
-            subject: subject,
-            createdAt: new Date()
-          }
-        })
-        console.log(response)
+        if (!this.$store.getters.hasLike(feed.post.uri)) {
+          let subject = { uri: feed.post.uri, cid: feed.post.cid }
+          this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
+          let response = await this.axios.post('https://bsky.social/xrpc/com.atproto.repo.createRecord', {
+            collection: "app.bsky.feed.like",
+            repo: this.$store.getters.getDid,
+            record: {
+              subject: subject,
+              createdAt: new Date()
+            }
+          })
+          feed.post.likeCount = feed.post.likeCount + 1
+          console.log(response.data.uri)
+          this.$store.dispatch('doAddLike', { key: feed.post.uri, value: response.data.uri });
+        } else {
+          this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
+          await this.axios.post('https://bsky.social/xrpc/com.atproto.repo.deleteRecord', {
+            collection: "app.bsky.feed.like",
+            repo: this.$store.getters.getDid,
+            rkey: this.$store.getters.getLikes.get(feed.post.uri).substr(-13)
+          })
+          feed.post.likeCount = feed.post.likeCount - 1
+          this.$store.dispatch('doRemoveLike', feed.post.uri);
+        }
       } catch (e) {
+        console.log(e)
         this.$toast.show(e.response.data.error + " " + e.response.data.message, {
           type: "error",
           position: "top-right",

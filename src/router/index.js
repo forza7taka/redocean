@@ -12,6 +12,8 @@ import AccountCreate from '@/components/AccountCreateView.vue';
 import ProfileEdit from '@/components/ProfileEditView.vue';
 import HandleEdit from '@/components/HandleEditView.vue';
 import Notification from '@/components/NotificationView.vue'
+import Likes from '@/components/LikesView.vue'
+
 import { trackRouter } from "vue-gtag-next";
 const routes = [
   {
@@ -103,6 +105,11 @@ const routes = [
     path: '/notification',
     name: 'notification',
     component: Notification
+  },
+  {
+    path: '/likes',
+    name: 'likes',
+    component: Likes
   },
   {
     path: '/',

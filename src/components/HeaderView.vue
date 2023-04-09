@@ -97,6 +97,11 @@
           link: "/suggestions"
         },
         {
+          icon: "mdi-heart",
+          name: "Likes",
+          link: "/likes"
+        },
+        {
           icon: "mdi-shield-account",
           name: "PrivacyPolicy",
           link: "/privacypolicy"
