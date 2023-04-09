@@ -22,6 +22,12 @@ export default {
     Header,
    // PostView
   },
+  created() {
+    this.$gtag.pageview({
+      page_title: 'readocean',
+      page_location: '/',
+    });
+  },
   data: () => ({
     dialog: false,
   }),

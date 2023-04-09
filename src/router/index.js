@@ -13,7 +13,7 @@ import ProfileEdit from '@/components/ProfileEditView.vue';
 import HandleEdit from '@/components/HandleEditView.vue';
 import Notification from '@/components/NotificationView.vue'
 import Likes from '@/components/LikesView.vue'
-
+import Thread from '@/components/ThreadView.vue'
 import { trackRouter } from "vue-gtag-next";
 const routes = [
   {
@@ -31,6 +31,12 @@ const routes = [
     name: 'timeline_uri',
     component: TimeLine
   },
+  {
+    path: '/thread/:uri',
+    name: 'thread_uri',
+    component: Thread
+  },
+  
   {
     path: '/popular/',
     name: 'popular',
@@ -80,10 +86,6 @@ const routes = [
     path: '/search',
     name: 'search',
     component: Search
-    //   }
-    //   {
-    //     path: '*',
-    //     redirect: '/login'
   },
   {
     path: '/privacypolicy',
