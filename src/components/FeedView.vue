@@ -67,6 +67,8 @@
             </div>
 
             <v-list-item-subtitle>
+              <v-btn class="ma-2" variant="text" icon="mdi-file-tree-outline"
+                :to="`/thread/${encodeURIComponent(f.post.uri)}`"></v-btn>
               <v-btn class="ma-2" variant="text" icon="mdi-comment-outline" @click="dialog = true;
               this.feed = f"></v-btn>{{ f.post.replyCount }}
 
@@ -203,6 +205,11 @@ export default {
             }
           })
           feed.post.likeCount = feed.post.likeCount + 1
+          // for (let i = 0; i < timeline.feed; i++) {
+          //   if (this.timeline.feed[i].post.uri = feed.post.uri) {
+          //     this.timeline.feed[i].post.likeCount = this.timeline.feed[i].post.likeCount + 1
+          //   }
+          // }
           console.log(response.data.uri)
           this.$store.dispatch('doAddLike', { key: feed.post.uri, value: response.data.uri });
         } else {
@@ -213,6 +220,11 @@ export default {
             rkey: this.$store.getters.getLikes.get(feed.post.uri).substr(-13)
           })
           feed.post.likeCount = feed.post.likeCount - 1
+          // for (let i = 0; i < timeline.feed; i++) {
+          //   if (this.timeline.feed[i].post.uri = feed.post.uri) {
+          //     this.timeline.feed[i].post.likeCount = this.timeline.feed[i].post.likeCount - 1
+          //   }
+          // }
           this.$store.dispatch('doRemoveLike', feed.post.uri);
         }
       } catch (e) {
