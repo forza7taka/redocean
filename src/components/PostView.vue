@@ -1,7 +1,4 @@
 <template>
-    <div v-if="dialog == true">
-      <PostFormView v-model="dialog" @onClose="onClose" mode="Reply"></PostFormView>
-    </div>
   <div v-if="post">
     <v-card :style="{ width: `${400 - this.depth * 30}px` }" class="mx-auto mt-5">
       <div v-if="reason && reason.by">
@@ -63,19 +60,14 @@
           </v-list>
         </v-menu>
       </v-list-item-subtitle>
-      <div v-if="reply && reply.parent">
-        <PostView :post="reply.parent" :depth="1"></PostView>
-      </div>
     </v-card>
   </div>
 </template>
 
 <script >
-import PostFormView from './PostFormView.vue'
 export default {
   name: 'App',
   components: {
-    PostFormView
   },
   data() {
     return {
@@ -85,7 +77,6 @@ export default {
   props: {
     post: null,
     reason: null,
-    reply: null,
     depth: null
   },
   methods: {

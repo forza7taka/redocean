@@ -3,7 +3,8 @@
     <v-list-item v-for="(f, fIndex) in timeline.feed" :key="fIndex">
       <v-row>
         <v-col class="d-flex justify-center align-center">
-          <PostView :post="f.post" :reason="f.reason" :reply="f.reply" :depth="0" :root="f.root"></PostView>
+          <PostView :post="f.post" :reason="f.reason" :depth="0" :root="f.root"></PostView>
+          <!--<PostView :post="f.post" :reason="f.reason" :reply="f.reply" :depth="0" :root="f.root"></PostView>-->
         </v-col>
       </v-row>
     </v-list-item>
