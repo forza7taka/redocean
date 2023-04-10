@@ -1,35 +1,28 @@
 <template>
   <div v-if="thread">
-
-    <Post :post="thread.post"></Post>
-
+    <PostView :post="thread.post" :depth=0></PostView>
     <div v-if="thread.replies">
       <v-list>
         <v-list-item v-for="(r, rIndex) in thread.replies" :key="rIndex">
-          <Post :post="r.post"></Post>
+          <PostView :post="r.post" :depth=1></PostView>
           <div v-if="r.replies">
             <v-list>
               <v-list-item v-for="(r2, r2Index) in r.replies" :key="r2Index">
-                <Post :post="r2.post"></Post>
+                <PostView :post="r2.post" :depth=2></PostView>
               </v-list-item>
             </v-list>
           </div>
         </v-list-item>
       </v-list>
     </div>
-
-
-
-
-
   </div>
 </template>
 
 <script >
-import Post from "./Post.vue"
+import PostView from "./PostView.vue"
 export default {
   components: {
-    Post,
+    PostView,
   },
   name: 'App',
   data() {
@@ -37,6 +30,15 @@ export default {
       thread: null,
       cursor: null,
     };
+  },
+  watch: {
+    '$route.params.uri': {
+      async handler() {
+        if (this.$route.params.uri) {
+          this.getThread(this.cursor)
+        }
+      }
+    }
   },
   beforeMount() {
     this.getThread(this.cursor)

@@ -42,7 +42,7 @@
   </div>
 
   <div v-if="postDialog == true">
-      <PostView v-model="postDialog" @onPostDialogClose="onPostDialogClose" mode="Post"></PostView>    
+      <PostFormView v-model="postDialog" @onPostDialogClose="onPostDialogClose" mode="Post"></PostFormView>    
   </div>
   <div v-if="searchDialog == true">
       <SearchView
@@ -51,12 +51,12 @@
 </template>
 
 <script>
-  import PostView from "./PostView.vue"
+  import PostFormView from "./PostFormView.vue"
   import SearchView from "./SearchView.vue"
   export default {
     name: "App",
     components: {       
-      PostView,
+      PostFormView,
       SearchView
     },
     data() {

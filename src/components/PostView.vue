@@ -1,6 +1,12 @@
 <template>
+    <div v-if="dialog == true">
+      <PostFormView v-model="dialog" @onClose="onClose" mode="Reply"></PostFormView>
+    </div>
   <div v-if="post">
-    <v-card width="400px" class="mx-auto mt-5">
+    <v-card :style="{ width: `${400 - this.depth * 30}px` }" class="mx-auto mt-5">
+      <div v-if="reason && reason.by">
+        <v-card-subtitle>Repost by {{ reason.by.displayName }}(@{{ reason.by.handle }})</v-card-subtitle>
+      </div>
       <v-card-actions>
         <v-list-item class="w-100">
           <template v-slot:prepend>
@@ -34,48 +40,53 @@
       <v-list-item-subtitle>
         <v-btn class="ma-2" variant="text" icon="mdi-file-tree-outline"
           :to="`/thread/${encodeURIComponent(post.uri)}`"></v-btn>
-        <v-btn class="ma-2" variant="text" icon="mdi-comment-outline" @click="dialog = true;
-        this.feed = f"></v-btn>{{ post.replyCount }}
+        <v-btn class="ma-2" variant="text" icon="mdi-comment-outline" @click="dialog = true">
+        </v-btn>{{ post.replyCount }}
 
-        <v-btn class="ma-2" variant="text" icon="mdi-repeat" @clike="repost(post)"></v-btn>{{ post.repostCount }}
+        <v-btn class="ma-2" variant="text" icon="mdi-repeat" @click="repost(post)">
+        </v-btn>{{ post.repostCount }}
 
-
-        <v-btn class=" ma-2" variant="text" icon="mdi-heart" color="red" v-if="this.$store.getters.hasLike(post.uri)"
-          @click="like(post)"></v-btn>
-        <span class="font-weight-bold" v-if="this.$store.getters.hasLike(post.uri)">
-          {{ post.likeCount }}
-        </span>
+        <v-btn class=" ma-2" variant="text" icon="mdi-heart" color="red"
+          v-if="this.$store.getters.hasLike(post.uri)" @click="like(post)"></v-btn>
         <v-btn class="ma-2" variant="text" icon="mdi-heart-outline" color="red"
-          v-if="!this.$store.getters.hasLike(post.uri)" @clike="like(post)"></v-btn>
-        <span class="font-weight-bold" v-if="!this.$store.getters.hasLike(post.uri)">
+          v-if="!this.$store.getters.hasLike(post.uri)" @click="like(post)"></v-btn>
           {{ post.likeCount }}
-        </span>
+        
         <v-menu offset-y>
           <template v-slot:activator="{ props }">
             <v-btn v-bind="props" class="ma-2" variant="text" icon="mdi-dots-vertical" />
           </template>
-          <v-list v-if="f.post.author.handle == this.$store.getters.getHandle">
+          <v-list v-if="post && post.author.handle == this.$store.getters.getHandle">
             <v-list-item @click="deletePost(post.uri)">
               <v-icon small>mdi-delete</v-icon>
             </v-list-item>
           </v-list>
         </v-menu>
       </v-list-item-subtitle>
-
+      <div v-if="reply && reply.parent">
+        <PostView :post="reply.parent" :depth="1"></PostView>
+      </div>
     </v-card>
   </div>
 </template>
 
 <script >
+import PostFormView from './PostFormView.vue'
 export default {
   name: 'App',
+  components: {
+    PostFormView
+  },
   data() {
     return {
-      dialog: false
+      dialog: false,
     };
   },
   props: {
-    post: null
+    post: null,
+    reason: null,
+    reply: null,
+    depth: null
   },
   methods: {
     replaceUrls(text) {
