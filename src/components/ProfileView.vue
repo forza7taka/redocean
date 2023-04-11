@@ -32,13 +32,18 @@
           <v-list-item-subtitle>
             Posts: {{ profile.postsCount }}
           </v-list-item-subtitle>
-<!--            <v-list-item-subtitle>
-              <router-link :to="`/mutes`"
+            <v-list-item-subtitle v-if="profile.did == this.$store.getters.getDid">
+              <router-link v-if="likes" :to="`/likes`"
                 style="text-decoration: none; color: inherit;">
-                Mutes
+                 Likes: {{ likes.length }}
               </router-link>
             </v-list-item-subtitle>
--->
+            <v-list-item-subtitle>
+              <router-link v-if="mutes" :to="`/mutes`"
+                style="text-decoration: none; color: inherit;">
+                Mutes: {{ mutes.length }}
+              </router-link>
+            </v-list-item-subtitle>
           <v-list-item-subtitle>
             <v-btn v-if="follows.includes(profile.did)" @click.prevent="doUnFollow()"
               icon><v-icon>mdi-account-remove</v-icon></v-btn>
@@ -119,7 +124,12 @@ export default {
       timeline: { feed: [] },
       complated: false,
       cursor: null,
-      inviteCodes: null
+      likesCursor: null,
+      mutesCursor: null,
+      inviteCodes: null,
+      mutesCount: null,
+      likes: [],
+      mutes: []
     };
   },
   computed: {
@@ -144,10 +154,77 @@ export default {
     if (this.handle == this.$store.getters.getHandle) {
       await this.getInviteCodes()
     }
+    this.complated = false
+    while (!this.complated) {
+      await this.getLikes(this.likesCursor)
+    }
+    this.complated = false
+    while (!this.complated) {
+      await this.getMutes(this.mutesCursor)
+    }
   },
   mounted() {
   },
   methods: {
+    async getMutes(cursor) {
+      let params = {}
+      if (!cursor) {
+        params = {}
+      } else {
+        params = { cursor: cursor }
+      }
+      try {
+        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
+        let response = await this.axios.get("https://bsky.social/xrpc/app.bsky.graph.getMutes", { params })
+        console.log(response.data)
+        this.mutesCursor = response.data.cursor
+        if (response.data.mutes.length == 0) {
+          this.complated = true
+        }
+        this.mutes = this.mutes.concat(response.data.mutes)
+      } catch (e) {
+        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
+          type: "error",
+          position: "top-right",
+          duration: 8000
+        })
+      }
+    },
+    async getLikes(cursor) {
+      try {
+        let params = {}
+        if (!cursor) {
+          params = {
+            repo: this.$store.getters.getDid,
+            collection: "app.bsky.feed.like",
+            limit: 50
+          }
+        } else {
+          params = {
+            repo: this.$store.getters.getDid,
+            collection: "app.bsky.feed.like",
+            cursor: cursor
+          }
+        }
+        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
+        let response = await this.axios.get('https://bsky.social/xrpc/com.atproto.repo.listRecords', {
+          params
+        })
+        this.likes = this.likes.concat(response.data.records)
+        this.likesCursor = response.data.cursor
+        console.log(response.data.records.length)
+        if (response.data.records.length == 0) {
+          this.complated = true
+          return
+        }
+      } catch (e) {
+        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
+          type: "error",
+          position: "top-right",
+          duration: 8000
+        })
+      }
+    },
     async getInviteCodes() {
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
