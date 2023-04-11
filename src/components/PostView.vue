@@ -1,8 +1,20 @@
 <template>
+  <div v-if="dialog == true">
+
+    <PostFormView v-if="root" v-model="dialog" @onClose="onClose" mode="Reply" :root="root" :parent="post">
+
+    </PostFormView>
+    <PostFormView v-if="!root" v-model="dialog" @onClose="onClose" mode="Reply" :root="post" :parent="post">
+    </PostFormView>
+  </div>
   <div v-if="post">
     <v-card :style="{ width: `${400 - this.depth * 30}px` }" class="mx-auto mt-5">
       <div v-if="reason && reason.by">
         <v-card-subtitle>Repost by {{ reason.by.displayName }}(@{{ reason.by.handle }})</v-card-subtitle>
+      </div>
+      <div v-if="parent && parent.author">
+        <v-card-subtitle>Reply to {{ parent.author.displayName }}(@{{ parent.author.handle
+        }})</v-card-subtitle>
       </div>
       <v-card-actions>
         <v-list-item class="w-100">
@@ -35,20 +47,21 @@
         </v-card-text>
       </div>
       <v-list-item-subtitle>
-        <v-btn class="ma-2" variant="text" icon="mdi-file-tree-outline"
-          :to="`/thread/${encodeURIComponent(post.uri)}`"></v-btn>
         <v-btn class="ma-2" variant="text" icon="mdi-comment-outline" @click="dialog = true">
         </v-btn>{{ post.replyCount }}
 
         <v-btn class="ma-2" variant="text" icon="mdi-repeat" @click="repost(post)">
         </v-btn>{{ post.repostCount }}
 
-        <v-btn class=" ma-2" variant="text" icon="mdi-heart" color="red"
-          v-if="this.$store.getters.hasLike(post.uri)" @click="like(post)"></v-btn>
+        <v-btn class=" ma-2" variant="text" icon="mdi-heart" color="red" v-if="this.$store.getters.hasLike(post.uri)"
+          @click="like(post)"></v-btn>
         <v-btn class="ma-2" variant="text" icon="mdi-heart-outline" color="red"
           v-if="!this.$store.getters.hasLike(post.uri)" @click="like(post)"></v-btn>
-          {{ post.likeCount }}
-        
+        {{ post.likeCount }}
+
+        <v-btn v-if="root" class="ma-2" variant="text" icon="mdi-file-tree-outline"
+          :to="`/thread/${encodeURIComponent(root.uri)}`"></v-btn>
+
         <v-menu offset-y>
           <template v-slot:activator="{ props }">
             <v-btn v-bind="props" class="ma-2" variant="text" icon="mdi-dots-vertical" />
@@ -60,14 +73,27 @@
           </v-list>
         </v-menu>
       </v-list-item-subtitle>
+      <v-list>
+        <v-list-item v-for="(r, rIndex) in replies" :key="rIndex">
+          <v-row>
+            <v-col class="d-flex justify-center align-center">
+              <PostView :post="r.post" :depth="depth + 1" :replies="r.replies"></PostView>
+            </v-col>
+          </v-row>
+        </v-list-item>
+      </v-list>
+
+
     </v-card>
   </div>
 </template>
 
 <script >
+import PostFormView from "./PostFormView.vue"
 export default {
   name: 'App',
   components: {
+    PostFormView
   },
   data() {
     return {
@@ -77,7 +103,10 @@ export default {
   props: {
     post: null,
     reason: null,
-    depth: null
+    root: null,
+    parent: null,
+    depth: null,
+    replies: null
   },
   methods: {
     replaceUrls(text) {

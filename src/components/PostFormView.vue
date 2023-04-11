@@ -29,6 +29,8 @@
 
 <script>
 export default {
+  components: {
+  },
   name: "App",
   data() {
     return {
@@ -40,7 +42,8 @@ export default {
   },
   props: {
     mode: String,
-    feed: Object,
+    parent: {},
+    root: {},
   },
   methods: {
     handleChange(event) {
@@ -127,14 +130,11 @@ export default {
       this.$emit('onPostDialogClose', false)
     },
     async reply() {
-      let parent
-      let root
-      parent = { uri: this.feed.post.uri, cid: this.feed.post.cid }
-      if (this.feed.reply && this.feed.reply.parent) {
-        root = { uri: this.feed.reply.parent.uri, cid: this.feed.reply.parent.cid }
-      } else {
-        root = { uri: this.feed.post.uri, cid: this.feed.post.cid }
-      }
+      let parent = { uri: this.parent.uri, cid: this.parent.cid }
+      let root = { uri: this.root.uri, cid: this.root.cid }
+
+      console.log(parent)
+      console.log(root)
 
       this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
       this.axios.post('https://bsky.social/xrpc/com.atproto.repo.createRecord', {
@@ -166,14 +166,8 @@ export default {
           const image = await this.uploadImage(blob)
           imgs.push({ alt: "", image })
         }
-        let parent = {}
-        let root = {}
-        parent = { uri: this.feed.post.uri, cid: this.feed.post.cid }
-        if (this.feed.reply && this.feed.reply.parent) {
-          root = { uri: this.feed.reply.parent.uri, cid: this.feed.reply.parent.cid }
-        } else {
-          root = { uri: this.feed.post.uri, cid: this.feed.post.cid }
-        }
+        let parent = { uri: this.parent.uri, cid: this.parent.cid }
+        let root = { uri: this.root.uri, cid: this.root.cid }
 
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
         this.axios.post('https://bsky.social/xrpc/com.atproto.repo.createRecord', {

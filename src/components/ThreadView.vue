@@ -1,20 +1,7 @@
 <template>
   <div v-if="thread">
-    <PostView :post="thread.post" :depth=0></PostView>
-    <div v-if="thread.replies">
-      <v-list>
-        <v-list-item v-for="(r, rIndex) in thread.replies" :key="rIndex">
-          <PostView :post="r.post" :depth=1></PostView>
-          <div v-if="r.replies">
-            <v-list>
-              <v-list-item v-for="(r2, r2Index) in r.replies" :key="r2Index">
-                <PostView :post="r2.post" :depth=2></PostView>
-              </v-list-item>
-            </v-list>
-          </div>
-        </v-list-item>
-      </v-list>
-    </div>
+    <PostView :post="thread.post" :root="thread.post" :replies="thread.replies" :depth=0>
+    </PostView>
   </div>
 </template>
 
