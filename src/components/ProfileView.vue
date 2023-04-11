@@ -32,7 +32,13 @@
           <v-list-item-subtitle>
             Posts: {{ profile.postsCount }}
           </v-list-item-subtitle>
-
+<!--            <v-list-item-subtitle>
+              <router-link :to="`/mutes`"
+                style="text-decoration: none; color: inherit;">
+                Mutes
+              </router-link>
+            </v-list-item-subtitle>
+-->
           <v-list-item-subtitle>
             <v-btn v-if="follows.includes(profile.did)" @click.prevent="doUnFollow()"
               icon><v-icon>mdi-account-remove</v-icon></v-btn>

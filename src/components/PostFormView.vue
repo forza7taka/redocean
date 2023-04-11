@@ -2,6 +2,30 @@
   <v-dialog>
     <v-card>
       <v-card-title>{{ mode }}</v-card-title>
+      <div v-if="parent">
+        <v-card :style="{ width: `400px` }" class="mx-auto mt-5">
+        <v-card-actions>
+          <v-list-item class="w-100">
+            <template v-slot:prepend>
+              <div style="padding-right: 10px">
+                <router-link :to="`/profile/${parent.author.handle}`">
+                  <v-avatar color="surface-variant">
+                    <v-img cover v-bind:src=parent.author.avatar alt="avatar"></v-img>
+                  </v-avatar>
+                </router-link>
+              </div>
+            </template>
+            <v-list-item-subtitle>{{ parent.author.displayName }}</v-list-item-subtitle>
+            <v-list-item-subtitle>@{{ parent.author.handle }}</v-list-item-subtitle>
+            <v-list-item-subtitle>{{ parent.record.createdAt }}</v-list-item-subtitle>
+          </v-list-item>
+        </v-card-actions>
+        <v-card-text class="text-pre-wrap">
+          <div v-if="parent && parent.record && parent.record.text" v-html="this.replaceUrls(parent.record.text)"></div>
+        </v-card-text>
+        </v-card>
+      </div>
+
       <v-card-text>
         <v-textarea required counter v-model=contents label="contents"></v-textarea>
       </v-card-text>
@@ -9,18 +33,19 @@
         <v-row>
           <div v-for="(image, index) in imageUrls" :key="index">
             <v-col>
-              <v-img width="50" id="image" :src=image></v-img>
+              <v-img width="50" id="image" :src=image>
+              </v-img>
             </v-col>
           </div>
         </v-row>
       </v-card-text>
 
       <v-card-actions>
-        <div>
-          <v-label for="fileInput" class="v-btn v-btn--outlined"><v-icon>mdi-upload</v-icon></v-label>
-          <v-file-input v-model=files accept="image/*" id="fileInput" style="display: none;" @change="handleChange"
-            :multiple="true" prepend-icon="mdi-upload"></v-file-input>
-        </div>
+        <v-file-input ref="fileInput" v-model="files" accept="image/*" id="fileInput" style="display: none;" @change="handleChange"
+          :multiple="true" prepend-icon="mdi-upload"></v-file-input>
+        <v-btn icon @click="handleFileInputClick">
+          <v-icon>mdi-upload</v-icon>
+        </v-btn>
         <v-btn icon @click="submit()"><v-icon>mdi-send</v-icon></v-btn>
       </v-card-actions>
     </v-card>
@@ -46,6 +71,14 @@ export default {
     root: {},
   },
   methods: {
+    replaceUrls(text) {
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      const replacedText = text.replace(urlRegex, '<a href="$&" target="_blank">$&</a>');
+      return replacedText;
+    },
+    handleFileInputClick() {
+      this.$refs.fileInput.click(); // ファイル選択をトリガー
+    },
     handleChange(event) {
       const files = event.target.files;
       for (let i = 0; i < files.length; i++) {

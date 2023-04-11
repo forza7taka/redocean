@@ -1,8 +1,6 @@
 <template>
   <div v-if="dialog == true">
-
     <PostFormView v-if="root" v-model="dialog" @onClose="onClose" mode="Reply" :root="root" :parent="post">
-
     </PostFormView>
     <PostFormView v-if="!root" v-model="dialog" @onClose="onClose" mode="Reply" :root="post" :parent="post">
     </PostFormView>
@@ -10,10 +8,10 @@
   <div v-if="post">
     <v-card :style="{ width: `${400 - this.depth * 30}px` }" class="mx-auto mt-5">
       <div v-if="reason && reason.by">
-        <v-card-subtitle>Repost by {{ reason.by.displayName }}(@{{ reason.by.handle }})</v-card-subtitle>
+        <v-card-subtitle>Reposted by {{ reason.by.displayName }}(@{{ reason.by.handle }})</v-card-subtitle>
       </div>
       <div v-if="parent && parent.author">
-        <v-card-subtitle>Reply to {{ parent.author.displayName }}(@{{ parent.author.handle
+        <v-card-subtitle>Replied to {{ parent.author.displayName }}(@{{ parent.author.handle
         }})</v-card-subtitle>
       </div>
       <v-card-actions>
@@ -61,6 +59,8 @@
 
         <v-btn v-if="root" class="ma-2" variant="text" icon="mdi-file-tree-outline"
           :to="`/thread/${encodeURIComponent(root.uri)}`"></v-btn>
+        <v-btn v-if="!root" class="ma-2" variant="text" icon="mdi-file-tree-outline"
+            :to="`/thread/${encodeURIComponent(post.uri)}`"></v-btn>
 
         <v-menu offset-y>
           <template v-slot:activator="{ props }">
@@ -77,7 +77,7 @@
         <v-list-item v-for="(r, rIndex) in replies" :key="rIndex">
           <v-row>
             <v-col class="d-flex justify-center align-center">
-              <PostView :post="r.post" :depth="depth + 1" :replies="r.replies"></PostView>
+              <PostView :post="r.post" :root="root" :depth="depth + 1" :replies="r.replies"></PostView>
             </v-col>
           </v-row>
         </v-list-item>
