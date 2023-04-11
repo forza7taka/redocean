@@ -32,16 +32,26 @@
           <v-list-item-subtitle>
             Posts: {{ profile.postsCount }}
           </v-list-item-subtitle>
-          
+<!--            <v-list-item-subtitle>
+              <router-link :to="`/mutes`"
+                style="text-decoration: none; color: inherit;">
+                Mutes
+              </router-link>
+            </v-list-item-subtitle>
+-->
           <v-list-item-subtitle>
-            <v-btn v-if="follows.includes(profile.did)" @click.prevent="doUnFollow()" icon><v-icon>mdi-account-remove</v-icon></v-btn>
-            <v-btn v-if="!follows.includes(profile.did)" @click.prevent="doFollow()" icon><v-icon>mdi-account-check</v-icon></v-btn>
-            
+            <v-btn v-if="follows.includes(profile.did)" @click.prevent="doUnFollow()"
+              icon><v-icon>mdi-account-remove</v-icon></v-btn>
+            <v-btn v-if="!follows.includes(profile.did)" @click.prevent="doFollow()"
+              icon><v-icon>mdi-account-check</v-icon></v-btn>
+
             <v-btn v-if="profile.did != this.$store.getters.getDid && profile.viewer && profile.viewer.muted"
-              @click.prevent="unMute(profile.did); profile.viewer.muted = !profile.viewer.muted" icon><v-icon>mdi-volume-high</v-icon></v-btn>
+              @click.prevent="unMute(profile.did); profile.viewer.muted = !profile.viewer.muted"
+              icon><v-icon>mdi-volume-high</v-icon></v-btn>
             <v-btn v-if="profile.did != this.$store.getters.getDid && !(profile.viewer && profile.viewer.muted)"
-              @click.prevent="mute(profile.did); profile.viewer.muted = !profile.viewer.muted" icon><v-icon>mdi-volume-mute</v-icon></v-btn>
-            
+              @click.prevent="mute(profile.did); profile.viewer.muted = !profile.viewer.muted"
+              icon><v-icon>mdi-volume-mute</v-icon></v-btn>
+
           </v-list-item-subtitle>
           <v-btn size=15 v-if="profile.did == this.$store.getters.getDid" icon to="/profileEdit">
             <v-icon size="15">mdi-pencil</v-icon>
@@ -53,17 +63,17 @@
         </div>
       </v-card-text>
       <v-card-subtitle v-if="inviteCodes">
-                <v-list-item-subtitle>
-                  InviteCode:
-                </v-list-item-subtitle>
-                <div v-for="(c, cIndex) in inviteCodes" :key="cIndex">
+        <v-list-item-subtitle>
+          InviteCode:
+        </v-list-item-subtitle>
+        <div v-for="(c, cIndex) in inviteCodes" :key="cIndex">
 
-                  <v-list-item-subtitle v-if="!c.disable">
-                    <div v-if="c.available - c.uses.length != 0">
-                    {{ c.code }}  last:{{ c.available - c.uses.length }}
-                    </div>
-                  </v-list-item-subtitle>
-                </div>
+          <v-list-item-subtitle v-if="!c.disable">
+            <div v-if="c.available - c.uses.length != 0">
+              {{ c.code }} last:{{ c.available - c.uses.length }}
+            </div>
+          </v-list-item-subtitle>
+        </div>
       </v-card-subtitle>
     </v-card>
   </div>
@@ -75,7 +85,7 @@
     <template #complete>
       <span>No more data found!</span>
     </template>
-</infinite-loading>
+  </infinite-loading>
 </template>
 
 <script>

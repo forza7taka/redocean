@@ -1,61 +1,56 @@
 <template>
-  <FeedView :timeline="timeline"></FeedView>
-  <infinite-loading @infinite="infiniteHandler" :firstload="false">
-      <template #spinner>
-        <span>loading...</span>
-      </template>
-      <template #complete>
-        <span>No more data found!</span>
-      </template>
-  </infinite-loading>
+  <div v-if="thread">
+    <PostView :post="thread.post" :root="thread.post" :replies="thread.replies" :depth=0>
+    </PostView>
+  </div>
 </template>
 
 <script >
-import FeedView from "./FeedView.vue"
-import InfiniteLoading from 'v3-infinite-loading'
+import PostView from "./PostView.vue"
 export default {
   components: {
-    FeedView,
-    InfiniteLoading
+    PostView,
   },
   name: 'App',
   data() {
     return {
-      complated: false,
-      timeline: { feed: [] },
+      thread: null,
       cursor: null,
     };
+  },
+  watch: {
+    '$route.params.uri': {
+      async handler() {
+        if (this.$route.params.uri) {
+          this.getThread(this.cursor)
+        }
+      }
+    }
   },
   beforeMount() {
     this.getThread(this.cursor)
   },
   methods: {
-    async infiniteHandler($state) {
-      if (this.complated) {
-        $state.complete()
-      } else {
-        await this.getTimeline(this.cursor)
-        $state.loaded()
-      }
-    },
     async getThread() {
       let params = { uri: this.$route.params.uri }
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
         let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.feed.getPostThread', { params })
         console.log(response)
-        this.timeline.feed = this.timeline.feed.concat(response.data.feed)
-        this.cursor = response.data.cursor
-        if (response.data.feed.length == 0) {
-          this.complated = true
-        }
+        this.thread = response.data.thread
       } catch (e) {
+        console.log(e)
         this.$toast.show(e, {
           type: "error",
           position: "top-right",
           duration: 8000
         })
       }
+    },
+    replaceUrls(text) {
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      const replacedText = text.replace(urlRegex, '<a href="$&" target="_blank">$&</a>');
+      return replacedText;
     }
   }
 };

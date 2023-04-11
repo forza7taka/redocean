@@ -1,59 +1,36 @@
 <template>
-
   <div>
-      <v-card width="400px" class="mx-auto mt-5">
-        <v-card-title>
-          Likes
-        </v-card-title>
-      </v-card>
-  
-      <v-list v-if="this.timeline.feed">
+    <v-card width="400px" class="mx-auto mt-5">
+      <v-card-title>
+        Likes
+      </v-card-title>
+    </v-card>
         <v-list-item v-for="(f, fIndex) in timeline.feed" :key="fIndex">
-          <v-card width="400px" class="mx-auto mt-5">
-            <v-card-text>
+        <v-row>
+          <v-col class="d-flex justify-center align-center">
+            <PostView v-if="f.reply" :post="f.post" :reason="f.reason" :parent="f.reply.parent" :root="f.reply.root" :depth="0"></PostView>
+            <PostView v-if="!f.reply" :post="f.post" :reason="f.reason" :depth="0"></PostView>
+          </v-col>
+        </v-row>
+      </v-list-item>
 
-              <v-card-actions>
-
-                <v-list-item class="w-100" v-if="authors.get(String(f.uri).substr(5,32))">
-                  <template v-slot:prepend>
-                    <div style="padding-right: 10px">
-                      <router-link :to="`/profile/${authors.get(String(f.uri).substr(5,32)).handle}`">
-                        <v-avatar color="surface-variant">
-                          <v-img cover v-bind:src=authors.get(String(f.uri).substr(5,32)).avatar alt="avatar"></v-img>
-                        </v-avatar>
-                      </router-link>
-                    </div>
-                  </template>
-                  <v-list-item-subtitle>{{ authors.get(String(f.uri).substr(5, 32)).displayName }}</v-list-item-subtitle>
-                  <v-list-item-subtitle>@{{ authors.get(String(f.uri).substr(5, 32)).handle }}</v-list-item-subtitle>
-                  <v-list-item-subtitle>{{ f.value.createdAt }}</v-list-item-subtitle>
-                </v-list-item>
-              </v-card-actions>
-            </v-card-text>
-
-                  <v-card-subtitle></v-card-subtitle>
-                  <v-card-text class="text-pre-wrap">
-                    {{ f.value.text }}
-                  </v-card-text>
-              </v-card>          
-        </v-list-item>
-      </v-list>
-
-  <infinite-loading @infinite="infiniteHandler" :firstload="false">
+    <infinite-loading @infinite="infiniteHandler" :firstload="false">
       <template #spinner>
         <span>loading...</span>
       </template>
       <template #complete>
         <span>No more data found!</span>
       </template>
-  </infinite-loading>
+    </infinite-loading>
   </div>
 </template>
 
 <script >
+import PostView from "./PostView.vue"
 import InfiniteLoading from 'v3-infinite-loading'
 export default {
   components: {
+    PostView,
     InfiniteLoading
   },
   name: 'App',
@@ -70,9 +47,8 @@ export default {
     likes: {
       handler(nv) {
         this.getPosts(nv)
-        this.getAuthors(nv)
       },
-      deep: true // 配列の要素まで深く監視する
+      deep: true
     },
   },
   async beforeMount() {
@@ -107,6 +83,7 @@ export default {
         let response = await this.axios.get('https://bsky.social/xrpc/com.atproto.repo.listRecords', {
           params
         })
+        console.log(response.data)
 
         this.likes = this.likes.concat(response.data.records)
         this.cursor = response.data.cursor
@@ -124,17 +101,17 @@ export default {
     },
     async getPosts(likes) {
       try {
-        for (var i = 0; i < likes.length; i++){
+        for (var i = 0; i < likes.length; i++) {
           try {
             this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-            let response = await this.axios.get('https://bsky.social/xrpc/com.atproto.repo.getRecord', {
+            let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.feed.getPostThread', {
               params: {
-                repo: String(likes[i].value.subject.uri).substr(5, 32),
-                collection: "app.bsky.feed.post",
-                rkey: String(likes[i].value.subject.uri).substr(-13)
+                uri: likes[i].value.subject.uri
               }
             })
-            this.timeline.feed = this.timeline.feed.concat(response.data)
+            console.log(response.data.thread.post)
+            let post = {post: response.data.thread.post }
+            this.timeline.feed = this.timeline.feed.concat(post)
           } catch (e) {
             if (e.response && e.response.status === 400) {
               continue
@@ -151,28 +128,6 @@ export default {
         })
       }
     },
-    async getAuthors(likes) {
-      try {
-        for (var i = 0; i < likes.length; i++) {        
-          this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-          let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.actor.getProfile', {
-            params: {
-              actor: String(likes[i].value.subject.uri).substr(5, 32)
-            }
-          })
-          this.authors.set(String(likes[i].value.subject.uri).substr(5, 32), response.data)
-          console.log(response.data)
-        }
-      } catch (e) {
-        console.log(e)
-        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
-          type: "error",
-          position: "top-right",
-          duration: 8000
-        })
-      }
-    }
-
   }
 };
 </script>

@@ -14,6 +14,7 @@ import HandleEdit from '@/components/HandleEditView.vue';
 import Notification from '@/components/NotificationView.vue'
 import Likes from '@/components/LikesView.vue'
 import Thread from '@/components/ThreadView.vue'
+import Mutes from '@/components/MutesView.vue'
 import { trackRouter } from "vue-gtag-next";
 const routes = [
   {
@@ -113,6 +114,12 @@ const routes = [
     name: 'likes',
     component: Likes
   },
+  {
+    path: '/mutes',
+    name: 'mutes',
+    component: Mutes
+  },
+  
   {
     path: '/',
     name: 'login',
