@@ -5,8 +5,7 @@
       <v-card-title>
         <router-link :to="`/profile/${this.$store.getters.getHandle}`">
           <v-avatar color="surface-variant">
-            <!--<v-img cover v-bind:src=subject.avatar alt="avatar"></v-img>
-          -->
+            <v-img v-if="subject" cover v-bind:src=subject.avatar alt="avatar"></v-img>
             </v-avatar>
         </router-link>
         @{{ this.$store.getters.getHandle }} mutes
@@ -37,10 +36,13 @@ export default {
     return {
       complated: false,
       mutes: [],
+      muteActors:[],
       cursor: null,
+      subject: null
     }
   },
   beforeMount() {
+    this.getProfile(this.$store.getters.getHandle)
     this.getMutes()
   },
   methods: {
@@ -50,6 +52,42 @@ export default {
       } else {
         $state.loaded()
         await this.getMutes(this.cursor)
+      }
+    },
+    async getProfile(handle) {
+      try {
+        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
+        let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.actor.getProfile', {
+          params: {
+            actor: handle
+          }
+        })
+        this.subject = response.data
+      } catch (e) {
+        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
+          type: "error",
+          position: "top-right",
+          duration: 8000
+        })
+      }
+    },
+    async getMutesProfile(handle) {
+      try {
+        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
+        let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.actor.getProfile', {
+          params: {
+            actor: handle
+          }
+        })
+        console.log(response.data)
+        this.muteActors = this.muteActors.concat(response.data)
+        console.log(this.profile)
+      } catch (e) {
+        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
+          type: "error",
+          position: "top-right",
+          duration: 8000
+        })
       }
     },
     async getMutes(cursor) {
@@ -62,10 +100,12 @@ export default {
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
         let response = await this.axios.get("https://bsky.social/xrpc/app.bsky.graph.getMutes", { params })
-        console.log(response.data)
         this.cursor = response.data.cursor
         if (response.data.mutes.length == 0) {
           this.complated = true
+        }
+        for (let i = 0; i < response.data.mutes.length - 1; i++) {
+          await this.getProfile(response.data.mutes[i].did)
         }
         this.mutes = this.mutes.concat(response.data.mutes)
       } catch (e) {

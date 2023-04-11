@@ -188,7 +188,7 @@
     onPostDialogClose(value) {
          this.postDialog = value;
       },
-      onSearchDialogClose(value) {
+    onSearchDialogClose(value) {
         this.searchDialog = value;
     },
     }
