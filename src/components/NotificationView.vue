@@ -5,35 +5,35 @@
         Notifications
       </v-card-title>
     </v-card>
-  
     <v-list v-if="notifications">
       <v-list-item v-for="(n, nIndex) in notifications" :key="nIndex">
-        <v-card width="400px" class="mx-auto mt-5">
+        <v-card v-if="!this.$store.getters.getMutes.includes(n.author.did)" width="400px" class="mx-auto mt-5">
           <v-card-text>
             <v-icon v-if="!n.isRead" color="red">mdi-circle</v-icon>
             <v-icon v-if="n.reason == 'follow'">mdi-account-check</v-icon>
             <v-icon v-if="n.reason == 'repost'">mdi-repeat</v-icon>
+            <v-icon v-if="n.reason == 'reply'">mdi-comment-outline</v-icon>
             <v-icon v-if="n.reason == 'like'" color="red">mdi-heart-outline</v-icon>
             by @{{ n.author.handle }}
-                  <router-link :to="`/profile/${n.author.handle}`">
-                    <v-avatar size=20 color="surface-variant" small>
-                      <v-img cover v-bind:src=n.author.avatar alt="avatar"></v-img>
-                    </v-avatar>
-                  </router-link>
-                  {{ n.author.displayName }} 
+            <router-link :to="`/profile/${n.author.handle}`">
+              <v-avatar size=20 color="surface-variant" small>
+                <v-img cover v-bind:src=n.author.avatar alt="avatar"></v-img>
+              </v-avatar>
+            </router-link>
+            {{ n.author.displayName }}
           </v-card-text>
-            <v-card v-if="this.posts.get(n.reasonSubject)">
-                <v-card-subtitle>{{ this.posts.get(n.reasonSubject).value.createdAt }}</v-card-subtitle>
-                <v-card-text class="text-pre-wrap">
-                  {{ this.posts.get(n.reasonSubject).value.text }}
-                </v-card-text>
-            </v-card>          
+          <v-card v-if="this.posts.get(n.reasonSubject)">
+            <v-card-subtitle>{{ this.posts.get(n.reasonSubject).value.createdAt }}</v-card-subtitle>
+            <v-card-text class="text-pre-wrap">
+              {{ this.posts.get(n.reasonSubject).value.text }}
+            </v-card-text>
+          </v-card>
         </v-card>
       </v-list-item>
     </v-list>
 
     <infinite-loading @infinite="infiniteHandler" :firstload=false>
-          <template #spinner>
+      <template #spinner>
         <span>loading...</span>
       </template>
       <template #complete>
@@ -76,8 +76,8 @@ export default {
     async updateSeen() {
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        await this.axios.post("https://bsky.social/xrpc/app.bsky.notification.updateSeen", { seenAt: new Date})
-       } catch (e) {
+        await this.axios.post("https://bsky.social/xrpc/app.bsky.notification.updateSeen", { seenAt: new Date })
+      } catch (e) {
         this.$toast.show(e.response.data.error + " " + e.response.data.message, {
           type: "error",
           position: "top-right",
@@ -88,7 +88,7 @@ export default {
     async getNotifications(cursor) {
       let params = {}
       if (!cursor) {
-        params = { }
+        params = {}
       } else {
         params = { cursor: cursor }
       }
@@ -109,7 +109,7 @@ export default {
         })
       }
     },
-    async getPosts(notifications) {   
+    async getPosts(notifications) {
       try {
 
         for (const n of notifications) {

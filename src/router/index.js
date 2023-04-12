@@ -37,7 +37,7 @@ const routes = [
     name: 'thread_uri',
     component: Thread
   },
-  
+
   {
     path: '/popular/',
     name: 'popular',
@@ -93,7 +93,7 @@ const routes = [
     name: 'privacypolicy',
     component: PrivacyPolicy
   },
-  
+
   {
     path: '/suggestions',
     name: 'suggestions',
@@ -115,11 +115,16 @@ const routes = [
     component: Likes
   },
   {
+    path: '/likes/:handle',
+    name: 'likes_handle',
+    component: Likes
+  },
+  {
     path: '/mutes',
     name: 'mutes',
     component: Mutes
   },
-  
+
   {
     path: '/',
     name: 'login',

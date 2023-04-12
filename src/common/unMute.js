@@ -1,6 +1,6 @@
 import { provide } from 'vue'
 import { useStore } from 'vuex'
-import {createToaster} from '@meforma/vue-toaster'
+import { createToaster } from '@meforma/vue-toaster'
 import axios from 'axios'
 
 export function useUnMute() {
@@ -13,6 +13,7 @@ export function useUnMute() {
       await axios.post("https://bsky.social/xrpc/app.bsky.graph.unMuteActor", {
         actor: did
       })
+      store.dispatch('removeMute', did);
     } catch (e) {
       toast.show(e.response.data.error + " " + e.response.data.message, {
         type: "error",
@@ -20,7 +21,7 @@ export function useUnMute() {
         duration: 8000
       })
     }
-    return {unMute}
+    return { unMute }
   }
 
   // provideでデータを登録する

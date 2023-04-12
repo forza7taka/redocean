@@ -5,14 +5,15 @@
         Likes
       </v-card-title>
     </v-card>
-        <v-list-item v-for="(f, fIndex) in timeline.feed" :key="fIndex">
-        <v-row>
-          <v-col class="d-flex justify-center align-center">
-            <PostView v-if="f.reply" :post="f.post" :reason="f.reason" :parent="f.reply.parent" :root="f.reply.root" :depth="0"></PostView>
-            <PostView v-if="!f.reply" :post="f.post" :reason="f.reason" :depth="0"></PostView>
-          </v-col>
-        </v-row>
-      </v-list-item>
+    <v-list-item v-for="(f, fIndex) in timeline.feed" :key="fIndex">
+      <v-row>
+        <v-col class="d-flex justify-center align-center">
+          <PostView v-if="f.reply" :post="f.post" :reason="f.reason" :parent="f.reply.parent" :root="f.reply.root"
+            :depth="0"></PostView>
+          <PostView v-if="!f.reply" :post="f.post" :reason="f.reason" :depth="0"></PostView>
+        </v-col>
+      </v-row>
+    </v-list-item>
 
     <infinite-loading @infinite="infiniteHandler" :firstload="false">
       <template #spinner>
@@ -40,7 +41,8 @@ export default {
       timeline: { feed: [] },
       cursor: null,
       likes: [],
-      authors: new Map()
+      authors: new Map(),
+      handle: null
     };
   },
   watch: {
@@ -50,31 +52,46 @@ export default {
       },
       deep: true
     },
+    '$route.params.handle': {
+      async handler() {
+
+        this.handle = await this.getHandle()
+        console.log(this.handle)
+        await this.getLikes(this.handle, this.cursor)
+      }
+    }
   },
   async beforeMount() {
-    await this.getLikes(this.cursor)
+    this.handle = await this.getHandle()
+    await this.getLikes(this.handle, this.cursor)
   },
   methods: {
     async infiniteHandler($state) {
       if (this.complated) {
         $state.complete()
       } else {
-        await this.getLikes(this.cursor)
+        await this.getLikes(this.handle, this.cursor)
         $state.loaded()
       }
     },
-    async getLikes(cursor) {
+    async getHandle() {
+      if (this.$route.params.handle) {
+        return this.$route.params.handle
+      }
+      return this.$store.getters.getHandle
+    },
+    async getLikes(handle, cursor) {
       try {
         let params = {}
         if (!cursor) {
           params = {
-            repo: this.$store.getters.getDid,
+            repo: handle,
             collection: "app.bsky.feed.like",
             limit: 50
           }
         } else {
           params = {
-            repo: this.$store.getters.getDid,
+            repo: handle,
             collection: "app.bsky.feed.like",
             cursor: cursor
           }
@@ -110,7 +127,7 @@ export default {
               }
             })
             console.log(response.data.thread.post)
-            let post = {post: response.data.thread.post }
+            let post = { post: response.data.thread.post }
             this.timeline.feed = this.timeline.feed.concat(post)
           } catch (e) {
             if (e.response && e.response.status === 400) {

@@ -32,18 +32,17 @@
           <v-list-item-subtitle>
             Posts: {{ profile.postsCount }}
           </v-list-item-subtitle>
-            <v-list-item-subtitle v-if="profile.did == this.$store.getters.getDid">
-              <router-link v-if="likes" :to="`/likes`"
-                style="text-decoration: none; color: inherit;">
-                 Likes: {{ likes.length }}
-              </router-link>
-            </v-list-item-subtitle>
-            <v-list-item-subtitle>
-              <router-link v-if="mutes" :to="`/mutes`"
-                style="text-decoration: none; color: inherit;">
-                Mutes: {{ mutes.length }}
-              </router-link>
-            </v-list-item-subtitle>
+          <v-list-item-subtitle>
+            <router-link v-if="likes" :to="`/likes/${encodeURIComponent(profile.handle)}`"
+              style="text-decoration: none; color: inherit;">
+              Likes: {{ likes.length }}
+            </router-link>
+          </v-list-item-subtitle>
+          <v-list-item-subtitle v-if="profile.did == this.$store.getters.getDid">
+            <router-link v-if="mutes" :to="`/mutes`" style="text-decoration: none; color: inherit;">
+              Mutes: {{ mutes.length }}
+            </router-link>
+          </v-list-item-subtitle>
           <v-list-item-subtitle>
             <v-btn v-if="follows.includes(profile.did)" @click.prevent="doUnFollow()"
               icon><v-icon>mdi-account-remove</v-icon></v-btn>
@@ -156,7 +155,7 @@ export default {
     }
     this.complated = false
     while (!this.complated) {
-      await this.getLikes(this.likesCursor)
+      await this.getLikes(this.handle, this.likesCursor)
     }
     this.complated = false
     while (!this.complated) {
@@ -190,18 +189,18 @@ export default {
         })
       }
     },
-    async getLikes(cursor) {
+    async getLikes(handle, cursor) {
       try {
         let params = {}
         if (!cursor) {
           params = {
-            repo: this.$store.getters.getDid,
+            repo: handle,
             collection: "app.bsky.feed.like",
             limit: 50
           }
         } else {
           params = {
-            repo: this.$store.getters.getDid,
+            repo: handle,
             collection: "app.bsky.feed.like",
             cursor: cursor
           }

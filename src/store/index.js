@@ -8,7 +8,8 @@ export default createStore({
     accessJwt: '',
     refreshJwt: '',
     follows: [],
-    likes: new Map()
+    likes: new Map(),
+    mutes: []
   },
   getters: {
     getHandle(state) {
@@ -37,7 +38,10 @@ export default createStore({
         return false;
       }
       return state.likes.has(key);
-    }
+    },
+    getMutes(state) {
+      return state.mutes;
+    },
   },
   mutations: {
     createSession(state, session) {
@@ -59,7 +63,7 @@ export default createStore({
         state.likes.set(element.value.subject.uri, element.uri)
       });
     },
-    addLike(state, {key, value}) {
+    addLike(state, { key, value }) {
       return state.likes.set(key, value);
     },
 
@@ -74,19 +78,28 @@ export default createStore({
     removeAllLikes(state) {
       state.likes = new Map();
     },
+    addMutes(state, session) {
+      session.mutes.forEach(element => {
+        state.mutes.push(element.did)
+      });
+    },
+    removeMute(state, index) {
+      state.mutes.splice(index, 1);
+    },
+
   },
   actions: {
     doCreateSession({
       commit
     }, session) {
-      commit('createSession', 
+      commit('createSession',
         session
       )
     },
     doAddFollows({
       commit
     }, session) {
-      commit('addFollows', 
+      commit('addFollows',
         session
       )
     },
@@ -99,14 +112,14 @@ export default createStore({
     doSetHandle({
       commit
     }, session) {
-      commit('setHandle', 
+      commit('setHandle',
         session
       )
     },
     doAddLikes({
       commit
     }, session) {
-      commit('addLikes', 
+      commit('addLikes',
         session
       )
     },
@@ -124,9 +137,22 @@ export default createStore({
       commit('removeAllLikes',
         session
       )
-    }
+    },
+    doAddMutes({
+      commit
+    }, session) {
+      commit('addMutes',
+        session
+      )
+    },
+    removeMute({ commit, state }, did) {
+      const index = state.fmutes.indexOf(did);
+      if (index > -1) {
+        commit('removeMute', index);
+      }
+    },
   },
   modules: {
   },
-  plugins: [createPersistedState({storage: window.sessionStorage})]
+  plugins: [createPersistedState({ storage: window.sessionStorage })]
 })

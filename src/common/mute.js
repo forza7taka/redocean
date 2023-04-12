@@ -1,7 +1,7 @@
 import { provide } from 'vue'
 import { useStore } from 'vuex'
 import axios from 'axios'
-import {createToaster} from '@meforma/vue-toaster'
+import { createToaster } from '@meforma/vue-toaster'
 
 
 export function useMute() {
@@ -14,6 +14,7 @@ export function useMute() {
       await axios.post("https://bsky.social/xrpc/app.bsky.graph.muteActor", {
         actor: did
       })
+      store.getters.getMutes.push(did);
     } catch (e) {
       toast.show(e.response.data.error + " " + e.response.data.message, {
         type: "error",
@@ -21,7 +22,7 @@ export function useMute() {
         duration: 8000
       })
     }
-    return {mute}
+    return { mute }
   }
 
   // provideでデータを登録する

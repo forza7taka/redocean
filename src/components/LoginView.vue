@@ -23,11 +23,15 @@ export default {
       handle: '',
       password: '',
       cursor: null,
-      isComplete: false
+      completed: false,
+      failed: false
     }
   },
   async mounted() {
     try {
+      if (this.failed) {
+        return
+      }
       if ((this.$store.getters.getDid) && (this.$store.getters.getAccessJwt)) {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getRefreshJwt
         let response = await this.axios.post('https://bsky.social/xrpc/com.atproto.server.refreshSession')
@@ -36,11 +40,13 @@ export default {
         this.$router.push('/timeline')
       }
     } catch (e) {
+      this.failed = true
       console.log("error refresh")
     }
   },
   methods: {
     async login() {
+      this.failed = false
       try {
         let response = await this.axios.post('https://bsky.social/xrpc/com.atproto.server.createSession', {
           identifier: this.handle,
@@ -48,15 +54,20 @@ export default {
         })
         this.$store.dispatch('doCreateSession', response.data)
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        while (!this.isComplete) {
+        while (!this.completed) {
           await this.getFollows(this.handle, this.cursor)
         }
-        this.isComplete = false
-        while (!this.isComplete) {
+        this.completed = false
+        while (!this.completed) {
           await this.getLikes(this.cursor)
+        }
+        this.completed = false
+        while (!this.completed) {
+          await this.getMutes(this.cursor)
         }
         this.$router.push('/timeline')
       } catch (e) {
+        console.log(e)
         this.$toast.show(e.response.data.error + " " + e.response.data.message, {
           type: "error",
           position: "top-right",
@@ -76,7 +87,7 @@ export default {
         let response = await this.axios.get("https://bsky.social/xrpc/app.bsky.graph.getFollows", { params })
         this.cursor = response.data.cursor
         if (response.data.follows.length == 0) {
-          this.isComplete = true
+          this.completed = true
           return
         }
         this.$store.dispatch('doAddFollows', response.data)
@@ -88,11 +99,36 @@ export default {
         })
       }
     },
+    async getMutes(cursor) {
+      let params = {}
+      if (!cursor) {
+        params = {}
+      } else {
+        params = { cursor: cursor }
+      }
+      try {
+        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
+        let response = await this.axios.get("https://bsky.social/xrpc/app.bsky.graph.getMutes", { params })
+        this.cursor = response.data.cursor
+        if (response.data.mutes.length == 0) {
+          this.completed = true
+          return
+        }
+        this.$store.dispatch('doAddMutes', response.data)
+      } catch (e) {
+        console.log(e)
+        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
+          type: "error",
+          position: "top-right",
+          duration: 8000
+        })
+      }
+    },
     async getLikes(cursor) {
       try {
         let params = {}
         if (!cursor) {
-          params = { 
+          params = {
             repo: this.$store.getters.getDid,
             collection: "app.bsky.feed.like",
             limit: 50
@@ -111,17 +147,17 @@ export default {
         })
         this.cursor = response.data.cursor
         if (response.data.records.length == 0) {
-          this.isComplete = true
+          this.completed = true
           return
         }
         this.$store.dispatch('doAddLikes', response.data)
       } catch (e) {
         this.$toast.show(e.response.data.error + " " + e.response.data.message, {
-        type: "error",
-        position: "top-right",
-        duration: 8000
+          type: "error",
+          position: "top-right",
+          duration: 8000
         })
-        this.isComplete = true
+        this.completed = true
       }
     }
   }
