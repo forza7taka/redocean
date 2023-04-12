@@ -43,7 +43,7 @@ export default {
     async login() {
       try {
         let response = await this.axios.post('https://bsky.social/xrpc/com.atproto.server.createSession', {
-          handle: this.handle,
+          identifier: this.handle,
           password: this.password
         })
         this.$store.dispatch('doCreateSession', response.data)
