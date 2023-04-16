@@ -10,7 +10,7 @@ export function useUnMute() {
   async function unMute(did) {
     try {
       axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getAccessJwt
-      await axios.post("https://bsky.social/xrpc/app.bsky.graph.unMuteActor", {
+      await axios.post(process.env.VUE_APP_BASE_URI + "app.bsky.graph.unMuteActor", {
         actor: did
       })
       store.dispatch('removeMute', did);

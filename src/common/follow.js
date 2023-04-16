@@ -10,7 +10,7 @@ export function useFollow() {
   async function follow(did) {
     try {
       axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getAccessJwt
-      let response = await axios.post("https://bsky.social/xrpc/com.atproto.repo.createRecord", {
+      let response = await axios.post(process.env.VUE_APP_BASE_URI + "com.atproto.repo.createRecord", {
         collection: "app.bsky.graph.follow",
         repo: store.getters.getDid,
         record: {

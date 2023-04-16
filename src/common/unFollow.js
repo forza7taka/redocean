@@ -18,7 +18,7 @@ export function useUnFollow() {
           }
       })
       profile = response.data
-      await axios.post("https://bsky.social/xrpc/com.atproto.repo.deleteRecord", {
+      await axios.post(process.env.VUE_APP_BASE_URI + "com.atproto.repo.deleteRecord", {
         collection: "app.bsky.graph.follow",
         repo: ownDid,
         rkey: String(profile.viewer.following).substr(-13)

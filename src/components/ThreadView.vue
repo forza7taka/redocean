@@ -35,7 +35,7 @@ export default {
       let params = { uri: this.$route.params.uri }
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.feed.getPostThread', { params })
+        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "app.bsky.feed.getPostThread", { params })
         console.log(response)
         this.thread = response.data.thread
       } catch (e) {

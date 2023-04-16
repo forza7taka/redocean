@@ -39,7 +39,7 @@ export default {
   methods: {
     async create() {
       try {
-        let response = await this.axios.post('https://bsky.social/xrpc/com.atproto.server.createAccount', {
+        let response = await this.axios.post(process.env.VUE_APP_BASE_URI + "/com.atproto.server.createAccount", {
           email: this.mailAddress,
           handle: this.handle,
           password: this.password,

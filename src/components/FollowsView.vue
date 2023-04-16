@@ -61,7 +61,7 @@ export default {
       }
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get("https://bsky.social/xrpc/app.bsky.graph.getFollows", { params })
+        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "app.bsky.graph.getFollows", { params })
         this.cursor = response.data.cursor
         if (response.data.follows.length == 0) {
           this.complated = true

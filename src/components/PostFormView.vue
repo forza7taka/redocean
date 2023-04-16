@@ -46,7 +46,7 @@
         <v-btn icon @click="handleFileInputClick">
           <v-icon>mdi-upload</v-icon>
         </v-btn>
-        <v-btn icon @click="submit()"><v-icon>mdi-send</v-icon></v-btn>
+        <v-btn icon @click="send"><v-icon>mdi-send</v-icon></v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -84,6 +84,7 @@ export default {
       for (let i = 0; i < files.length; i++) {
         const element = files[i]
         this.files.push(element);
+        console.log("bbb")
         this.imageUrls.push(URL.createObjectURL(element));
       }
     },
@@ -93,18 +94,19 @@ export default {
     },
     async uploadImage(blob) {
       this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-      const response = await this.axios.post('https://bsky.social/xrpc/com.atproto.repo.uploadBlob', blob)
+      const response = await this.axios.post(process.env.VUE_APP_BASE_URI + "com.atproto.repo.uploadBlob", blob)
       return response.data.blob
     },
     async post() {
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        await this.axios.post('https://bsky.social/xrpc/com.atproto.repo.createRecord', {
+        await this.axios.post(process.env.VUE_APP_BASE_URI + "com.atproto.repo.createRecord", {
           collection: "app.bsky.feed.post",
           repo: this.$store.getters.getDid,
           record: { text: this.contents, createdAt: new Date() }
         })
       } catch (e) {
+        console.log(e)
         this.$toast.show(e.response.data.error + " " + e.response.data.message, {
           type: "error",
           position: "top-right",
@@ -119,12 +121,13 @@ export default {
           for (let i = 0; i < this.files.length; i++) {
             const file = this.files[i]
             const blob = await this.getBlob(file);
+            console.log("aaa")
             const image = await this.uploadImage(blob)
             imgs.push({ alt: "", image })
           }
           console.log(imgs)
           this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-          await this.axios.post('https://bsky.social/xrpc/com.atproto.repo.createRecord', {
+          await this.axios.post(process.env.VUE_APP_BASE_URI + "com.atproto.repo.createRecord", {
             collection: "app.bsky.feed.post",
             repo: this.$store.getters.getDid,
             record: {
@@ -148,74 +151,40 @@ export default {
         this.files = []
       }
       this.$emit('onPostDialogClose', false)
-    }
-  },
-  async submit() {
-    if (this.mode == "Post") {
-      if (this.files.length != 0) {
-        await this.postWithImage()
-      } else {
-        await this.post()
-      }
-    } else {
-      if (this.files.length != 0) {
-        await this.replyWithImage()
-      } else {
-        await this.reply()
-      }
-    }
-    this.$emit('onPostDialogClose', false)
-  },
-  async reply() {
-    try {
-      let parent = { uri: this.parent.uri, cid: this.parent.cid }
-      let root = { uri: this.root.uri, cid: this.root.cid }
-      this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-      await this.axios.post('https://bsky.social/xrpc/com.atproto.repo.createRecord', {
-        collection: "app.bsky.feed.post",
-        repo: this.$store.getters.getDid,
-        record: {
-          text: this.contents,
-          createdAt: new Date(),
-          reply: {
-            handle: this.$store.getters.getHandle,
-            parent: parent,
-            root: root,
+    },
+    async send() {
+      try {
+        console.log("qqq")
+        if (this.mode == "Post") {
+          if (this.files.length != 0) {
+            await this.postWithImage()
+          } else {
+            await this.post()
+          }
+        } else {
+          if (this.files.length != 0) {
+            await this.replyWithImage()
+          } else {
+            await this.reply()
           }
         }
-      })
-    } catch (e) {
-      this.$toast.show(e.response.data.error + " " + e.response.data.message, {
-        type: "error",
-        position: "top-right",
-        duration: 8000
-      })
-    }
-  },
-  async replyWithImage() {
-    try {
-      if (this.files.length != 0) {
-        let imgs = []
-        for (let i = 0; i < this.files.length; i++) {
-          const file = this.files[i]
-          const blob = await this.getBlob(file);
-          const image = await this.uploadImage(blob)
-          imgs.push({ alt: "", image })
-        }
+        this.$emit('onPostDialogClose', false)
+      } catch (e) {
+        console.log(e)
+      }
+
+    },
+    async reply() {
+      try {
         let parent = { uri: this.parent.uri, cid: this.parent.cid }
         let root = { uri: this.root.uri, cid: this.root.cid }
-
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        await this.axios.post('https://bsky.social/xrpc/com.atproto.repo.createRecord', {
+        await this.axios.post(process.env.VUE_APP_BASE_URI + "com.atproto.repo.createRecord", {
           collection: "app.bsky.feed.post",
           repo: this.$store.getters.getDid,
           record: {
             text: this.contents,
             createdAt: new Date(),
-            embed: {
-              $type: "app.bsky.embed.images",
-              images: imgs
-            },
             reply: {
               handle: this.$store.getters.getHandle,
               parent: parent,
@@ -223,14 +192,54 @@ export default {
             }
           }
         })
+      } catch (e) {
+        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
+          type: "error",
+          position: "top-right",
+          duration: 8000
+        })
       }
-    } catch (e) {
-      this.$toast.show(e.response.data.error + " " + e.response.data.message, {
-        type: "error",
-        position: "top-right",
-        duration: 8000
-      })
-    }
+    },
+    async replyWithImage() {
+      try {
+        if (this.files.length != 0) {
+          let imgs = []
+          for (let i = 0; i < this.files.length; i++) {
+            const file = this.files[i]
+            const blob = await this.getBlob(file);
+            const image = await this.uploadImage(blob)
+            imgs.push({ alt: "", image })
+          }
+          let parent = { uri: this.parent.uri, cid: this.parent.cid }
+          let root = { uri: this.root.uri, cid: this.root.cid }
+
+          this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
+          await this.axios.post(process.env.VUE_APP_BASE_URI + "com.atproto.repo.createRecord", {
+            collection: "app.bsky.feed.post",
+            repo: this.$store.getters.getDid,
+            record: {
+              text: this.contents,
+              createdAt: new Date(),
+              embed: {
+                $type: "app.bsky.embed.images",
+                images: imgs
+              },
+              reply: {
+                handle: this.$store.getters.getHandle,
+                parent: parent,
+                root: root,
+              }
+            }
+          })
+        }
+      } catch (e) {
+        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
+          type: "error",
+          position: "top-right",
+          duration: 8000
+        })
+      }
+    },
   },
 }
 

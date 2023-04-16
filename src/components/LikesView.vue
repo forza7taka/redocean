@@ -97,7 +97,7 @@ export default {
           }
         }
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get('https://bsky.social/xrpc/com.atproto.repo.listRecords', {
+        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "com.atproto.repo.listRecords", {
           params
         })
         console.log(response.data)
@@ -121,7 +121,7 @@ export default {
         for (var i = 0; i < likes.length; i++) {
           try {
             this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-            let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.feed.getPostThread', {
+            let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "app.bsky.feed.getPostThread", {
               params: {
                 uri: likes[i].value.subject.uri
               }

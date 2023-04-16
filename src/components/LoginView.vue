@@ -1,6 +1,7 @@
 <template>
   <div>
     <div>
+
       <v-text-field label="xxxx.bsky.social or mailaddress" placeholder="xxxx.bsky.social or mailaddress"
         color="green darken-5" clearable dense v-model="handle"></v-text-field>
     </div>
@@ -34,7 +35,7 @@ export default {
       }
       if ((this.$store.getters.getDid) && (this.$store.getters.getAccessJwt)) {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getRefreshJwt
-        let response = await this.axios.post('https://bsky.social/xrpc/com.atproto.server.refreshSession')
+        let response = await this.axios.post(process.env.VUE_APP_BASE_URI + "com.atproto.server.refreshSession")
         this.$store.dispatch('doCreateSession', response.data)
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
         this.$router.push('/timeline')
@@ -48,7 +49,7 @@ export default {
     async login() {
       this.failed = false
       try {
-        let response = await this.axios.post('https://bsky.social/xrpc/com.atproto.server.createSession', {
+        let response = await this.axios.post(process.env.VUE_APP_BASE_URI + "com.atproto.server.createSession", {
           identifier: this.handle,
           password: this.password
         })
@@ -84,7 +85,7 @@ export default {
       }
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get("https://bsky.social/xrpc/app.bsky.graph.getFollows", { params })
+        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "app.bsky.graph.getFollows", { params })
         this.cursor = response.data.cursor
         if (response.data.follows.length == 0) {
           this.completed = true
@@ -108,7 +109,7 @@ export default {
       }
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get("https://bsky.social/xrpc/app.bsky.graph.getMutes", { params })
+        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "app.bsky.graph.getMutes", { params })
         this.cursor = response.data.cursor
         if (response.data.mutes.length == 0) {
           this.completed = true
@@ -142,7 +143,7 @@ export default {
         }
 
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get('https://bsky.social/xrpc/com.atproto.repo.listRecords', {
+        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "com.atproto.repo.listRecords", {
           params
         })
         this.cursor = response.data.cursor

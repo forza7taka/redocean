@@ -57,7 +57,7 @@ export default {
     async getProfile(handle) {
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.actor.getProfile', {
+        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "app.bsky.actor.getProfile", {
           params: {
             actor: handle
           }
@@ -74,7 +74,7 @@ export default {
     async getMutesProfile(handle) {
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.actor.getProfile', {
+        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "app.bsky.actor.getProfile", {
           params: {
             actor: handle
           }
@@ -99,7 +99,7 @@ export default {
       }
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get("https://bsky.social/xrpc/app.bsky.graph.getMutes", { params })
+        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "app.bsky.graph.getMutes", { params })
         this.cursor = response.data.cursor
         if (response.data.mutes.length == 0) {
           this.complated = true

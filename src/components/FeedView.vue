@@ -36,7 +36,7 @@ export default {
     async deletePost(uri) {
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        await this.axios.post('https://bsky.social/xrpc/com.atproto.repo.deleteRecord', {
+        await this.axios.post(process.env.VUE_APP_BASE_URI + "com.atproto.repo.deleteRecord", {
           collection: "app.bsky.feed.post",
           repo: this.$store.getters.getDid,
           rkey: String(uri).substr(-13)
@@ -53,7 +53,8 @@ export default {
       try {
         let subject = { uri: feed.post.uri, cid: feed.post.cid }
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.post('https://bsky.social/xrpc/com.atproto.repo.createRecord', {
+        let response = await this.axios.post(process.env.VUE_APP_BASE_URI + "com.atproto.repo.createRecord"
+          , {
           collection: "app.bsky.feed.repost",
           repo: this.$store.getters.getDid,
           record: {
@@ -76,7 +77,7 @@ export default {
         if (!this.$store.getters.hasLike(feed.post.uri)) {
           let subject = { uri: feed.post.uri, cid: feed.post.cid }
           this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-          let response = await this.axios.post('https://bsky.social/xrpc/com.atproto.repo.createRecord', {
+          let response = await this.axios.post(process.env.VUE_APP_BASE_URI + "com.atproto.repo.createRecord", {
             collection: "app.bsky.feed.like",
             repo: this.$store.getters.getDid,
             record: {
@@ -94,7 +95,7 @@ export default {
           this.$store.dispatch('doAddLike', { key: feed.post.uri, value: response.data.uri });
         } else {
           this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-          await this.axios.post('https://bsky.social/xrpc/com.atproto.repo.deleteRecord', {
+          await this.axios.post(process.env.VUE_APP_BASE_URI + "com.atproto.repo.deleteRecord", {
             collection: "app.bsky.feed.like",
             repo: this.$store.getters.getDid,
             rkey: this.$store.getters.getLikes.get(feed.post.uri).substr(-13)

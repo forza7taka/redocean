@@ -48,7 +48,7 @@ export default {
     async createInviteCode() {
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.post('https://bsky.social/xrpc/com.atproto.server.createInviteCode', {
+        let response = await this.axios.post(process.env.VUE_APP_BASE_URI + "com.atproto.server.createInviteCod", {
           params: {
             useCount: 5
           }
@@ -73,13 +73,13 @@ export default {
     },
     async uploadImage(blob) {
       this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-      const response = await this.axios.post('https://bsky.social/xrpc/com.atproto.repo.uploadBlob', blob)
+      const response = await this.axios.post(process.env.VUE_APP_BASE_URI + "com.atproto.repo.uploadBlob", blob)
       return response.data.blob
     },
     async getProfile(handle) {
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.actor.getProfile', {
+        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "app.bsky.actor.getProfile", {
           params: {
             actor: handle
           }
@@ -101,7 +101,7 @@ export default {
         let request = {}
         if (existRecord) {
           this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-          let response = await this.axios.get('https://bsky.social/xrpc/com.atproto.repo.getRecord', {
+          let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "com.atproto.repo.getRecord", {
             params: {
               repo: this.$store.getters.getDid,
               collection: "app.bsky.actor.profile",
@@ -141,7 +141,7 @@ export default {
           }
         }
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        await this.axios.post('https://bsky.social/xrpc/com.atproto.repo.putRecord', 
+        await this.axios.post(process.env.VUE_APP_BASE_URI + "com.atproto.repo.putRecord", 
           request
         )
       } catch (e) {

@@ -38,7 +38,7 @@ export default {
     async getProfile(handle) {
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.actor.getProfile', {
+        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "app.bsky.actor.getProfile", {
           params: {
             actor: handle
           }
@@ -56,7 +56,7 @@ export default {
     async updateHandle() {
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.post('https://bsky.social/xrpc/com.atproto.identity.updateHandle', {
+        let response = await this.axios.post(process.env.VUE_APP_BASE_URI + "com.atproto.identity.updateHandle", {
             handle: this.profile.handle
           
         })

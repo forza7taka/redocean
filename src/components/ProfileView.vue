@@ -174,7 +174,7 @@ export default {
       }
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get("https://bsky.social/xrpc/app.bsky.graph.getMutes", { params })
+        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "app.bsky.graph.getMutes", { params })
         console.log(response.data)
         this.mutesCursor = response.data.cursor
         if (response.data.mutes.length == 0) {
@@ -206,7 +206,7 @@ export default {
           }
         }
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get('https://bsky.social/xrpc/com.atproto.repo.listRecords', {
+        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "com.atproto.repo.listRecords", {
           params
         })
         this.likes = this.likes.concat(response.data.records)
@@ -227,7 +227,7 @@ export default {
     async getInviteCodes() {
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get('https://bsky.social/xrpc/com.atproto.server.getAccountInviteCodes', {
+        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "com.atproto.server.getAccountInviteCodes", {
           params: {
           }
         })
@@ -266,7 +266,7 @@ export default {
     async getProfile(handle) {
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.actor.getProfile', {
+        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "app.bsky.actor.getProfile", {
           params: {
             actor: handle
           }
@@ -290,7 +290,7 @@ export default {
       }
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.feed.getAuthorFeed', { params })
+        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "app.bsky.feed.getAuthorFeed", { params })
         console.log(response)
         this.timeline.feed = this.timeline.feed.concat(response.data.feed)
 

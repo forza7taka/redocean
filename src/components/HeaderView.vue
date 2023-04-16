@@ -2,10 +2,8 @@
 <div>
   <v-app-bar fixed color="pink-lighten-2 lighten-5">
     <v-app-bar-nav-icon @click="drawer = true"></v-app-bar-nav-icon>
-    <v-toolbar-title>RedOcean</v-toolbar-title>
+    <v-toolbar-title>redocean</v-toolbar-title>
     <v-spacer></v-spacer>
-<!--    <v-btn v-if="this.$store.getters.getAccessJwt" @click="searchDialog = true"><v-icon>mdi-magnify</v-icon></v-btn>
--->    
     <div v-if="unReadCount != 0">
       <v-badge right top overlap color="blue">
         <template #badge>
@@ -21,8 +19,6 @@
       <v-icon size="18">mdi-bell</v-icon>
     </v-btn>    
   </div>
-
-
     <v-btn v-if="this.$store.getters.getAccessJwt" @click="postDialog = true"><v-icon>mdi-plus</v-icon></v-btn>
   </v-app-bar>
   <v-navigation-drawer v-model="drawer" fixed temporary>
@@ -99,11 +95,6 @@
           link: "/suggestions"
         },
         {
-          icon: "mdi-heart",
-          name: "Likes",
-          link: "/likes"
-        },
-        {
           icon: "mdi-shield-account",
           name: "PrivacyPolicy",
           link: "/privacypolicy"
@@ -115,7 +106,7 @@
     try {
       if ((this.$store.getters.getDid) && (this.$store.getters.getAccessJwt)) {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getRefreshJwt
-        let response = await this.axios.post('https://bsky.social/xrpc/com.atproto.server.refreshSession')
+        let response = await this.axios.post(process.env.VUE_APP_BASE_URI + "com.atproto.server.refreshSession")
         this.$store.dispatch('doCreateSession', response.data)
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
         this.$store.dispatch('doRemoveAllLikes')
@@ -138,7 +129,7 @@
       async getUnreadCount() {
         try {
           this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-          let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.notification.getUnreadCount')
+          let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "app.bsky.notification.getUnreadCount")
           console.log(response.data)
           this.unReadCount =  response.data.count
         } catch (e) {
@@ -156,7 +147,7 @@
           params = {
             repo: this.$store.getters.getDid,
             collection: "app.bsky.feed.like",
-            limit: 50
+            limit: 100
           }
         } else {
           params = {
@@ -167,7 +158,7 @@
         }
 
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get('https://bsky.social/xrpc/com.atproto.repo.listRecords', {
+        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "com.atproto.repo.listRecords", {
           params
         })
         this.cursor = response.data.cursor

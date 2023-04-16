@@ -11,7 +11,7 @@ export function useMute() {
   async function mute(did) {
     try {
       axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getAccessJwt
-      await axios.post("https://bsky.social/xrpc/app.bsky.graph.muteActor", {
+      await axios.post(process.env.VUE_APP_BASE_URI + "app.bsky.graph.muteActor", {
         actor: did
       })
       store.getters.getMutes.push(did);

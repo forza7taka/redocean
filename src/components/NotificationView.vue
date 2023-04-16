@@ -76,7 +76,7 @@ export default {
     async updateSeen() {
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        await this.axios.post("https://bsky.social/xrpc/app.bsky.notification.updateSeen", { seenAt: new Date })
+        await this.axios.post(process.env.VUE_APP_BASE_URI + "app.bsky.notification.updateSeen", { seenAt: new Date })
       } catch (e) {
         this.$toast.show(e.response.data.error + " " + e.response.data.message, {
           type: "error",
@@ -94,7 +94,7 @@ export default {
       }
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get("https://bsky.social/xrpc/app.bsky.notification.listNotifications", { params })
+        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "app.bsky.notification.listNotifications", { params })
         this.cursor = response.data.cursor
         if (response.data.notifications.length == 0) {
           this.complated = true
@@ -126,7 +126,7 @@ export default {
           }
           try {
             this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-            let response = await this.axios.get("https://bsky.social/xrpc/com.atproto.repo.getRecord", { params: params })
+            let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "com.atproto.repo.getRecord", { params: params })
             this.posts.set(n.reasonSubject, response.data)
             console.log(response.data.value)
             console.log(this.posts.get(n.reasonSubject))

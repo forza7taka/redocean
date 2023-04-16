@@ -54,7 +54,7 @@ export default {
           params = { cursor: cursor }
         }
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get("https://bsky.social/xrpc/app.bsky.actor.getSuggestions", { params })
+        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "app.bsky.actor.getSuggestions", { params })
         console.log(response.data)
         this.cursor = response.data.cursor
         if (response.data.actors.length == 0) {
