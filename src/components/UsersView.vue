@@ -47,8 +47,6 @@ import { useUnMute } from "../common/unMute"
 import { provide } from 'vue'
 import { useStore } from 'vuex'
 export default {
-  components: {
-  },
   setup() {
     provide('store', useStore())
     const { follow } = useFollow()
@@ -57,18 +55,11 @@ export default {
     const { unMute } = useUnMute()
     return { follow, unFollow, mute, unMute }
   },
-  data() {
-    return {
-    }
-  },
   props: {
     users: {
       type: Array,
       required: true,
     },
   },
-  methods: {
-
-  }
 }
 </script>

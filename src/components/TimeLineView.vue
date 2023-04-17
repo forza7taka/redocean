@@ -10,77 +10,71 @@
   </infinite-loading>
 </template>
 
-<script >
-// import { onBackupState } from 'vue-history-state'
-// import { ref, reactive, onMounted } from 'vue'
+<script>
 import FeedView from "./FeedView.vue"
 import InfiniteLoading from 'v3-infinite-loading'
+import { ref, provide, onBeforeMount } from 'vue'
+import { useStore } from 'vuex'
+import { createToaster } from '@meforma/vue-toaster';
+import { useHistoryState, onBackupState } from 'vue-history-state';
+import { useRequestGet } from '../common/requestGet.js'
 export default {
   components: {
     FeedView,
     InfiniteLoading
   },
   setup() {
-    // // refを使用してリアクティブな変数を定義する
-    // const historyState = ref(null)
-    // const data = reactive({ key: "value" })
+    const complated = ref(false)
+    const fetchedTimeline = ref({ feed: [] })
+    const cursor = ref(null)
+    const historyState = useHistoryState();
+    const timeline = ref(historyState.data || fetchedTimeline)
 
-    // // コンポーネントがマウントされたときにデータのフェッチや復元を行う
-    // onMounted(async () => {
-    //   // historyStateにデータをバックアップ
-    //   historyState.value = this.timeline
-    // })
+    provide('store', useStore())
 
-    // // historyStateの値が変更された場合にデータをバックアップする
-    // onBackupState(() => data)
+    onBeforeMount(async () => {
+      getTimeline(cursor)
+      if (historyState.action === 'reload') {
+        timeline.value = fetchedTimeline.value
+      }
+    });
 
-    // // コンポジションAPIのリターン値としてdataオブジェクトを返す
-    // return { data }
-  },
-  name: 'App',
-  data() {
-    return {
-      complated: false,
-      timeline: { feed: [] },
-      cursor: null,
-    };
-  },
-  beforeMount() {
-    this.getTimeline(this.cursor)
-  },
-  methods: {
-    async infiniteHandler($state) {
-      if (this.complated) {
+    onBackupState(() => timeline);
+
+    const infiniteHandler = async ($state) => {
+      if (complated.value) {
         $state.complete()
       } else {
-        await this.getTimeline(this.cursor)
+        await getTimeline(cursor.value)
         $state.loaded()
       }
-    },
-    async getTimeline(cursor) {
+    }
+
+    const getTimeline = async (cursor) => {
       let params = {}
       if (!cursor) {
         params = {}
       } else {
-        params = { cursor: cursor }
+        params = { cursor: cursor.value }
       }
       try {
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "app.bsky.feed.getTimeline", { params })
-        console.log(response)
-        this.timeline.feed = this.timeline.feed.concat(response.data.feed)
-        this.cursor = response.data.cursor
-        if (response.data.feed.length == 0) {
-          this.complated = true
+        const req = useRequestGet()
+        const response = await req.get("app.bsky.feed.getTimeline", params)
+        fetchedTimeline.value.feed = fetchedTimeline.value.feed.concat(response.res.feed)
+        cursor = response.res.cursor
+        if (response.res.feed.length == 0) {
+          complated.value = true
         }
       } catch (e) {
-        this.$toast.show(e, {
-          type: "error",
-          position: "top-right",
-          duration: 8000
-        })
+        const toast = createToaster()
+        toast.error(e, { position: "top-right" })
       }
     }
-  }
+
+    return {
+      timeline,
+      infiniteHandler
+    }
+  },
 };
 </script>
