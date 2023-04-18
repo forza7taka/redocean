@@ -16,7 +16,7 @@ export default {
   components: {
     PostView,
   },
-  setup() {
+  async setup() {
     const route = useRoute()
     const thread = ref(null)
     const cursor = ref(null)

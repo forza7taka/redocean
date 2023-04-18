@@ -21,7 +21,8 @@ export default {
       keyword: ''
     };
   },
-  props: {
+  setup() {
+
   },
   methods: {
     async submit() {

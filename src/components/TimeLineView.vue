@@ -1,12 +1,12 @@
 <template>
   <FeedView :timeline="timeline"></FeedView>
-  <infinite-loading @infinite="infiniteHandler" :firstload="false">
-      <template #spinner>
-        <span>loading...</span>
-      </template>
-      <template #complete>
-        <span>No more data found!</span>
-      </template>
+  <infinite-loading @infinite="load" :firstload="false">
+    <template #spinner>
+      <span>loading...</span>
+    </template>
+    <template #complete>
+      <span>No more data found!</span>
+    </template>
   </infinite-loading>
 </template>
 
@@ -23,13 +23,12 @@ export default {
     FeedView,
     InfiniteLoading
   },
-  setup() {
+  async setup() {
     const complated = ref(false)
     const fetchedTimeline = ref({ feed: [] })
     const cursor = ref(null)
     const historyState = useHistoryState();
     const timeline = ref(historyState.data || fetchedTimeline)
-
     provide('store', useStore())
 
     onBeforeMount(async () => {
@@ -41,7 +40,7 @@ export default {
 
     onBackupState(() => timeline);
 
-    const infiniteHandler = async ($state) => {
+    const load = async ($state) => {
       if (complated.value) {
         $state.complete()
       } else {
@@ -73,7 +72,7 @@ export default {
 
     return {
       timeline,
-      infiniteHandler
+      load
     }
   },
 };

@@ -1,12 +1,12 @@
-nn<template>
+<template>
   <div>
-      <v-card width="400px" class="mx-auto mt-5">
+    <v-card width="400px" class="mx-auto mt-5">
       <v-card-title>
         suggestions
       </v-card-title>
     </v-card>
     <UsersView :users="actors"></UsersView>
-    <infinite-loading @infinite="infiniteHandler" :firstload=false>
+    <infinite-loading @infinite="load" :firstload=false>
       <template #spinner>
         <span>loading...</span>
       </template>
@@ -18,56 +18,75 @@ nn<template>
 </template>
 <script>
 import UsersView from './UsersView.vue'
-
 import InfiniteLoading from 'v3-infinite-loading'
+import { ref, provide, onBeforeMount } from 'vue'
+import { useStore } from 'vuex'
+import { createToaster } from '@meforma/vue-toaster';
+import { useHistoryState, onBackupState } from 'vue-history-state';
+import { useRequestGet } from '../common/requestGet.js'
 export default {
   components: {
     UsersView,
-    InfiniteLoading
+    InfiniteLoading,
   },
-  data() {
-    return {
-      complated: false,
-      actors: [],
-      cursor: null,
-    }
-  },
-  beforeMount() {
-    this.getSuggestions(this.cursor)
-  },
-  methods :{
-    async infiniteHandler($state) {
-      if (this.complated) {
+  async setup() {
+    const complated = ref(false)
+    const fetchedActors = ref([])
+    const cursor = ref(null)
+    const historyState = useHistoryState();
+    const actors = ref(historyState.data || fetchedActors)
+    const isLoading = ref(false)
+    provide('store', useStore())
+
+    onBeforeMount(async () => {
+      getSuggestions(cursor)
+      if (historyState.action === 'reload') {
+        actors.value = fetchedActors.value
+      }
+    });
+
+    onBackupState(() => actors);
+
+    const load = async ($state) => {
+      if (isLoading.value) {
+        return
+      }
+      if (complated.value) {
         $state.complete()
       } else {
+        isLoading.value = true
+        await getSuggestions(cursor.value)
+        isLoading.value = false
         $state.loaded()
-        await this.getSuggestions(this.cursor)
       }
-    },
-    async getSuggestions(cursor) {
+    }
+
+    const getSuggestions = async (cursor) => {
+      let params = {}
+      if (!cursor) {
+        params = {}
+      } else {
+        params = { cursor: cursor.value }
+      }
       try {
-        let params = {}
-        if (!cursor) {
-          params = {}
-          this.actors = []
-        } else {
-          params = { cursor: cursor }
+        const req = useRequestGet()
+        const response = await req.get("app.bsky.actor.getSuggestions", params)
+
+        fetchedActors.value = fetchedActors.value.concat(response.res.actors)
+        console.log(fetchedActors.value)
+        cursor = response.res.cursor
+        if (response.res.actors.length == 0) {
+          complated.value = true
         }
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "app.bsky.actor.getSuggestions", { params })
-        console.log(response.data)
-        this.cursor = response.data.cursor
-        if (response.data.actors.length == 0) {
-          this.complated = true
-        }
-        this.actors = this.actors.concat(response.data.actors)
       } catch (e) {
-        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
-          type: "error",
-          position: "top-right",
-          duration: 8000
-        })
+        const toast = createToaster()
+        toast.error(e, { position: "top-right" })
       }
+    }
+
+    return {
+      actors,
+      load
     }
   }
 }
