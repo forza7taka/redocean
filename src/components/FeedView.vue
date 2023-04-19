@@ -3,7 +3,9 @@
     <v-list-item v-for="(f, fIndex) in timeline.feed" :key="fIndex">
       <v-row>
         <v-col class="d-flex justify-center align-center">
-          <PostView v-if="f.reply" :post="f.post" :reason="f.reason" :parent="f.reply.parent" :root="f.reply.root" :depth="0"></PostView>
+          {{ fIndex }}
+          <PostView v-if="f.reply" :post="f.post" :reason="f.reason" :parent="f.reply.parent" :root="f.reply.root"
+            :depth="0"></PostView>
           <PostView v-if="!f.reply" :post="f.post" :reason="f.reason" :depth="0"></PostView>
         </v-col>
       </v-row>
@@ -55,14 +57,14 @@ export default {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
         let response = await this.axios.post(process.env.VUE_APP_BASE_URI + "com.atproto.repo.createRecord"
           , {
-          collection: "app.bsky.feed.repost",
-          repo: this.$store.getters.getDid,
-          record: {
-            createdAt: new Date(),
-            $type: "app.bsky.feed.repost",
-            subject: subject
-          }
-        })
+            collection: "app.bsky.feed.repost",
+            repo: this.$store.getters.getDid,
+            record: {
+              createdAt: new Date(),
+              $type: "app.bsky.feed.repost",
+              subject: subject
+            }
+          })
         console.log(response)
       } catch (e) {
         this.$toast.show(e.response.data.error + " " + e.response.data.message, {
