@@ -1,37 +1,22 @@
-import { provide } from 'vue'
-import { useStore } from 'vuex'
-import axios from 'axios'
-import {createToaster} from '@meforma/vue-toaster'
+import { createToaster } from '@meforma/vue-toaster'
+import { useRequestPost } from './requestPost.js'
 
-export function useFollow() {
-  const store = useStore()
-  const toast = createToaster()
-  
+export function useFollow(store) {
   async function follow(did) {
     try {
-      axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getAccessJwt
-      let response = await axios.post(process.env.VUE_APP_BASE_URI + "com.atproto.repo.createRecord", {
+      const request = useRequestPost()
+      await request.post(process.env.VUE_APP_BASE_URI + "com.atproto.repo.createRecord", {
         collection: "app.bsky.graph.follow",
         repo: store.getters.getDid,
         record: {
           subject: did,
           createdAt: new Date()}
       })
-      console.log(response.data)
-      store.getters.getFollows.push(did);  
+      store.getters.getFollows.push(did)  
     } catch (e) {
-      toast.show(e.response.data.error + " " + e.response.data.message, {
-        type: "error",
-        position: "top-right",
-        duration: 8000
-      })
+      const toast = createToaster()
+      toast.error(e, { position: "top-right" })
     }
-
-    return {follow}
   }
-
-  // provideでデータを登録する
-  provide('srore', store)
- 
   return { follow }
 }

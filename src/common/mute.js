@@ -1,32 +1,18 @@
-import { provide } from 'vue'
-import { useStore } from 'vuex'
-import axios from 'axios'
 import { createToaster } from '@meforma/vue-toaster'
+import { useRequestPost } from './requestPost.js'
 
-
-export function useMute() {
-  const store = useStore()
-  const toast = createToaster()
-
+export function useMute(store) {
   async function mute(did) {
     try {
-      axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getAccessJwt
-      await axios.post(process.env.VUE_APP_BASE_URI + "app.bsky.graph.muteActor", {
+      const request = useRequestPost()
+      await request.post(process.env.VUE_APP_BASE_URI + "app.bsky.graph.muteActor", {
         actor: did
       })
       store.getters.getMutes.push(did);
     } catch (e) {
-      toast.show(e.response.data.error + " " + e.response.data.message, {
-        type: "error",
-        position: "top-right",
-        duration: 8000
-      })
+      const toast = createToaster()
+      toast.error(e, { position: "top-right" })
     }
-    return { mute }
   }
-
-  // provideでデータを登録する
-  provide('srore', store)
-
   return { mute }
 }

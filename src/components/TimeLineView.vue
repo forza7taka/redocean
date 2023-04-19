@@ -1,11 +1,17 @@
 <template>
   <FeedView :timeline="timeline"></FeedView>
-  <div ref="endRef"></div>
+  <div ref="load">
+    <v-container class="my-5">
+      <v-row justify="center">
+        <v-progress-circular model-value="20"></v-progress-circular>
+      </v-row>
+    </v-container>
+  </div>
 </template>
 
 <script setup>
 import FeedView from "./FeedView.vue"
-import { useInfiniteScroll } from '@vueuse/core'
+import { useIntersectionObserver  } from '@vueuse/core'
 import { ref, onBeforeMount } from 'vue'
 import { useStore } from 'vuex'
 import { createToaster } from '@meforma/vue-toaster';
@@ -18,7 +24,7 @@ const cursor = ref(null)
 const historyState = useHistoryState();
 const timeline = ref(historyState.data || fetchedTimeline)
 const store = useStore()
-const loading = ref(false)
+const load = ref(null)
 
 onBeforeMount(async () => {
   getTimeline(cursor)
@@ -28,6 +34,15 @@ onBeforeMount(async () => {
 });
 
 onBackupState(() => timeline);
+
+useIntersectionObserver(
+  load,
+  async ([{ isIntersecting }]) => {
+    if (isIntersecting && !complated.value) {
+      await getTimeline(cursor)
+    }
+  }
+)
 
 const getTimeline = async (cursor) => {
   let params = {}
@@ -50,16 +65,9 @@ const getTimeline = async (cursor) => {
   }
 }
 
-const load = async () => {
-  if (loading.value == true) {
-    return
-  }
-  if (complated.value == true) {
-    return
-  }
-  loading.value = true
-  await getTimeline(cursor)
-  loading.value = false
-}
-const endRef = useInfiniteScroll(endRef, load)
+
+
+
+
+
 </script>

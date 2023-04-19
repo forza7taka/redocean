@@ -1,8 +1,8 @@
 import axios from 'axios'
 
-export function useRequestPost(store) {
-  async function post(method) {
-    axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getAccessJwt
+export function useRequestPost() {
+  async function post(method, param) {
+    console.log(method)
     const response = await axios.post(process.env.VUE_APP_BASE_URI + method, { param })
     const res = response.data
     return { res }
