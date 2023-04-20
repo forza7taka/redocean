@@ -1,8 +1,10 @@
 <template>
   <div v-if="visible == true">
-    <PostFormView v-if="props.root" v-model="visible" @onClose="onClose" mode="Reply" :root="props.root" :parent="props.post">
+    <PostFormView v-if="props.root" v-model="visible" @onClose="onClose" mode="Reply" :root="props.root"
+      :parent="props.post">
     </PostFormView>
-    <PostFormView v-if="!props.root" v-model="visible" @onClose="onClose" mode="Reply" :root="props.post" :parent="props.post">
+    <PostFormView v-if="!props.root" v-model="visible" @onClose="onClose" mode="Reply" :root="props.post"
+      :parent="props.post">
     </PostFormView>
   </div>
   <div v-if="props.post">
@@ -31,7 +33,8 @@
         </v-list-item>
       </v-card-actions>
       <v-card-text class="text-pre-wrap">
-        <div v-if="props.post && props.post.record && props.post.record.text" v-html="replaceUrlsHandler(props.post.record.text)"></div>
+        <div v-if="props.post && props.post.record && props.post.record.text"
+          v-html="replaceUrls(props.post.record.text)"></div>
       </v-card-text>
       <div v-if="props.post.embed && props.post.embed.images">
         <v-card-text>
@@ -60,7 +63,7 @@
         <v-btn v-if="props.root" class="ma-2" variant="text" icon="mdi-file-tree-outline"
           :to="`/thread/${encodeURIComponent(props.root.uri)}`"></v-btn>
         <v-btn v-if="!props.root" class="ma-2" variant="text" icon="mdi-file-tree-outline"
-            :to="`/thread/${encodeURIComponent(props.post.uri)}`"></v-btn>
+          :to="`/thread/${encodeURIComponent(props.post.uri)}`"></v-btn>
 
         <v-menu offset-y>
           <template v-slot:activator="{ menu }">
@@ -97,9 +100,6 @@ import { createToaster } from '@meforma/vue-toaster';
 import { useRequestPost } from "@/common/requestPost";
 
 const { replaceUrls } = useReplaceUrls()
-const replaceUrlsHandler = async (text) => {
-  return await replaceUrls(text)
-}
 
 const props = defineProps({
   post: null,
@@ -175,6 +175,6 @@ const like = async (post) => {
   }
 }
 const onClose = async (value) => {
-      visible.value = value;
+  visible.value = value;
 }
 </script>

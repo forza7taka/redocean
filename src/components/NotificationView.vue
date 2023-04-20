@@ -7,7 +7,7 @@
     </v-card>
     <v-list v-if="notifications">
       <v-list-item v-for="(n, nIndex) in notifications" :key="nIndex">
-        <v-card v-if="!this.$store.getters.getMutes.includes(n.author.did)" width="400px" class="mx-auto mt-5">
+        <v-card v-if="!store.getters.getMutes.includes(n.author.did)" width="400px" class="mx-auto mt-5">
           <v-card-text>
             <v-icon v-if="!n.isRead" color="red">mdi-circle</v-icon>
             <v-icon v-if="n.reason == 'follow'">mdi-account-check</v-icon>
@@ -22,130 +22,122 @@
             </router-link>
             {{ n.author.displayName }}
           </v-card-text>
-          <v-card v-if="this.posts.get(n.reasonSubject)">
-            <v-card-subtitle>{{ this.posts.get(n.reasonSubject).value.createdAt }}</v-card-subtitle>
+          <v-card v-if="posts.get(n.reasonSubject)">
+            <v-card-subtitle>{{ posts.get(n.reasonSubject).value.createdAt }}</v-card-subtitle>
             <v-card-text class="text-pre-wrap">
-              {{ this.posts.get(n.reasonSubject).value.text }}
+              {{ posts.get(n.reasonSubject).value.text }}
             </v-card-text>
           </v-card>
         </v-card>
       </v-list-item>
     </v-list>
 
-    <infinite-loading @infinite="infiniteHandler" :firstload=false>
-      <template #spinner>
-        <span>loading...</span>
-      </template>
-      <template #complete>
-        <span>No more data found!</span>
-      </template>
-    </infinite-loading>
+    <div ref="load">
+      <v-container class="my-5">
+        <v-row justify="center">
+          <v-progress-circular model-value="20"></v-progress-circular>
+        </v-row>
+      </v-container>
+    </div>
   </div>
 </template>
 
-<script>
-import InfiniteLoading from 'v3-infinite-loading'
+<script setup>
 
-export default {
-  components: {
-    InfiniteLoading
-  },
-  data() {
-    return {
-      complated: false,
-      notifications: [],
-      cursor: null,
-      posts: new Map()
+import { useIntersectionObserver } from '@vueuse/core'
+import { ref, onBeforeMount } from 'vue'
+import { useStore } from 'vuex'
+import { createToaster } from '@meforma/vue-toaster';
+import { useHistoryState, onBackupState } from 'vue-history-state';
+import { useRequestGet } from '../common/requestGet.js'
+import { useRequestPost } from '../common/requestPost.js'
+
+const complated = ref(false)
+const fetchedNotifications = ref(new Array())
+const cursor = ref(null)
+const historyState = useHistoryState();
+const notifications = ref(historyState.data || fetchedNotifications)
+const load = ref(null)
+const posts = ref(new Map())
+const toast = createToaster()
+const requestGet = useRequestGet()
+const requestPost = useRequestPost()
+const store = useStore()
+
+onBeforeMount(async () => {
+  await getNotifications()
+  await getPosts(notifications)
+  await updateSeen()
+  if (historyState.action === 'reload') {
+    notifications.value = fetchedNotifications.value
+    return
+  }
+});
+
+onBackupState(() => notifications);
+
+useIntersectionObserver(
+  load,
+  async ([{ isIntersecting }]) => {
+    if (isIntersecting && !complated.value) {
+      await getNotifications(cursor)
     }
-  },
-  async beforeMount() {
-    await this.getNotifications()
-    await this.updateSeen()
-    await this.getPosts(this.notifications)
-  },
-  methods: {
-    async infiniteHandler($state) {
-      if (this.complated) {
-        $state.complete()
-      } else {
-        $state.loaded()
-        await this.getNotifications(this.cursor)
-        await this.getPost(this.notifications)
-      }
-    },
-    async updateSeen() {
-      try {
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        await this.axios.post(process.env.VUE_APP_BASE_URI + "app.bsky.notification.updateSeen", { seenAt: new Date })
-      } catch (e) {
-        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
-          type: "error",
-          position: "top-right",
-          duration: 8000
-        })
-      }
-    },
-    async getNotifications(cursor) {
-      let params = {}
-      if (!cursor) {
-        params = {}
-      } else {
-        params = { cursor: cursor }
-      }
-      try {
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "app.bsky.notification.listNotifications", { params })
-        this.cursor = response.data.cursor
-        if (response.data.notifications.length == 0) {
-          this.complated = true
-        }
-        this.notifications = this.notifications.concat(response.data.notifications)
-        console.log(response.data)
-      } catch (e) {
-        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
-          type: "error",
-          position: "top-right",
-          duration: 8000
-        })
-      }
-    },
-    async getPosts(notifications) {
-      try {
+  }
+)
 
-        for (const n of notifications) {
-          if (n.reason == "follow") {
-            continue
-          }
-          if (n.reasonSubject in this.posts) {
-            continue
-          }
-          let params = {
-            repo: this.$store.getters.getHandle,
-            collection: "app.bsky.feed.post",
-            rkey: String(n.reasonSubject).substr(-13)
-          }
-          try {
-            this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-            let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "com.atproto.repo.getRecord", { params: params })
-            this.posts.set(n.reasonSubject, response.data)
-            console.log(response.data.value)
-            console.log(this.posts.get(n.reasonSubject))
-          } catch (e) {
-            if (e.response && e.response.status === 400) {
-              continue
-            }
-            throw e
-          }
-        }
+const updateSeen = async () => {
+  try {
+    await requestPost.post("app.bsky.notification.updateSeen", { seenAt: new Date })
+  } catch (e) {
+    toast.error(e, { position: "top-right" })
+  }
+}
+
+const getNotifications = async (cursor) => {
+  let params = {}
+  if (!cursor) {
+    params = {}
+  } else {
+    params = { cursor: cursor.value }
+  }
+  try {
+    const response = await requestGet.get("app.bsky.notification.listNotifications", params)
+    cursor = response.res.cursor
+    if (response.res.notifications.length == 0) {
+      complated.value = true
+    }
+    fetchedNotifications.value = fetchedNotifications.value.concat(response.res.notifications)
+  } catch (e) {
+    toast.error(e, { position: "top-right" })
+  }
+}
+
+const getPosts = async (notifications) => {
+  try {
+    for (const n of notifications.value) {
+      if (n.reason == "follow") {
+        continue
+      }
+      if (n.reasonSubject in posts.value) {
+        continue
+      }
+      let params = {
+        repo: store.getters.getHandle,
+        collection: "app.bsky.feed.post",
+        rkey: String(n.reasonSubject).substr(-13)
+      }
+      try {
+        const response = await requestGet.get("com.atproto.repo.getRecord", params)
+        posts.value.set(n.reasonSubject, response.res)
       } catch (e) {
-        console.log(e)
-        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
-          type: "error",
-          position: "top-right",
-          duration: 8000
-        })
+        if (e.response && e.response.status === 400) {
+          continue
+        }
+        throw e
       }
     }
+  } catch (e) {
+    toast.error(e, { position: "top-right" })
   }
 }
 </script>

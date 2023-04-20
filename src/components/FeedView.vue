@@ -121,11 +121,6 @@ export default {
     onClose(value) {
       this.dialog = value;
     },
-    replaceUrls(text) {
-      const urlRegex = /(https?:\/\/[^\s]+)/g;
-      const replacedText = text.replace(urlRegex, '<a href="$&" target="_blank">$&</a>');
-      return replacedText;
-    }
 
   }
 }

@@ -11,7 +11,7 @@
 
 <script setup>
 import FeedView from "./FeedView.vue"
-import { useIntersectionObserver  } from '@vueuse/core'
+import { useIntersectionObserver } from '@vueuse/core'
 import { ref, onBeforeMount } from 'vue'
 import { useStore } from 'vuex'
 import { createToaster } from '@meforma/vue-toaster';
@@ -27,7 +27,6 @@ const store = useStore()
 const load = ref(null)
 
 onBeforeMount(async () => {
-  getTimeline(cursor)
   if (historyState.action === 'reload') {
     timeline.value = fetchedTimeline.value
   }
