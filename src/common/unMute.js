@@ -5,7 +5,7 @@ export function useUnMute(store) {
   async function unMute(did) {
     try {
       const request = useRequestPost()
-      await request.post(process.env.VUE_APP_BASE_URI + "app.bsky.graph.unMuteActor", {
+      await request.post("app.bsky.graph.unMuteActor", {
         actor: did
       })
       store.dispatch('removeMute', did);

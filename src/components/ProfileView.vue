@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="profile">
     <v-card width="400px" class="mx-auto mt-5">
       <v-card-actions>
         <v-list-item class="w-100">
@@ -13,7 +13,7 @@
           </v-list-item-title>
           <v-list-item-subtitle>
             @{{ profile.handle }}
-            <v-btn size=12 v-if="profile.did == store.getters.getDid" icon to="handleEdit">
+            <v-btn size=12 v-if="profile && profile.did == store.getters.getDid" icon to="handleEdit">
               <v-icon size="12">mdi-pencil</v-icon>
             </v-btn>
           </v-list-item-subtitle>
@@ -38,35 +38,35 @@
               Likes: {{ likes.length }}
             </router-link>
           </v-list-item-subtitle>
-          <v-list-item-subtitle v-if="profile.did == store.getters.getDid">
+          <v-list-item-subtitle v-if="profile && profile.did == store.getters.getDid">
             <router-link v-if="mutes" :to="`/mutes`" style="text-decoration: none; color: inherit;">
               Mutes: {{ mutes.length }}
             </router-link>
           </v-list-item-subtitle>
           <v-list-item-subtitle>
-            <v-btn v-if="store.getters.follows.includes(profile.did)" @click.prevent="doUnFollow()"
+            <v-btn v-if="profile && store.getters.follows && store.getters.follows.includes(profile.did)" @click.prevent="doUnFollow()"
               icon><v-icon>mdi-account-remove</v-icon></v-btn>
-            <v-btn v-if="!store.getters.follows.includes(profile.did)" @click.prevent="doFollow()"
+            <v-btn v-if="profile && store.getters.follows && !store.getters.follows.includes(profile.did)" @click.prevent="doFollow()"
               icon><v-icon>mdi-account-check</v-icon></v-btn>
 
-            <v-btn v-if="profile.did != store.getters.getDid && profile.viewer && profile.viewer.muted"
+            <v-btn v-if="profile && profile.did != store.getters.getDid && profile.viewer && profile.viewer.muted"
               @click.prevent="unMute(profile.did); profile.viewer.muted = !profile.viewer.muted"
               icon><v-icon>mdi-volume-high</v-icon></v-btn>
-            <v-btn v-if="profile.did != store.getters.getDid && !(profile.viewer && profile.viewer.muted)"
+            <v-btn v-if="profile && profile.did != store.getters.getDid && !(profile.viewer && profile.viewer.muted)"
               @click.prevent="mute(profile.did); profile.viewer.muted = !profile.viewer.muted"
               icon><v-icon>mdi-volume-mute</v-icon></v-btn>
 
           </v-list-item-subtitle>
-          <v-btn size=15 v-if="profile.did == store.getters.getDid" icon to="/profileEdit">
+          <v-btn size=15 v-if="profile && profile.did == store.getters.getDid" icon to="/profileEdit">
             <v-icon size="15">mdi-pencil</v-icon>
           </v-btn>
         </v-list-item>
       </v-card-actions>
       <v-card-text class="text-pre-wrap">
-        <div v-if="profile && profile.description" v-html="this.replaceUrls(profile.description)">
+        <div v-if="profile && profile.description" v-html="profile.description">
         </div>
       </v-card-text>
-      <v-card-subtitle v-if="inviteCodes">
+      <v-card-subtitle v-if="inviteCodes && inviteCodes.length !== 0">
         <v-list-item-subtitle>
           InviteCode:
         </v-list-item-subtitle>
@@ -105,7 +105,6 @@ import { useRoute } from "vue-router";
 import { createToaster } from '@meforma/vue-toaster';
 import { useIntersectionObserver } from '@vueuse/core'
 
-
 const { follow } = useFollow()
 const { unFollow } = useUnFollow()
 const { mute } = useMute()
@@ -114,7 +113,9 @@ const { unMute } = useUnMute()
 const route = useRoute()
 const store = useStore()
 
-const complated = ref(false)
+const complatedAuthorFeed = ref(false)
+const complatedLikes = ref(false)
+const complatedMutes = ref(false)
 const fetchedTimeline = ref({ feed: [] })
 const cursor = ref(null)
 const historyState = useHistoryState();
@@ -132,20 +133,6 @@ const likes =ref([])
 const inviteCodes = ref([])
 
 onBeforeMount(async () => {
-  handle.value = await getHandle()
-  await getProfile(handle)
-  await getAuthorFeed(handle, cursor)
-  if (handle.value == store.getters.getHandle) {
-    await getInviteCodes()
-  }
-  complated.value = false
-  while (!complated.value) {
-    await getLikes(handle, likesCursor)
-  }
-  complated.value = false
-  while (!complated.value) {
-    await getMutes(mutesCursor)
-  }
   if (historyState.action === 'reload') {
     timeline.value = fetchedTimeline.value
   }
@@ -156,9 +143,22 @@ onBackupState(() => timeline);
 useIntersectionObserver(
   load,
   async ([{ isIntersecting }]) => {
-    if (isIntersecting && !complated.value) {
-      handle.value = await getHandle()
+    handle.value = await getHandle()
+    if (handle.value == store.getters.getHandle) {
+      await getInviteCodes()
+    }
+    while (!complatedLikes.value) {
+      await getLikes(handle, likesCursor)
+    }
+    complatedLikes.value = false
+    while (!complatedMutes.value) {
+      await getMutes(mutesCursor)
+    }
+    complatedMutes.value = false
+    await getProfile(handle)
+    if (isIntersecting && !complatedAuthorFeed.value) {
       await getAuthorFeed(handle, cursor)
+      complatedAuthorFeed.value = false
     }
   },
 )
@@ -175,7 +175,7 @@ const getAuthorFeed = async (handle, cursor) => {
     fetchedTimeline.value.feed = fetchedTimeline.value.feed.concat(response.res.feed)
     cursor = response.res.cursor
     if (response.res.feed.length == 0) {
-      complated.value = true
+      complatedAuthorFeed.value = true
     }
   } catch (e) {
     toast.error(e, { position: "top-right" })
@@ -185,8 +185,7 @@ const getAuthorFeed = async (handle, cursor) => {
 const getProfile = async (handle) => {
   try {
     const response = await requestGet.get("app.bsky.actor.getProfile",  { actor: handle.value  })
-    profile.value = response.res.profile
-    console.log(profile.value)
+    profile.value = response.res
   } catch (e) {
     toast.error(e, { position: "top-right" })
   }
@@ -197,7 +196,6 @@ watch(route, async () => {
   await getProfile(handle)
   await getAuthorFeed(handle, null)
 })
-
 
 const getMutes = async (cursor) => {
   let params = {}
@@ -210,7 +208,7 @@ const getMutes = async (cursor) => {
     const response = await requestGet.get("app.bsky.graph.getMutes",  params )
     mutesCursor.value = response.res.cursor
     if (response.res.mutes.length == 0) {
-      complated.value = true
+      complatedMutes.value = true
     }
     mutes.value = mutes.value.concat(response.res.mutes)
   } catch (e) {
@@ -238,7 +236,7 @@ const getLikes = async (handle, cursor) => {
     likes.value = likes.value.concat(response.res.records)
     likesCursor.value = response.res.cursor
     if (response.res.records.length == 0) {
-      complated.value = true
+      complatedLikes.value = true
       return
     }
   } catch (e) {
@@ -274,6 +272,4 @@ const getHandle = async () => {
   }
   return store.getters.getHandle
 }
-
-
 </script>

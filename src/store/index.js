@@ -146,7 +146,7 @@ export default createStore({
       )
     },
     removeMute({ commit, state }, did) {
-      const index = state.fmutes.indexOf(did);
+      const index = state.mutes.indexOf(did);
       if (index > -1) {
         commit('removeMute', index);
       }

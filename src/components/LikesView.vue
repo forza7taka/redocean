@@ -87,7 +87,7 @@ export default {
           params = {
             repo: handle,
             collection: "app.bsky.feed.like",
-            limit: 50
+            limit: 30
           }
         } else {
           params = {

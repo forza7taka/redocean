@@ -31,10 +31,11 @@ const actors = ref(historyState.data || fetchedActors)
 const load = ref(null)
 
 onBeforeMount(async () => {
-  getSuggestions(cursor)
-    if (historyState.action === 'reload') {
-      actors.value = fetchedActors.value
-    }
+  if (historyState.action === 'reload') {
+    actors.value = fetchedActors.value
+    return
+  }
+  await getSuggestions(cursor)
 })
 
 onBackupState(() => actors);

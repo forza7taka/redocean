@@ -46,7 +46,7 @@ const getPopular = async (cursor) => {
   if (!cursor) {
     params = {}
   } else {
-    params = { cursor: cursor }
+    params = { cursor: cursor.value }
   }
   try {
     const request = useRequestGet()

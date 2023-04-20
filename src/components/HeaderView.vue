@@ -105,15 +105,15 @@
   async beforeMount() {
     try {
       if ((this.$store.getters.getDid) && (this.$store.getters.getAccessJwt)) {
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getRefreshJwt
-        let response = await this.axios.post(process.env.VUE_APP_BASE_URI + "com.atproto.server.refreshSession")
-        this.$store.dispatch('doCreateSession', response.data)
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        this.$store.dispatch('doRemoveAllLikes')
-        this.isComplete = false
-        while (!this.isComplete) {
-          await this.getLikes(this.cursor)
-        }
+        // this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getRefreshJwt
+        // let response = await this.axios.post(process.env.VUE_APP_BASE_URI + "com.atproto.server.refreshSession")
+        // this.$store.dispatch('doCreateSession', response.data)
+        // this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
+        // this.$store.dispatch('doRemoveAllLikes')
+        // this.isComplete = false
+        // while (!this.isComplete) {
+        //   await this.getLikes(this.cursor)
+        // }
       }
     } catch (e) {
       console.log(e)

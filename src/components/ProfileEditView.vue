@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="profile">
     <v-card width="400px" class="mx-auto mt-5">
       <template v-slot:prepend>
         <v-avatar color="grey" size="150" rounded="0">
@@ -36,50 +36,34 @@ const requestGet = useRequestGet()
 const toast = createToaster()
 const store = useStore()
 
-let avatar = ref(null)
-let avatarUrl = ref(null)
-let profile = ref(null)
+const profile = ref(null)
+const avatar = ref(null)
+const avatarUrl = ref(null)
 
 onBeforeMount(async () => {
-  getProfile(this.$store.getters.getHandle)
+  await getProfile(store.getters.getHandle)
 });
-
-// const createInviteCode = async () => {
-//   try {
-//     let response = await requestPost.post("com.atproto.server.createInviteCod", {
-//       params: {
-//         useCount: 5
-//       }
-//     })
-//   } catch (e) {
-//     toast.error(e, { position: "top-right" })
-//   }
-// }
 
 const selectAvator = async (event) => {
   const file = event.target.files[0];
-  avatar = file;
-  avatarUrl = URL.createObjectURL(file);
+  avatar.value = file;
+  avatarUrl.value = URL.createObjectURL(file);
 }
 
 const getBlob = async (file) => {
-  const blob = new Blob([file], { type: file.type });
+  const blob = new Blob([file.value], { type: file.value.type });
   return blob;
 }
 
 const uploadImage = async (blob) => {
-  const response = await requestPost.post(process.env.VUE_APP_BASE_URI + "com.atproto.repo.uploadBlob", blob)
+  const response = await requestPost.post("com.atproto.repo.uploadBlob", blob)
   return response.res.blob
 }
 
 const getProfile = async (handle) => {
   try {
-    let response = await requestGet.get(process.env.VUE_APP_BASE_URI + "app.bsky.actor.getProfile", {
-      params: {
-        actor: handle
-      }
-    })
-    profile = response.res
+    const response = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
+    profile.value = response.res
   } catch (e) {
     toast.error(e, { position: "top-right" })
   }
@@ -90,13 +74,10 @@ const updateProfile = async () => {
   try {
     let params = {}
     if (!avatar.value) {
-
-      let response = await requestGet.get("com.atproto.repo.getRecord", {
-        params: {
+      const response = await requestGet.get("com.atproto.repo.getRecord", {
           repo: store.getters.getDid,
           collection: "app.bsky.actor.profile",
           rkey: "self"
-        }
       })
 
       params = {
@@ -105,7 +86,7 @@ const updateProfile = async () => {
         rkey: "self",
         record: {
           $type: "app.bsky.actor.profile",
-          avatar: { cid: response.res.avatar.cid, mimeType: response.res.avatar.mimeType },
+          avatar: { cid: response.res.value.avatar.cid, mimeType: response.res.value.avatar.mimeType },
           description: profile.value.description,
           displayName: profile.value.displayName
         },
@@ -114,8 +95,8 @@ const updateProfile = async () => {
     } else {
       const blob = await getBlob(avatar);
       const image = await uploadImage(blob)
-      let avatarCid = image.ref.$link
-      let mimeType = avatar.value.type
+      const avatarCid = image.ref.$link
+      const mimeType = avatar.value.type
 
       params = {
         repo: store.getters.getDid,
@@ -134,6 +115,18 @@ const updateProfile = async () => {
   } catch (e) {
     toast.error(e, { position: "top-right" })
   }
+
+  // const createInviteCode = async () => {
+  //   try {
+  //     let response = await requestPost.post("com.atproto.server.createInviteCod", {
+  //       params: {
+  //         useCount: 5
+  //       }
+  //     })
+  //   } catch (e) {
+  //     toast.error(e, { position: "top-right" })
+  //   }
+  // }
 }
 
 </script>

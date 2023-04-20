@@ -1,6 +1,5 @@
 <template>
   <div>
-
     <v-card width="400px" class="mx-auto mt-5">
       <v-card-title>
         <router-link :to="`/profile/${this.$store.getters.getHandle}`">
@@ -12,51 +11,57 @@
       </v-card-title>
     </v-card>
     <UsersView :users="mutes"></UsersView>
-    <infinite-loading @infinite="infiniteHandler" :firstload=false>
-        <template #spinner>
-        <span>loading...</span>
-      </template>
-      <template #complete>
-        <span>No more data found!</span>
-      </template>
-    </infinite-loading>
-  </div>
+    <div ref="load">
+      <v-container class="my-5">
+        <v-row justify="center">
+          <v-progress-circular model-value="20"></v-progress-circular>
+        </v-row>
+      </v-container>
+    </div>
+    </div>
 </template>
 
-<script>
-import UsersView from './UsersView.vue'
-import InfiniteLoading from 'v3-infinite-loading'
+<script setup>
 
-export default {
-  components: {
-    UsersView,
-    InfiniteLoading
-  },
-  data() {
-    return {
-      complated: false,
-      mutes: [],
-      muteActors:[],
-      cursor: null,
-      subject: null
+import UsersView from './UsersView.vue'
+import { useIntersectionObserver } from '@vueuse/core'
+import { ref, onBeforeMount } from 'vue'
+import { useStore } from 'vuex'
+import { createToaster } from '@meforma/vue-toaster';
+import { useHistoryState, onBackupState } from 'vue-history-state';
+import { useRequestGet } from '../common/requestGet.js'
+
+const complated = ref(false)
+const fetchedMutes = ref({ feed: [] })
+const cursor = ref(null)
+const historyState = useHistoryState();
+const mutes = ref(historyState.data || fetchedMutes)
+const store = useStore()
+const load = ref(null)
+
+onBeforeMount(async () => {
+  await getProfile(store.getters.getHandle)
+  await getMutes()
+  if (historyState.action === 'reload') {
+    mutes.value = fetchedMutes.value
+  }
+});
+
+onBackupState(() => mutes);
+
+useIntersectionObserver(
+  load,
+  async ([{ isIntersecting }]) => {
+    if (isIntersecting && !complated.value) {
+      await getMute()
     }
-  },
-  beforeMount() {
-    this.getProfile(this.$store.getters.getHandle)
-    this.getMutes()
-  },
-  methods: {
-    async infiniteHandler($state) {
-      if (this.complated) {
-        $state.complete()
-      } else {
-        $state.loaded()
-        await this.getMutes(this.cursor)
-      }
-    },
-    async getProfile(handle) {
+  }
+)
+
+const getProfile = async (handle) => {
+
+
       try {
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
         let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "app.bsky.actor.getProfile", {
           params: {
             actor: handle
@@ -71,17 +76,15 @@ export default {
         })
       }
     },
-    async getMutesProfile(handle) {
+
+  async getMutesProfile(handle) {
       try {
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
         let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "app.bsky.actor.getProfile", {
           params: {
             actor: handle
           }
         })
-        console.log(response.data)
         this.muteActors = this.muteActors.concat(response.data)
-        console.log(this.profile)
       } catch (e) {
         this.$toast.show(e.response.data.error + " " + e.response.data.message, {
           type: "error",
@@ -90,7 +93,8 @@ export default {
         })
       }
     },
-    async getMutes(cursor) {
+
+  async getMutes(cursor) {
       let params = {}
       if (!cursor) {
         params = { }
@@ -98,7 +102,6 @@ export default {
         params = { cursor: cursor }
       }
       try {
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
         let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "app.bsky.graph.getMutes", { params })
         this.cursor = response.data.cursor
         if (response.data.mutes.length == 0) {

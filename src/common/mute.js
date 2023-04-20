@@ -5,7 +5,7 @@ export function useMute(store) {
   async function mute(did) {
     try {
       const request = useRequestPost()
-      await request.post(process.env.VUE_APP_BASE_URI + "app.bsky.graph.muteActor", {
+      await request.post("app.bsky.graph.muteActor", {
         actor: did
       })
       store.getters.getMutes.push(did);

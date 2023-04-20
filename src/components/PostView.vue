@@ -41,7 +41,7 @@
           <v-list-item v-for="(i, iIndex) in props.post.embed.images" :key="iIndex">
             <v-row>
               <v-col>
-                <v-img v-bind:src=i.fullsize alt=""></v-img>
+                <v-img v-bind:src=i.fullsize v-bind:lazy-src = i.thumb alt=""></v-img>
               </v-col>
             </v-row>
           </v-list-item>

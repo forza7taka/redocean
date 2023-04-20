@@ -6,14 +6,10 @@ export function useUnFollow(store) {
   async function unFollow(ownDid, followDid) {
     try {
       const requestGet = useRequestGet()
-      let response = await requestGet.get('https://bsky.social/xrpc/app.bsky.actor.getProfile', {
-          params: {
-              actor: followDid
-          }
-      })
+      let response = await requestGet.get("app.bsky.actor.getProfile", { actor: followDid })
       const profile = response.res
       const requestPost = useRequestPost()
-      await requestPost.post(process.env.VUE_APP_BASE_URI + "com.atproto.repo.deleteRecord", {
+      await requestPost.post("com.atproto.repo.deleteRecord", {
         collection: "app.bsky.graph.follow",
         repo: ownDid,
         rkey: String(profile.viewer.following).substr(-13)

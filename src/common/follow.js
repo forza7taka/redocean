@@ -5,7 +5,7 @@ export function useFollow(store) {
   async function follow(did) {
     try {
       const request = useRequestPost()
-      await request.post(process.env.VUE_APP_BASE_URI + "com.atproto.repo.createRecord", {
+      await request.post("com.atproto.repo.createRecord", {
         collection: "app.bsky.graph.follow",
         repo: store.getters.getDid,
         record: {

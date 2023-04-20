@@ -53,7 +53,7 @@ import { useRequestGet } from '../common/requestGet.js'
 import { useRequestPost } from '../common/requestPost.js'
 
 const complated = ref(false)
-const fetchedNotifications = ref(new Array())
+const fetchedNotifications = ref([])
 const cursor = ref(null)
 const historyState = useHistoryState();
 const notifications = ref(historyState.data || fetchedNotifications)
@@ -65,16 +65,17 @@ const requestPost = useRequestPost()
 const store = useStore()
 
 onBeforeMount(async () => {
+  if (historyState.action === 'reload') {
+    notifications.value = fetchedNotifications.value
+    await getPosts(notifications)
+    return
+  }
   await getNotifications()
   await getPosts(notifications)
   await updateSeen()
-  if (historyState.action === 'reload') {
-    notifications.value = fetchedNotifications.value
-    return
-  }
 });
 
-onBackupState(() => notifications);
+onBackupState(() => ({ notifications: notifications }));
 
 useIntersectionObserver(
   load,
@@ -116,6 +117,9 @@ const getPosts = async (notifications) => {
   try {
     for (const n of notifications.value) {
       if (n.reason == "follow") {
+        continue
+      }
+      if (!n.reasonSubject) {
         continue
       }
       if (n.reasonSubject in posts.value) {
