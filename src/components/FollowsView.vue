@@ -1,9 +1,8 @@
 <template>
   <div>
-
-    <v-card width="400px" class="mx-auto mt-5">
+    <v-card width="400px" class="mx-auto mt-5" v-if="subject">
       <v-card-title>
-        <router-link :to="`/profile/${this.$route.params.handle}`">
+        <router-link :to="`/profile/${route.params.handle}`">
           <v-avatar color="surface-variant">
             <v-img cover v-bind:src=subject.avatar alt="avatar"></v-img>
           </v-avatar>
@@ -12,70 +11,70 @@
       </v-card-title>
     </v-card>
     <UsersView :users="follows"></UsersView>
-    <infinite-loading @infinite="infiniteHandler" :firstload=false>
-        <template #spinner>
-        <span>loading...</span>
-      </template>
-      <template #complete>
-        <span>No more data found!</span>
-      </template>
-    </infinite-loading>
+    <div ref="load">
+      <v-container class="my-5">
+        <v-row justify="center">
+          <v-progress-circular v-if="!complated" model-value="20"></v-progress-circular>
+        </v-row>
+      </v-container>
+    </div>
   </div>
 </template>
 
-<script>
+<script setup>
 import UsersView from './UsersView.vue'
-import InfiniteLoading from 'v3-infinite-loading'
+import { useIntersectionObserver } from '@vueuse/core'
+import { ref, onBeforeMount } from 'vue'
+import { createToaster } from '@meforma/vue-toaster';
+import { useHistoryState, onBackupState } from 'vue-history-state';
+import { useRequestGet } from '../common/requestGet.js'
+import { useRoute } from "vue-router";
 
-export default {
-  components: {
-    UsersView,
-    InfiniteLoading
-  },
-  data() {
-    return {
-      complated: false,
-      follows: [],
-      cursor: null,
-      subject: {}
+const route = useRoute()
+const complated = ref(false)
+const fetchedFollows = ref([])
+const cursor = ref(null)
+const historyState = useHistoryState();
+const follows = ref(historyState.data || fetchedFollows)
+const load = ref(null)
+const requestGet = useRequestGet()
+const toast = createToaster()
+const subject = ref(null)
+
+onBeforeMount(async () => {
+  if (historyState.action === 'reload') {
+    follows.value = fetchedFollows.value
+  }
+});
+
+onBackupState(() => follows);
+
+useIntersectionObserver(
+  load,
+  async ([{ isIntersecting }]) => {
+    if (isIntersecting && !complated.value) {
+      await getFollows(route.params.handle, cursor)
     }
-  },
-  beforeMount() {
-    this.getFollows(this.$route.params.handle)
-  },
-  methods: {
-    async infiniteHandler($state) {
-      if (this.complated) {
-        $state.complete()
-      } else {
-        $state.loaded()
-        await this.getFollows(this.$route.params.handle, this.cursor)
-      }
-    },
-    async getFollows(handle, cursor) {
-      let params = {}
-      if (!cursor) {
-        params = { actor: handle }
-      } else {
-        params = { actor: handle, cursor: cursor }
-      }
-      try {
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "app.bsky.graph.getFollows", { params })
-        this.cursor = response.data.cursor
-        if (response.data.follows.length == 0) {
-          this.complated = true
-        }
-        this.follows = this.follows.concat(response.data.follows)
-        this.subject = response.data.subject
-      } catch (e) {
-        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
-          type: "error",
-          position: "top-right",
-          duration: 8000
-        })
-      }
+  }
+)
+
+const getFollows = async (handle, cursor) => {
+  let params = {}
+  if (!cursor) {
+    params = { actor: handle }
+  } else {
+    params = { actor: handle, cursor: cursor.value }
+  }
+  try {
+    const response = await requestGet.get("app.bsky.graph.getFollows", params)
+    subject.value = response.res.subject
+    fetchedFollows.value = fetchedFollows.value.concat(response.res.follows)
+    cursor.value = response.res.cursor
+    if (response.res.follows.length == 0) {
+      complated.value = true
     }
+  } catch (e) {
+    toast.error(e, { position: "top-right" })
   }
 }
 </script>
