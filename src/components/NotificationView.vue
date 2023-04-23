@@ -32,7 +32,7 @@
       </v-list-item>
     </v-list>
 
-    <div ref="load">
+    <div ref="loading">
       <v-container class="my-5">
         <v-row justify="center">
           <v-progress-circular model-value="20"></v-progress-circular>
@@ -53,11 +53,10 @@ import { useRequestGet } from '../common/requestGet.js'
 import { useRequestPost } from '../common/requestPost.js'
 
 const complated = ref(false)
-const fetchedNotifications = ref([])
 const cursor = ref(null)
 const historyState = useHistoryState();
-const notifications = ref(historyState.data || fetchedNotifications)
-const load = ref(null)
+const notifications = ref([])
+const loading = ref(null)
 const posts = ref(new Map())
 const toast = createToaster()
 const requestGet = useRequestGet()
@@ -66,8 +65,15 @@ const store = useStore()
 
 onBeforeMount(async () => {
   if (historyState.action === 'reload') {
-    notifications.value = fetchedNotifications.value
+    notifications.value = []
+    await getNotifications()
     await getPosts(notifications)
+    await updateSeen()
+    return
+  }
+  if (historyState.action === 'back' || historyState.action === 'forward') {
+    notifications.value = historyState.data.notifications
+    posts.value = historyState.data.posts
     return
   }
   await getNotifications()
@@ -75,10 +81,10 @@ onBeforeMount(async () => {
   await updateSeen()
 });
 
-onBackupState(() => ({ notifications: notifications }));
+onBackupState(() => ({ notifications: notifications, posts: posts }));
 
 useIntersectionObserver(
-  load,
+  loading,
   async ([{ isIntersecting }]) => {
     if (isIntersecting && !complated.value) {
       await getNotifications(cursor)
@@ -107,7 +113,7 @@ const getNotifications = async (cursor) => {
     if (response.res.notifications.length == 0) {
       complated.value = true
     }
-    fetchedNotifications.value = fetchedNotifications.value.concat(response.res.notifications)
+    notifications.value = notifications.value.concat(response.res.notifications)
   } catch (e) {
     toast.error(e, { position: "top-right" })
   }

@@ -1,6 +1,6 @@
 <template>
   <FeedView :timeline="timeline"></FeedView>
-  <div ref="load">
+  <div ref="loading">
     <v-container class="my-5">
       <v-row justify="center">
         <v-progress-circular model-value="20"></v-progress-circular>
@@ -12,30 +12,36 @@
 <script setup>
 import FeedView from "./FeedView.vue"
 import { useIntersectionObserver } from '@vueuse/core'
-import { ref, onBeforeMount } from 'vue'
+import { ref, reactive, onBeforeMount } from 'vue'
 import { useStore } from 'vuex'
 import { createToaster } from '@meforma/vue-toaster';
 import { useHistoryState, onBackupState } from 'vue-history-state';
 import { useRequestGet } from '../common/requestGet.js'
 
 const complated = ref(false)
-const fetchedTimeline = ref({ feed: [] })
 const cursor = ref(null)
 const historyState = useHistoryState();
-const timeline = ref(historyState.data || fetchedTimeline)
+const timeline = reactive({ feed: []})
 const store = useStore()
-const load = ref(null)
+const loading = ref(null)
 
 onBeforeMount(async () => {
   if (historyState.action === 'reload') {
-    timeline.value = fetchedTimeline.value
+    timeline.feed.value = []
+    await getTimeline()
+    return
   }
+  if (historyState.action === 'back' || historyState.action === 'forward') {
+    timeline.value = historyState.data.timeline
+    return
+  }
+  await getTimeline()
 });
 
 onBackupState(() => timeline);
 
 useIntersectionObserver(
-  load,
+  loading,
   async ([{ isIntersecting }]) => {
     if (isIntersecting && !complated.value) {
       await getTimeline(cursor)
@@ -53,7 +59,7 @@ const getTimeline = async (cursor) => {
   try {
     const req = useRequestGet(store)
     const response = await req.get("app.bsky.feed.getTimeline", params)
-    fetchedTimeline.value.feed = fetchedTimeline.value.feed.concat(response.res.feed)
+    timeline.feed = timeline.feed.concat(response.res.feed)
     cursor = response.res.cursor
     if (response.res.feed.length == 0) {
       complated.value = true
@@ -63,10 +69,4 @@ const getTimeline = async (cursor) => {
     toast.error(e, { position: "top-right" })
   }
 }
-
-
-
-
-
-
 </script>

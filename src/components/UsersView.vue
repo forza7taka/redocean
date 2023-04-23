@@ -21,8 +21,8 @@
               <template v-slot:append>
                 <div class="justify-self-end">
                   <v-btn v-if="this.$store.getters.getFollows.includes(f.did)"
-                    @click.prevent="unFollow(this.$store.getters.getDid, f.did)" icon><v-icon>mdi-account-remove</v-icon></v-btn>
-                  <v-btn v-if="!this.$store.getters.getFollows.includes(f.did)"
+                    @click.prevent="unFollow(store.getters.getDid, f.did)" icon><v-icon>mdi-account-remove</v-icon></v-btn>
+                  <v-btn v-if="!store.getters.getFollows.includes(f.did)"
                     @click.prevent="follow(f.did)" icon><v-icon>mdi-account-check</v-icon></v-btn>
                   <v-btn v-if="f.viewer && f.viewer.muted" 
                   @click.prevent="unMute(f.did); f.viewer.muted = !f.viewer.muted" icon><v-icon>mdi-volume-high</v-icon></v-btn>

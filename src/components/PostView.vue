@@ -35,7 +35,7 @@
       <v-card-text class="text-pre-wrap">
         <div v-if="props.post && props.post.record && props.post.record.text"
           v-html="replaceUrls(props.post.record.text)"></div>
-      </v-card-text>
+        </v-card-text>
       <div v-if="props.post.embed && props.post.embed.images">
         <v-card-text>
           <v-list-item v-for="(i, iIndex) in props.post.embed.images" :key="iIndex">
@@ -48,7 +48,7 @@
         </v-card-text>
       </div>
       <v-list-item-subtitle>
-        <v-btn class="ma-2" variant="text" icon="mdi-comment-outline" @click="dialog = true">
+        <v-btn class="ma-2" variant="text" icon="mdi-comment-outline" @click="visible = true">
         </v-btn>{{ props.post.replyCount }}
 
         <v-btn class="ma-2" variant="text" icon="mdi-repeat" @click="repost(props.post)">
@@ -64,12 +64,12 @@
           :to="`/thread/${encodeURIComponent(props.root.uri)}`"></v-btn>
         <v-btn v-if="!props.root" class="ma-2" variant="text" icon="mdi-file-tree-outline"
           :to="`/thread/${encodeURIComponent(props.post.uri)}`"></v-btn>
-
-        <v-menu offset-y>
-          <template v-slot:activator="{ menu }">
-            <v-btn v-bind="menu" class="ma-2" variant="text" icon="mdi-dots-vertical" />
+            
+        <v-menu>
+          <template v-slot:activator="{ on }">
+            <v-btn @click="on" class="ma-2" variant="text" icon="mdi-dots-vertical" />
           </template>
-          <v-list v-if="props.post && props.post.author.handle == store.getters.getHandle">
+          <v-list v-if="props.post && props.post.author && props.post.author.handle == store.getters.getHandle">
             <v-list-item @click="deletePost(props.post.uri)">
               <v-icon small>mdi-delete</v-icon>
             </v-list-item>
@@ -85,8 +85,6 @@
           </v-row>
         </v-list-item>
       </v-list>
-
-
     </v-card>
   </div>
 </template>
@@ -117,7 +115,7 @@ const visible = ref(false)
 
 const deletePost = async (uri) => {
   try {
-    await request.post(process.env.VUE_APP_BASE_URI + "com.atproto.repo.deleteRecor", {
+    await request.post("com.atproto.repo.deleteRecor", {
       collection: "app.bsky.feed.post",
       repo: store.getters.getDid,
       rkey: String(uri).substr(-13)
@@ -131,7 +129,7 @@ const deletePost = async (uri) => {
 const repost = async (post) => {
   try {
     const subject = { uri: post.uri, cid: post.cid }
-    await request.post(process.env.VUE_APP_BASE_URI + "com.atproto.repo.createRecord", {
+    await request.post("com.atproto.repo.createRecord", {
       collection: "app.bsky.feed.repost",
       repo: store.getters.getDid,
       record: {
@@ -150,7 +148,7 @@ const like = async (post) => {
   try {
     if (!store.getters.hasLike(post.uri)) {
       const subject = { uri: post.uri, cid: post.cid }
-      const response = await request.post(process.env.VUE_APP_BASE_URI + "com.atproto.repo.createRecord", {
+      const response = await request.post("com.atproto.repo.createRecord", {
         collection: "app.bsky.feed.like",
         repo: store.getters.getDid,
         record: {
@@ -161,7 +159,7 @@ const like = async (post) => {
       post.likeCount = post.likeCount + 1
       store.dispatch('doAddLike', { key: post.uri, value: response.res.uri });
     } else {
-      await this.axios.post(process.env.VUE_APP_BASE_URI + "com.atproto.repo.deleteRecor", {
+      await request.post("com.atproto.repo.deleteRecord", {
         collection: "app.bsky.feed.like",
         repo: store.getters.getDid,
         rkey: store.getters.getLikes.get(post.uri).substr(-13)

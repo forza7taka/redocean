@@ -11,7 +11,7 @@
       </v-card-title>
     </v-card>
     <UsersView :users="mutes"></UsersView>
-    <div ref="load">
+    <div ref="loading">
       <v-container class="my-5">
         <v-row justify="center">
           <v-progress-circular v-if="!complated" model-value="20"></v-progress-circular>
@@ -32,27 +32,35 @@ import { useHistoryState, onBackupState } from 'vue-history-state';
 import { useRequestGet } from '../common/requestGet.js'
 
 const complated = ref(false)
-const fetchedMutes = ref([])
+const mutes = ref([])
 const cursor = ref(null)
 const historyState = useHistoryState();
-const mutes = ref(historyState.data || fetchedMutes)
 const store = useStore()
-const load = ref(null)
+const loading = ref(null)
 const requestGet = useRequestGet()
 const toast = createToaster()
-const muteActors = ref(null)
+const muteActors = ref([])
 const subject = ref(null)
 
 onBeforeMount(async () => {
   if (historyState.action === 'reload') {
-    mutes.value = fetchedMutes.value
+    await getProfile(store.getters.getHandle)
+    await getMutes(cursor)
+    await getMutes(cursor)
+    return
+  }
+  if (historyState.action === 'back' || historyState.action === 'forward') {
+    subject.value = historyState.subject
+    muteActors.value = historyState.muteActors
+    mutes.value = historyState.mutes
+    return
   }
 });
 
-onBackupState(() => mutes);
+onBackupState(() => ({ mutes: mutes, subject: subject, muteActors: muteActors }));
 
 useIntersectionObserver(
-  load,
+  loading,
   async ([{ isIntersecting }]) => {
     if (isIntersecting && !complated.value) {
       await getProfile(store.getters.getHandle)
@@ -97,7 +105,7 @@ const getMutes = async (cursor) => {
     for (let i = 0; i < response.res.mutes.length - 1; i++) {
       await getMutesProfile(response.res.mutes[i].did)
     }
-    fetchedMutes.value = fetchedMutes.value.concat(response.res.mutes)
+    mutes.value = mutes.value.concat(response.res.mutes)
   } catch (e) {
     toast.error(e, { position: "top-right" })
   }

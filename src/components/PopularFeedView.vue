@@ -12,22 +12,28 @@
 <script setup>
 import FeedView from "./FeedView.vue"
 import { useIntersectionObserver } from '@vueuse/core'
-import { ref, onBeforeMount } from 'vue'
+import { ref, reactive, onBeforeMount } from 'vue'
 import { createToaster } from '@meforma/vue-toaster';
 import { useHistoryState, onBackupState } from 'vue-history-state';
 import { useRequestGet } from '../common/requestGet.js'
 
 const complated = ref(false)
-const fetchedTimeline = ref({ feed: [] })
 const cursor = ref(null)
 const historyState = useHistoryState();
-const timeline = ref(historyState.data || fetchedTimeline)
+const timeline = reactive({ feed: [] })
 const load = ref(null)
 
 onBeforeMount(async () => {
   if (historyState.action === 'reload') {
-    timeline.value = fetchedTimeline.value
+    timeline.value = []
+    await getPopular()
+    return
   }
+  if (historyState.action === 'back' || historyState.action === 'forward') {
+    timeline.value = historyState.data.timeline
+    return
+  }
+  await getPopular()
 });
 
 onBackupState(() => timeline);
@@ -51,7 +57,7 @@ const getPopular = async (cursor) => {
   try {
     const request = useRequestGet()
     const response = await request.get("app.bsky.unspecced.getPopular", params)
-    fetchedTimeline.value.feed = fetchedTimeline.value.feed.concat(response.res.feed)
+    timeline.feed = timeline.feed.concat(response.res.feed)
     cursor = response.res.cursor
     if (response.res.feed.length == 0) {
       complated.value = true

@@ -59,11 +59,17 @@ export default createStore({
       state.follows.splice(index, 1);
     },
     addLikes(state, session) {
+      if (!(state.likes instanceof Map)) {
+        state.likes = new Map(Object.entries(state.likes))
+      }
       session.records.forEach(element => {
         state.likes.set(element.value.subject.uri, element.uri)
       });
     },
     addLike(state, { key, value }) {
+      if (!(state.likes instanceof Map)) {
+        state.likes = new Map(Object.entries(state.likes))
+      }
       return state.likes.set(key, value);
     },
 

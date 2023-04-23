@@ -17,7 +17,7 @@ const thread = ref(null)
 const cursor = ref(null)
 
 onBeforeMount(async () => {
-  getThread(cursor)
+  await getThread(cursor)
 })
 
 const getThread = async () => {

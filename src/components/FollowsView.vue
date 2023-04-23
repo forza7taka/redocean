@@ -32,10 +32,9 @@ import { useRoute } from "vue-router";
 
 const route = useRoute()
 const complated = ref(false)
-const fetchedFollows = ref([])
-const cursor = ref(null)
+const follows = ref([])
+const followsCursor = ref(null)
 const historyState = useHistoryState();
-const follows = ref(historyState.data || fetchedFollows)
 const load = ref(null)
 const requestGet = useRequestGet()
 const toast = createToaster()
@@ -43,17 +42,24 @@ const subject = ref(null)
 
 onBeforeMount(async () => {
   if (historyState.action === 'reload') {
-    follows.value = fetchedFollows.value
+    await getFollows(route.params.handle)
+    return
   }
+  if (historyState.action === 'back' || historyState.action === 'forward') {
+    follows.value = historyState.data.follows
+    subject.value = historyState.data.subject
+    return
+  }
+  await getFollows(route.params.handle)
 });
 
-onBackupState(() => follows);
+onBackupState(() => ({follows:follows, subject: subject}));
 
 useIntersectionObserver(
   load,
   async ([{ isIntersecting }]) => {
-    if (isIntersecting && !complated.value) {
-      await getFollows(route.params.handle, cursor)
+    if (isIntersecting && !complated.value && followsCursor.value) {
+      await getFollows(route.params.handle, followsCursor)
     }
   }
 )
@@ -68,8 +74,8 @@ const getFollows = async (handle, cursor) => {
   try {
     const response = await requestGet.get("app.bsky.graph.getFollows", params)
     subject.value = response.res.subject
-    fetchedFollows.value = fetchedFollows.value.concat(response.res.follows)
-    cursor.value = response.res.cursor
+    follows.value = follows.value.concat(response.res.follows)
+    followsCursor.value = response.res.cursor
     if (response.res.follows.length == 0) {
       complated.value = true
     }

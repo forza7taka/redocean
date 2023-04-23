@@ -24,4 +24,15 @@ createApp(App)
   .component("infinite-loading", infiniteLoading)
   .mount('#app')
   
-  
+  axios.interceptors.request.use(
+    (config) => {
+      const accessJwt = store.getters.getAccessJwt
+      if (accessJwt) {
+        config.headers.Authorization = `Bearer ${accessJwt}`
+      }
+      return config
+    },
+    (error) => {
+      return Promise.reject(error)
+    }
+  )

@@ -6,7 +6,7 @@
       </v-card-title>
     </v-card>
     <UsersView :users="actors"></UsersView>
-    <div ref="load">
+    <div ref="loading">
       <v-container class="my-5">
         <v-row justify="center">
           <v-progress-circular model-value="20"></v-progress-circular>
@@ -24,24 +24,24 @@ import { useRequestGet } from '../common/requestGet.js'
 import { useIntersectionObserver } from '@vueuse/core'
 
 const complated = ref(false)
-const fetchedActors = ref([])
 const cursor = ref(null)
 const historyState = useHistoryState();
-const actors = ref(historyState.data || fetchedActors)
-const load = ref(null)
+const actors = ref([])
+const loading = ref(null)
 
 onBeforeMount(async () => {
   if (historyState.action === 'reload') {
-    actors.value = fetchedActors.value
+    await getSuggestions()
     return
   }
+
   await getSuggestions(cursor)
 })
 
 onBackupState(() => actors);
 
 useIntersectionObserver(
-  load,
+  loading,
   async ([{ isIntersecting }]) => {
     if (isIntersecting && !complated.value) {
       await getSuggestions(cursor)
@@ -59,7 +59,7 @@ const getSuggestions = async (cursor) => {
   try {
     const req = useRequestGet()
     const response = await req.get("app.bsky.actor.getSuggestions", params)
-    fetchedActors.value = fetchedActors.value.concat(response.res.actors)
+    actors.value = actors.value.concat(response.res.actors)
     cursor = response.res.cursor
     if (response.res.actors.length == 0) {
       complated.value = true

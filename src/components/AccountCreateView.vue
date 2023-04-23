@@ -22,39 +22,30 @@
   </div>
 </template>
 
-<script>
-export default {
-  components: {
-  },
-  data() {
-    return {
-      mailAddress: '',
-      handle: '',
-      password: '',
-      inviteCode: '',
-    }
-  },
-  mounted() {
-  },
-  methods: {
-    async create() {
-      try {
-        let response = await this.axios.post(process.env.VUE_APP_BASE_URI + "/com.atproto.server.createAccount", {
-          email: this.mailAddress,
-          handle: this.handle,
-          password: this.password,
-          inviteCode: this.inviteCode
-        })
-        console.log(response.data)
-        this.$router.push('/timeline')
-      } catch (e) {
-        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
-          type: "error",
-          position: "top-right",
-          duration: 8000
-        })
-      }
-    }
+<script setup>
+import { ref } from 'vue'
+import { useStore } from 'vuex'
+import { createToaster } from '@meforma/vue-toaster';
+import { useRequestGet } from '../common/requestGet.js'
+
+const mailAddress = ref(null)
+const handle = ref(null)
+const password = ref(null)
+const inviteCode = ref(null) 
+const create = async () => {
+  try {
+    const store = useStore()
+    const req = useRequestGet(store)
+    await req.post("/com.atproto.server.createAccount", {
+      email: this.mailAddress,
+      handle: this.handle,
+      password: this.password,
+      inviteCode: this.inviteCode
+    })
+    this.$router.push('/timeline')
+  } catch (e) {
+        const toast = createToaster()
+    toast.error(e, { position: "top-right" })
   }
 }
 </script>

@@ -71,24 +71,25 @@
           InviteCode:
         </v-list-item-subtitle>
         <div v-for="(c, cIndex) in inviteCodes" :key="cIndex">
-
           <v-list-item-subtitle v-if="!c.disable">
             <div v-if="c.available - c.uses.length != 0">
-              {{ c.code }} last:{{ c.available - c.uses.length }}
+              {{ c.code }} 
             </div>
           </v-list-item-subtitle>
         </div>
       </v-card-subtitle>
     </v-card>
   </div>
-  <FeedView :timeline="timeline"></FeedView>
-    <div ref="load">
+  <div ref="root"> 
+    <FeedView :timeline="timeline"></FeedView>
+    <div ref="loading">
       <v-container class="my-5">
         <v-row justify="center">
           <v-progress-circular model-value="20"></v-progress-circular>
         </v-row>
       </v-container>
     </div>
+  </div>
 </template>
 
 <script setup>
@@ -97,13 +98,13 @@ import { useFollow } from "../common/follow"
 import { useUnFollow } from "../common/unFollow"
 import { useMute } from "../common/mute"
 import { useUnMute } from "../common/unMute"
-import { ref, watch, onBeforeMount } from 'vue'
+import { ref, reactive, watch, onBeforeMount, onUnmounted } from 'vue'
 import { useStore } from 'vuex'
-import { useRequestGet } from '../common/requestGet.js'
-import { useHistoryState, onBackupState } from 'vue-history-state';
-import { useRoute } from "vue-router";
-import { createToaster } from '@meforma/vue-toaster';
 import { useIntersectionObserver } from '@vueuse/core'
+import { useRequestGet } from '../common/requestGet.js'
+import { useHistoryState, onBackupState } from 'vue-history-state'
+import { useRoute } from "vue-router"
+import { createToaster } from '@meforma/vue-toaster'
 
 const { follow } = useFollow()
 const { unFollow } = useUnFollow()
@@ -113,55 +114,83 @@ const { unMute } = useUnMute()
 const route = useRoute()
 const store = useStore()
 
-const complatedAuthorFeed = ref(false)
-const complatedLikes = ref(false)
-const complatedMutes = ref(false)
-const fetchedTimeline = ref({ feed: [] })
-const cursor = ref(null)
-const historyState = useHistoryState();
-const timeline = ref(historyState.data || fetchedTimeline)
+const completedAuthorFeed = ref(false)
+const completedLikes = ref(false)
+const completedMutes = ref(false)
 
-const load = ref(null)
-const requestGet = useRequestGet()
-const toast = createToaster()
-const handle = ref(null)
+const cursor = ref(null)
 const likesCursor = ref(null)
 const mutesCursor = ref(null)
+
+const historyState = useHistoryState();
+const handle = ref(null)
+const timeline = reactive({ feed : new Array()})
 const profile = ref(null)
 const mutes = ref([])
-const likes =ref([])
+const likes = ref([])
 const inviteCodes = ref([])
 
-onBeforeMount(async () => {
-  if (historyState.action === 'reload') {
-    timeline.value = fetchedTimeline.value
-  }
-})
-
-onBackupState(() => timeline);
+const root = ref(null)
+const loading = ref(null)
+const requestGet = useRequestGet()
+const toast = createToaster()
 
 useIntersectionObserver(
-  load,
+  loading,
   async ([{ isIntersecting }]) => {
-    handle.value = await getHandle()
-    if (handle.value == store.getters.getHandle) {
-      await getInviteCodes()
-    }
-    while (!complatedLikes.value) {
-      await getLikes(handle, likesCursor)
-    }
-    complatedLikes.value = false
-    while (!complatedMutes.value) {
-      await getMutes(mutesCursor)
-    }
-    complatedMutes.value = false
-    await getProfile(handle)
-    if (isIntersecting && !complatedAuthorFeed.value) {
+    if (isIntersecting && !completedAuthorFeed.value) {
       await getAuthorFeed(handle, cursor)
-      complatedAuthorFeed.value = false
+      completedAuthorFeed.value = false
     }
   },
 )
+
+onBeforeMount(async () => {
+  if (historyState.action === 'reload') {
+    handle.value = await getHandle()
+    timeline.feed = new Array()
+    completedAuthorFeed.value = false
+    await getAuthorFeed(handle, cursor)
+    return
+  }
+  if (historyState.action === 'back' || historyState.action === 'forward') {
+    handle.value = historyState.data.handle
+    profile.value = historyState.data.profile
+    likes.value = Array(historyState.data.likes)
+    mutes.value = Array(historyState.data.mutes)
+    inviteCodes.value = historyState.data.inviteCodes
+    timeline.feed = Array(historyState.data.feed)
+    return
+  }
+  await load()
+})
+
+onBackupState(() => ({
+  handle: handle,
+  profile: profile,
+  feed: timeline.feed,
+  mutes: mutes,
+  likes: likes,
+  inviteCodes: inviteCodes, 
+}));
+
+const load = async () => {
+  handle.value = await getHandle()
+  await getProfile(handle)
+  while (!completedLikes.value) {
+    await getLikes(handle, likesCursor)
+  }
+  completedAuthorFeed.value = false
+  await getAuthorFeed(handle, cursor)
+  completedMutes.value = false
+  if (handle.value == store.getters.getHandle) {
+    await getInviteCodes()
+  }
+  completedLikes.value = false
+  while (!completedMutes.value) {
+    await getMutes(mutesCursor)
+  }
+};
 
 const getAuthorFeed = async (handle, cursor) => {
   let params = {}
@@ -171,14 +200,15 @@ const getAuthorFeed = async (handle, cursor) => {
     params = { actor: handle.value, cursor: cursor.value }
   }
   try {
-    const response = await requestGet.get("app.bsky.feed.getAuthorFeed",  params )
-    fetchedTimeline.value.feed = fetchedTimeline.value.feed.concat(response.res.feed)
+    const response = await requestGet.get("app.bsky.feed.getAuthorFeed", params)
+    timeline.feed = timeline.feed.concat(response.res.feed) 
     cursor = response.res.cursor
     if (response.res.feed.length == 0) {
-      complatedAuthorFeed.value = true
+      completedAuthorFeed.value = true
     }
   } catch (e) {
-    toast.error(e, { position: "top-right" })
+    console.log(e)
+    toast.error(e.toString(), { position: "top-right" })
   }
 }
 
@@ -191,11 +221,16 @@ const getProfile = async (handle) => {
   }
 }
 
-watch(route, async () => {
-  handle.value = await getHandle()
-  await getProfile(handle)
-  await getAuthorFeed(handle, null)
-})
+const stopWatch = watch(
+  () => route.currentRoute,
+  async () => {
+    handle.value = await getHandle()
+    await getProfile(handle.value)
+    await getAuthorFeed(handle.value, null)
+  }
+)
+
+onUnmounted(stopWatch)
 
 const getMutes = async (cursor) => {
   let params = {}
@@ -208,7 +243,7 @@ const getMutes = async (cursor) => {
     const response = await requestGet.get("app.bsky.graph.getMutes",  params )
     mutesCursor.value = response.res.cursor
     if (response.res.mutes.length == 0) {
-      complatedMutes.value = true
+      completedMutes.value = true
     }
     mutes.value = mutes.value.concat(response.res.mutes)
   } catch (e) {
@@ -229,14 +264,15 @@ const getLikes = async (handle, cursor) => {
       params = {
         repo: handle.value,
         collection: "app.bsky.feed.like",
-        cursor: cursor.value
+        cursor: cursor.value,
+        limit: 100
       }
     }
     const response = await requestGet.get("com.atproto.repo.listRecords",  params )
     likes.value = likes.value.concat(response.res.records)
     likesCursor.value = response.res.cursor
     if (response.res.records.length == 0) {
-      complatedLikes.value = true
+      completedLikes.value = true
       return
     }
   } catch (e) {
@@ -246,10 +282,7 @@ const getLikes = async (handle, cursor) => {
 
 const getInviteCodes = async () => {
   try {
-    const response = await requestGet.get("com.atproto.server.getAccountInviteCodes", {
-      params: {
-      }
-    })
+    const response = await requestGet.get("com.atproto.server.getAccountInviteCodes", {  })
     inviteCodes.value = response.res.codes
   } catch (e) {
     toast.error(e, { position: "top-right" })

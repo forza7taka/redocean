@@ -10,7 +10,7 @@
         @{{ subject.handle }} followers
       </v-card-title>
     </v-card>
-    <UsersView v-if="followers" :users="followers"></UsersView>
+    <UsersView :users="followers"></UsersView>
     <div ref="load">
       <v-container class="my-5">
         <v-row justify="center">
@@ -32,10 +32,9 @@ import { useRoute } from "vue-router";
 
 const route = useRoute()
 const complated = ref(false)
-const fetchedFollowers = ref([])
-const cursor = ref(null)
+const followers = ref([])
+const followersCursor = ref(null)
 const historyState = useHistoryState();
-const followers = ref(historyState.data || fetchedFollowers)
 const load = ref(null)
 const requestGet = useRequestGet()
 const toast = createToaster()
@@ -43,17 +42,24 @@ const subject = ref(null)
 
 onBeforeMount(async () => {
   if (historyState.action === 'reload') {
-    followers.value = fetchedFollowers.value
+    await getFollowers(route.params.handle)
+    return
   }
+  if (historyState.action === 'back' || historyState.action === 'forward') {
+    followers.value = historyState.data.followers
+    subject.value = historyState.data.subject
+    return
+  }
+  await getFollowers(route.params.handle)
 });
 
-onBackupState(() => followers);
+onBackupState(() => ({ followers: followers, subject: subject }));
 
 useIntersectionObserver(
   load,
   async ([{ isIntersecting }]) => {
-    if (isIntersecting && !complated.value) {
-      await getFollowers(route.params.handle, cursor)
+    if (isIntersecting && !complated.value && followersCursor.value) {
+      await getFollowers(route.params.handle, followersCursor)
     }
   }
 )
@@ -68,8 +74,8 @@ const getFollowers = async (handle, cursor) => {
   try {
     const response = await requestGet.get("app.bsky.graph.getFollowers", params)
     subject.value = response.res.subject
-    fetchedFollowers.value = fetchedFollowers.value.concat(response.res.followers)
-    cursor.value = response.res.cursor
+    followers.value = followers.value.concat(response.res.followers)
+    followersCursor.value = response.res.cursor
     if (response.res.followers.length == 0) {
       complated.value = true
     }
