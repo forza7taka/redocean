@@ -1,121 +1,113 @@
 <template>
   <div>
-
     <v-card width="400px" class="mx-auto mt-5">
       <v-card-title>
-        <router-link :to="`/profile/${this.$store.getters.getHandle}`">
+        <router-link :to="`/profile/${store.getters.getHandle}`">
           <v-avatar color="surface-variant">
             <v-img v-if="subject" cover v-bind:src=subject.avatar alt="avatar"></v-img>
-            </v-avatar>
+          </v-avatar>
         </router-link>
-        @{{ this.$store.getters.getHandle }} mutes
+        @{{ store.getters.getHandle }} mutes
       </v-card-title>
     </v-card>
     <UsersView :users="mutes"></UsersView>
-    <infinite-loading @infinite="infiniteHandler" :firstload=false>
-        <template #spinner>
-        <span>loading...</span>
-      </template>
-      <template #complete>
-        <span>No more data found!</span>
-      </template>
-    </infinite-loading>
+    <div ref="loading">
+      <v-container class="my-5">
+        <v-row justify="center">
+          <v-progress-circular v-if="!complated" model-value="20"></v-progress-circular>
+        </v-row>
+      </v-container>
+    </div>
   </div>
 </template>
 
-<script>
-import UsersView from './UsersView.vue'
-import InfiniteLoading from 'v3-infinite-loading'
+<script setup>
 
-export default {
-  components: {
-    UsersView,
-    InfiniteLoading
-  },
-  data() {
-    return {
-      complated: false,
-      mutes: [],
-      muteActors:[],
-      cursor: null,
-      subject: null
+import UsersView from './UsersView.vue'
+import { useIntersectionObserver } from '@vueuse/core'
+import { ref, onBeforeMount } from 'vue'
+import { useStore } from 'vuex'
+import { createToaster } from '@meforma/vue-toaster';
+import { useHistoryState, onBackupState } from 'vue-history-state';
+import { useRequestGet } from '../common/requestGet.js'
+
+const complated = ref(false)
+const mutes = ref([])
+const cursor = ref(null)
+const historyState = useHistoryState();
+const store = useStore()
+const loading = ref(null)
+const requestGet = useRequestGet(store)
+const toast = createToaster()
+const muteActors = ref([])
+const subject = ref(null)
+
+onBeforeMount(async () => {
+  if (historyState.action === 'reload') {
+    await getProfile(store.getters.getHandle)
+    await getMutes(cursor)
+    await getMutes(cursor)
+    return
+  }
+  if (historyState.action === 'back' || historyState.action === 'forward') {
+    subject.value = historyState.subject
+    muteActors.value = historyState.muteActors
+    mutes.value = historyState.mutes
+    return
+  }
+});
+
+onBackupState(() => ({ mutes: mutes, subject: subject, muteActors: muteActors }));
+
+useIntersectionObserver(
+  loading,
+  async ([{ isIntersecting }]) => {
+    if (isIntersecting && !complated.value) {
+      await getProfile(store.getters.getHandle)
+      await getMutes(cursor)
+      await getMutes(cursor)
     }
-  },
-  beforeMount() {
-    this.getProfile(this.$store.getters.getHandle)
-    this.getMutes()
-  },
-  methods: {
-    async infiniteHandler($state) {
-      if (this.complated) {
-        $state.complete()
-      } else {
-        $state.loaded()
-        await this.getMutes(this.cursor)
-      }
-    },
-    async getProfile(handle) {
-      try {
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.actor.getProfile', {
-          params: {
-            actor: handle
-          }
-        })
-        this.subject = response.data
-      } catch (e) {
-        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
-          type: "error",
-          position: "top-right",
-          duration: 8000
-        })
-      }
-    },
-    async getMutesProfile(handle) {
-      try {
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.actor.getProfile', {
-          params: {
-            actor: handle
-          }
-        })
-        console.log(response.data)
-        this.muteActors = this.muteActors.concat(response.data)
-        console.log(this.profile)
-      } catch (e) {
-        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
-          type: "error",
-          position: "top-right",
-          duration: 8000
-        })
-      }
-    },
-    async getMutes(cursor) {
-      let params = {}
-      if (!cursor) {
-        params = { }
-      } else {
-        params = { cursor: cursor }
-      }
-      try {
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get("https://bsky.social/xrpc/app.bsky.graph.getMutes", { params })
-        this.cursor = response.data.cursor
-        if (response.data.mutes.length == 0) {
-          this.complated = true
-        }
-        for (let i = 0; i < response.data.mutes.length - 1; i++) {
-          await this.getProfile(response.data.mutes[i].did)
-        }
-        this.mutes = this.mutes.concat(response.data.mutes)
-      } catch (e) {
-        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
-          type: "error",
-          position: "top-right",
-          duration: 8000
-        })
-      }
+  }
+)
+
+const getProfile = async (handle) => {
+  try {
+    const response = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
+    subject.value = response.res
+  } catch (e) {
+    toast.error(e, { position: "top-right" })
+  }
+}
+
+const getMutesProfile = async (handle) => {
+  try {
+    const response = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
+    muteActors.value = muteActors.value.concat(response.res)
+  } catch (e) {
+    toast.error(e, { position: "top-right" })
+  }
+}
+
+const getMutes = async (cursor) => {
+  let params = {}
+  if (!cursor) {
+    params = {}
+  } else {
+    params = { cursor: cursor.value }
+  }
+  try {
+    let response = await requestGet.get("app.bsky.graph.getMutes", params)
+    cursor.value = response.res.cursor
+    if (response.res.mutes.length == 0) {
+      complated.value = true
+      return
     }
+    for (let i = 0; i < response.res.mutes.length - 1; i++) {
+      await getMutesProfile(response.res.mutes[i].did)
+    }
+    mutes.value = mutes.value.concat(response.res.mutes)
+  } catch (e) {
+    toast.error(e, { position: "top-right" })
   }
 }
 </script>

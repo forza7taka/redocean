@@ -5,53 +5,37 @@
   </div>
 </template>
 
-<script >
+<script setup>
 import PostView from "./PostView.vue"
-export default {
-  components: {
-    PostView,
-  },
-  name: 'App',
-  data() {
-    return {
-      thread: null,
-      cursor: null,
-    };
-  },
-  watch: {
-    '$route.params.uri': {
-      async handler() {
-        if (this.$route.params.uri) {
-          this.getThread(this.cursor)
-        }
-      }
+import { ref, watch, onBeforeMount } from 'vue'
+import { createToaster } from '@meforma/vue-toaster';
+import { useRequestGet } from '../common/requestGet.js'
+import { useRoute } from "vue-router";
+import { useStore } from 'vuex'
+
+const store = useStore()
+const route = useRoute()
+const thread = ref(null)
+const cursor = ref(null)
+
+onBeforeMount(async () => {
+  await getThread(cursor)
+})
+
+const getThread = async () => {
+  try {
+    if (!route.params.uri) {
+      return
     }
-  },
-  beforeMount() {
-    this.getThread(this.cursor)
-  },
-  methods: {
-    async getThread() {
-      let params = { uri: this.$route.params.uri }
-      try {
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.feed.getPostThread', { params })
-        console.log(response)
-        this.thread = response.data.thread
-      } catch (e) {
-        console.log(e)
-        this.$toast.show(e, {
-          type: "error",
-          position: "top-right",
-          duration: 8000
-        })
-      }
-    },
-    replaceUrls(text) {
-      const urlRegex = /(https?:\/\/[^\s]+)/g;
-      const replacedText = text.replace(urlRegex, '<a href="$&" target="_blank">$&</a>');
-      return replacedText;
-    }
+    const params = { uri: route.params.uri }
+    const req = useRequestGet(store)
+    const response = await req.get("app.bsky.feed.getPostThread", params)
+    thread.value = response.res.thread
+  } catch (e) {
+    const toast = createToaster()
+    toast.error(e, { position: "top-right" })
   }
-};
+}
+
+watch(route, () => getThread())
 </script>

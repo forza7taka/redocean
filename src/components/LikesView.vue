@@ -5,129 +5,139 @@
         Likes
       </v-card-title>
     </v-card>
-        <v-list-item v-for="(f, fIndex) in timeline.feed" :key="fIndex">
-        <v-row>
-          <v-col class="d-flex justify-center align-center">
-            <PostView v-if="f.reply" :post="f.post" :reason="f.reason" :parent="f.reply.parent" :root="f.reply.root" :depth="0"></PostView>
-            <PostView v-if="!f.reply" :post="f.post" :reason="f.reason" :depth="0"></PostView>
-          </v-col>
+    <v-list-item v-for="(f, fIndex) in timeline.feed" :key="fIndex">
+      <v-row>
+        <v-col class="d-flex justify-center align-center">
+          <PostView v-if="f.reply" :post="f.post" :reason="f.reason" :parent="f.reply.parent" :root="f.reply.root"
+            :depth="0"></PostView>
+          <PostView v-if="!f.reply" :post="f.post" :reason="f.reason" :depth="0"></PostView>
+        </v-col>
+      </v-row>
+    </v-list-item>
+    <div ref="loading">
+      <v-container class="my-5">
+        <v-row justify="center">
+          <v-progress-circular model-value="20"></v-progress-circular>
         </v-row>
-      </v-list-item>
-
-    <infinite-loading @infinite="infiniteHandler" :firstload="false">
-      <template #spinner>
-        <span>loading...</span>
-      </template>
-      <template #complete>
-        <span>No more data found!</span>
-      </template>
-    </infinite-loading>
+      </v-container>
+    </div>
   </div>
 </template>
 
-<script >
+<script setup>
 import PostView from "./PostView.vue"
-import InfiniteLoading from 'v3-infinite-loading'
-export default {
-  components: {
-    PostView,
-    InfiniteLoading
-  },
-  name: 'App',
-  data() {
-    return {
-      complated: false,
-      timeline: { feed: [] },
-      cursor: null,
-      likes: [],
-      authors: new Map()
-    };
-  },
-  watch: {
-    likes: {
-      handler(nv) {
-        this.getPosts(nv)
-      },
-      deep: true
-    },
-  },
-  async beforeMount() {
-    await this.getLikes(this.cursor)
-  },
-  methods: {
-    async infiniteHandler($state) {
-      if (this.complated) {
-        $state.complete()
-      } else {
-        await this.getLikes(this.cursor)
-        $state.loaded()
-      }
-    },
-    async getLikes(cursor) {
-      try {
-        let params = {}
-        if (!cursor) {
-          params = {
-            repo: this.$store.getters.getDid,
-            collection: "app.bsky.feed.like",
-            limit: 50
-          }
-        } else {
-          params = {
-            repo: this.$store.getters.getDid,
-            collection: "app.bsky.feed.like",
-            cursor: cursor
-          }
-        }
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get('https://bsky.social/xrpc/com.atproto.repo.listRecords', {
-          params
-        })
-        console.log(response.data)
+import { ref, reactive, watch, onBeforeMount, onUnmounted } from 'vue'
+import { useStore } from 'vuex'
+import { useRequestGet } from '../common/requestGet.js'
+import { createToaster } from '@meforma/vue-toaster'
+import { useHistoryState, onBackupState } from 'vue-history-state';
+import { useRoute } from "vue-router"
+import { useIntersectionObserver } from '@vueuse/core'
 
-        this.likes = this.likes.concat(response.data.records)
-        this.cursor = response.data.cursor
-        if (response.data.records.length == 0) {
-          this.isComplete = true
-          return
-        }
-      } catch (e) {
-        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
-          type: "error",
-          position: "top-right",
-          duration: 8000
-        })
-      }
-    },
-    async getPosts(likes) {
-      try {
-        for (var i = 0; i < likes.length; i++) {
-          try {
-            this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-            let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.feed.getPostThread', {
-              params: {
-                uri: likes[i].value.subject.uri
-              }
-            })
-            console.log(response.data.thread.post)
-            let post = {post: response.data.thread.post }
-            this.timeline.feed = this.timeline.feed.concat(post)
-          } catch (e) {
-            if (e.response && e.response.status === 400) {
-              continue
-            }
-            throw e
-          }
-        }
-      } catch (e) {
-        console.log(e)
-        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
-          type: "error",
-          position: "top-right",
-          duration: 8000
-        })
-      }
-    },
+const store = useStore()
+const toast = createToaster()
+const requestGet = useRequestGet(store)
+const route = useRoute()
+const historyState = useHistoryState();
+
+const completed = ref(false)
+const timeline = reactive({ feed: [] })
+const cursor = ref(null)
+const likes = ref(new Array())
+const handle = ref(null)
+const loading = ref(null)
+
+onBeforeMount(async () => {
+  if (historyState.action === 'reload') {
+    timeline.feed = []
+    likes.value = []
+    handle.value = await getHandle()
+    await getLikes(handle, cursor)
+    return
   }
-};
+  if (historyState.action === 'back' || historyState.action === 'forward') {
+    handle.value = historyState.data.handle
+    likes.value = historyState.data.likes
+    timeline.feed = historyState.data.feed
+    return
+  }
+  handle.value = await getHandle()
+  await getLikes(handle, cursor)
+});
+
+onBackupState(() => ({ feed : timeline.feed, likes : likes, handle : handle }));
+
+useIntersectionObserver(
+  loading,
+  async ([{ isIntersecting }]) => {
+    if (isIntersecting && !completed.value) {
+      await getLikes(handle, cursor)
+    }
+  }
+)
+
+const getHandle = async () => {
+  if (route.params.handle) {
+    return route.params.handle
+  }
+  return store.getters.getHandle
+}
+
+const getLikes = async (handle, cursor) => {
+  console.log("getLikes") 
+  try {
+    let params = {}
+    if (!cursor) {
+      params = {
+        repo: handle.value,
+        collection: "app.bsky.feed.like",
+        limit: 30
+      }
+    } else {
+      params = {
+        repo: handle.value,
+        collection: "app.bsky.feed.like",
+        cursor: cursor.value
+      }
+    }
+    const response = await requestGet.get("com.atproto.repo.listRecords", params)
+    likes.value = likes.value.concat(response.res.records)
+    cursor = response.res.cursor
+    if (response.res.records.length == 0) {
+      completed.value = true
+      return
+    }
+    await getPosts(response.res.records)
+  } catch (e) {
+    toast.error(e, { position: "top-right" })
+  }
+}
+
+const getPosts = async (likes) => {
+  try {
+    for (var i = 0; i < likes.length; i++) {
+      try {
+        const response = await requestGet.get("app.bsky.feed.getPostThread", {uri: likes[i].value.subject.uri})
+        const post = reactive({ post: response.res.thread.post })
+        timeline.feed.push(post)
+      } catch (e) {
+        if (e.response && e.response.status === 400) {
+          continue
+        }
+        throw e
+      }
+    }
+  } catch (e) {
+    toast.error(e, { position: "top-right" })
+  }
+}
+
+const stopRouteWatch = watch(
+  () => route.currentRoute,
+  async () => {
+  handle.value = await getHandle()
+  await getLikes(handle.value, cursor)
+})
+
+onUnmounted(stopRouteWatch)
 </script>

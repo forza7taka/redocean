@@ -7,10 +7,15 @@ export default createStore({
     did: '',
     accessJwt: '',
     refreshJwt: '',
+    server: '',
     follows: [],
-    likes: new Map()
+    likes: new Map(),
+    mutes: []
   },
   getters: {
+    getServer(state) {
+      return state.server;
+    },
     getHandle(state) {
       return state.handle;
     },
@@ -37,7 +42,10 @@ export default createStore({
         return false;
       }
       return state.likes.has(key);
-    }
+    },
+    getMutes(state) {
+      return state.mutes;
+    },
   },
   mutations: {
     createSession(state, session) {
@@ -55,11 +63,17 @@ export default createStore({
       state.follows.splice(index, 1);
     },
     addLikes(state, session) {
+      if (!(state.likes instanceof Map)) {
+        state.likes = new Map(Object.entries(state.likes))
+      }
       session.records.forEach(element => {
         state.likes.set(element.value.subject.uri, element.uri)
       });
     },
-    addLike(state, {key, value}) {
+    addLike(state, { key, value }) {
+      if (!(state.likes instanceof Map)) {
+        state.likes = new Map(Object.entries(state.likes))
+      }
       return state.likes.set(key, value);
     },
 
@@ -71,22 +85,35 @@ export default createStore({
       state.handle = session.handle;
     },
 
+    setServer(state, session) {
+      state.server = session;
+    },
+
     removeAllLikes(state) {
       state.likes = new Map();
     },
+    addMutes(state, session) {
+      session.mutes.forEach(element => {
+        state.mutes.push(element.did)
+      });
+    },
+    removeMute(state, index) {
+      state.mutes.splice(index, 1);
+    },
+
   },
   actions: {
     doCreateSession({
       commit
     }, session) {
-      commit('createSession', 
+      commit('createSession',
         session
       )
     },
     doAddFollows({
       commit
     }, session) {
-      commit('addFollows', 
+      commit('addFollows',
         session
       )
     },
@@ -96,17 +123,24 @@ export default createStore({
         commit('removeFollow', index);
       }
     },
+    doSetServer({
+      commit
+    }, session) {
+      commit('setServer',
+        session
+      )
+    },
     doSetHandle({
       commit
     }, session) {
-      commit('setHandle', 
+      commit('setHandle',
         session
       )
     },
     doAddLikes({
       commit
     }, session) {
-      commit('addLikes', 
+      commit('addLikes',
         session
       )
     },
@@ -124,9 +158,22 @@ export default createStore({
       commit('removeAllLikes',
         session
       )
-    }
+    },
+    doAddMutes({
+      commit
+    }, session) {
+      commit('addMutes',
+        session
+      )
+    },
+    removeMute({ commit, state }, did) {
+      const index = state.mutes.indexOf(did);
+      if (index > -1) {
+        commit('removeMute', index);
+      }
+    },
   },
   modules: {
   },
-  plugins: [createPersistedState({storage: window.sessionStorage})]
+  plugins: [createPersistedState({ storage: window.sessionStorage })]
 })

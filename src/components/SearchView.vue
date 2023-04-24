@@ -21,14 +21,15 @@ export default {
       keyword: ''
     };
   },
-  props: {
+  setup() {
+
   },
   methods: {
     async submit() {
 
       try {
         this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get('https://search.bsky.social/search/posts?q=%E3%81%82', {})
+        let response = await this.axios.get(process.env.VUE_APP_BASE_URI + "search/posts?q=%E3%81%82", {})
         console.log(response)
       } catch (e) {
         this.$toast.show(e.response.data.error + " " + e.response.data.message, {

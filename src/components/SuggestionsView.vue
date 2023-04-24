@@ -1,74 +1,76 @@
 <template>
   <div>
-      <v-card width="400px" class="mx-auto mt-5">
+    <v-card width="400px" class="mx-auto mt-5">
       <v-card-title>
         suggestions
       </v-card-title>
     </v-card>
     <UsersView :users="actors"></UsersView>
-    <infinite-loading @infinite="infiniteHandler" :firstload=false>
-      <template #spinner>
-        <span>loading...</span>
-      </template>
-      <template #complete>
-        <span>No more data found!</span>
-      </template>
-    </infinite-loading>
-  </div>
+    <div ref="loading">
+      <v-container class="my-5">
+        <v-row justify="center">
+          <v-progress-circular model-value="20"></v-progress-circular>
+        </v-row>
+      </v-container>
+    </div>
+</div>
 </template>
-<script>
+<script setup>
 import UsersView from './UsersView.vue'
+import { ref, onBeforeMount } from 'vue'
+import { createToaster } from '@meforma/vue-toaster';
+import { useHistoryState, onBackupState } from 'vue-history-state';
+import { useRequestGet } from '../common/requestGet.js'
+import { useIntersectionObserver } from '@vueuse/core'
 
-import InfiniteLoading from 'v3-infinite-loading'
-export default {
-  components: {
-    UsersView,
-    InfiniteLoading
-  },
-  data() {
-    return {
-      complated: false,
-      actors: [],
-      cursor: null,
+import { useStore } from 'vuex'
+
+const store = useStore()
+
+const complated = ref(false)
+const cursor = ref(null)
+const historyState = useHistoryState();
+const actors = ref([])
+const loading = ref(null)
+
+onBeforeMount(async () => {
+  if (historyState.action === 'reload') {
+    await getSuggestions()
+    return
+  }
+
+  await getSuggestions(cursor)
+})
+
+onBackupState(() => actors);
+
+useIntersectionObserver(
+  loading,
+  async ([{ isIntersecting }]) => {
+    if (isIntersecting && !complated.value) {
+      await getSuggestions(cursor)
     }
   },
-  beforeMount() {
-    this.getSuggestions(this.cursor)
-  },
-  methods :{
-    async infiniteHandler($state) {
-      if (this.complated) {
-        $state.complete()
-      } else {
-        $state.loaded()
-        await this.getSuggestions(this.cursor)
-      }
-    },
-    async getSuggestions(cursor) {
-      try {
-        let params = {}
-        if (!cursor) {
-          params = {}
-          this.actors = []
-        } else {
-          params = { cursor: cursor }
-        }
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get("https://bsky.social/xrpc/app.bsky.actor.getSuggestions", { params })
-        console.log(response.data)
-        this.cursor = response.data.cursor
-        if (response.data.actors.length == 0) {
-          this.complated = true
-        }
-        this.actors = this.actors.concat(response.data.actors)
-      } catch (e) {
-        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
-          type: "error",
-          position: "top-right",
-          duration: 8000
-        })
-      }
+)
+
+const getSuggestions = async (cursor) => {
+  let params = {}
+  if (!cursor) {
+    params = {}
+  } else {
+    params = { cursor: cursor.value }
+  }
+  try {
+    const req = useRequestGet(store)
+    const response = await req.get("app.bsky.actor.getSuggestions", params)
+    actors.value = actors.value.concat(response.res.actors)
+    cursor = response.res.cursor
+    if (response.res.actors.length == 0) {
+      complated.value = true
     }
+  } catch (e) {
+    const toast = createToaster()
+    toast.error(e, { position: "top-right" })
   }
 }
 </script>

@@ -1,69 +1,70 @@
 <template>
   <FeedView :timeline="timeline"></FeedView>
-  <infinite-loading @infinite="infiniteHandler" :firstload=false>
-      <template #spinner>
-        <span>loading...</span>
-      </template>
-      <template #complete>
-        <span>No more data found!</span>
-      </template>
-        </infinite-loading>
+  <div ref="load">
+    <v-container class="my-5">
+      <v-row justify="center">
+        <v-progress-circular model-value="20"></v-progress-circular>
+      </v-row>
+    </v-container>
+  </div>
 </template>
 
-<script>
+<script setup>
 import FeedView from "./FeedView.vue"
-import InfiniteLoading from 'v3-infinite-loading'
+import { useIntersectionObserver } from '@vueuse/core'
+import { ref, reactive, onBeforeMount } from 'vue'
+import { createToaster } from '@meforma/vue-toaster';
+import { useHistoryState, onBackupState } from 'vue-history-state';
+import { useRequestGet } from '../common/requestGet.js'
+import {useStore} from 'vuex'
+const complated = ref(false)
+const cursor = ref(null)
+const historyState = useHistoryState();
+const timeline = reactive({ feed: [] })
+const load = ref(null)
+const store = useStore()
+const request = useRequestGet(store)
+onBeforeMount(async () => {
+  if (historyState.action === 'reload') {
+    timeline.value = []
+    await getPopular()
+    return
+  }
+  if (historyState.action === 'back' || historyState.action === 'forward') {
+    timeline.value = historyState.data.timeline
+    return
+  }
+  await getPopular()
+});
 
-export default {
-  components: {
-    FeedView,
-    InfiniteLoading
-  },
-  name: 'App',
-  data() {
-    return {
-      complated: false,
-      timeline: { feed: [] },
-      cursor: null,
-    };
-  },
-  beforeMount() {
-    this.getPopular(this.cursor)
-  },
-  methods: {
-    async infiniteHandler($state) {
-      if (this.complated) {
-        $state.complete()
-      } else {
-        $state.loaded()
-        await this.getPopular(this.cursor)
-      }
-    },
-    async getPopular(cursor) {
-      let params = {}
-      if (!cursor) {
-        params = {}
-      } else {
-        params = { cursor: cursor }
-      }
-      try {
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.unspecced.getPopular', { params })
-        console.log(response)
-        this.timeline.feed = this.timeline.feed.concat(response.data.feed)
-        this.cursor = response.data.cursor
-        if (response.data.feed.length == 0) {
-          this.complated = true
-        }
-      } catch (e) {
-        console.log(e)
-        this.$toast.show(e.data.error + " " + e.data.message, {
-          type: "error",
-          position: "top-right",
-          duration: 8000
-        })
-      }
+onBackupState(() => timeline);
+
+useIntersectionObserver(
+  load,
+  async ([{ isIntersecting }]) => {
+    if (isIntersecting && !complated.value) {
+      await getPopular(cursor)
     }
   }
-};
+)
+
+const getPopular = async (cursor) => {
+  let params = {}
+  if (!cursor) {
+    params = {}
+  } else {
+    params = { cursor: cursor.value }
+  }
+  try {
+    const response = await request.get("app.bsky.unspecced.getPopular", params)
+    timeline.feed = timeline.feed.concat(response.res.feed)
+    cursor = response.res.cursor
+    if (response.res.feed.length == 0) {
+      complated.value = true
+    }
+  } catch (e) {
+    const toast = createToaster()
+    toast.error(e, { position: "top-right" })
+  }
+}
 </script>

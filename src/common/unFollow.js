@@ -1,39 +1,24 @@
-import { provide } from 'vue'
-import { useStore } from 'vuex'
-import axios from 'axios'
 import { createToaster } from '@meforma/vue-toaster'
+import { useRequestPost } from './requestPost.js'
+import { useRequestGet } from './requestGet.js'
 
-export function useUnFollow() {
-  const store = useStore()
-  const toast = createToaster()
-
+export function useUnFollow(store) {
   async function unFollow(ownDid, followDid) {
-
     try {
-      let profile
-      axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getAccessJwt
-      let response = await axios.get('https://bsky.social/xrpc/app.bsky.actor.getProfile', {
-          params: {
-              actor: followDid
-          }
-      })
-      profile = response.data
-      await axios.post("https://bsky.social/xrpc/com.atproto.repo.deleteRecord", {
+      const requestGet = useRequestGet(store)
+      let response = await requestGet.get("app.bsky.actor.getProfile", { actor: followDid })
+      const profile = response.res
+      const requestPost = useRequestPost(store)
+      await requestPost.post("com.atproto.repo.deleteRecord", {
         collection: "app.bsky.graph.follow",
         repo: ownDid,
         rkey: String(profile.viewer.following).substr(-13)
       })
       store.dispatch('removeFollow', followDid);  
     } catch (e) {
-      toast.show(e.response.data.error + " " + e.response.data.message, {
-        type: "error",
-        position: "top-right",
-        duration: 8000
-      })
+      const toast = createToaster()
+      toast.error(e, { position: "top-right" })
     }
   }
-
-  provide('srore', store)
-
   return { unFollow }
 }

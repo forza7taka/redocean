@@ -1,30 +1,18 @@
-import { provide } from 'vue'
-import { useStore } from 'vuex'
-import {createToaster} from '@meforma/vue-toaster'
-import axios from 'axios'
+import { createToaster } from '@meforma/vue-toaster'
+import { useRequestPost } from './requestPost.js'
 
-export function useUnMute() {
-  const store = useStore()
-  const toast = createToaster()
-
+export function useUnMute(store) {
   async function unMute(did) {
     try {
-      axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getAccessJwt
-      await axios.post("https://bsky.social/xrpc/app.bsky.graph.unMuteActor", {
+      const request = useRequestPost(store)
+      await request.post("app.bsky.graph.unMuteActor", {
         actor: did
       })
+      store.dispatch('removeMute', did);
     } catch (e) {
-      toast.show(e.response.data.error + " " + e.response.data.message, {
-        type: "error",
-        position: "top-right",
-        duration: 8000
-      })
+      const toast = createToaster()
+      toast.error(e, { position: "top-right" })
     }
-    return {unMute}
   }
-
-  // provideでデータを登録する
-  provide('srore', store)
-
   return { unMute }
 }

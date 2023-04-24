@@ -1,7 +1,7 @@
 <template>
   <div>
-    <v-list v-if="users">
-      <v-list-item v-for="(f, fIndex) in users" :key="fIndex">
+    <v-list v-if="props.users">
+      <v-list-item v-for="(f, fIndex) in props.users" :key="fIndex">
         <v-card width="400px" class="mx-auto mt-5" elevation="20">
           <v-card-actions>
             <v-list-item class="w-100">
@@ -21,8 +21,8 @@
               <template v-slot:append>
                 <div class="justify-self-end">
                   <v-btn v-if="this.$store.getters.getFollows.includes(f.did)"
-                    @click.prevent="unFollow(this.$store.getters.getDid, f.did)" icon><v-icon>mdi-account-remove</v-icon></v-btn>
-                  <v-btn v-if="!this.$store.getters.getFollows.includes(f.did)"
+                    @click.prevent="unFollow(store.getters.getDid, f.did)" icon><v-icon>mdi-account-remove</v-icon></v-btn>
+                  <v-btn v-if="!store.getters.getFollows.includes(f.did)"
                     @click.prevent="follow(f.did)" icon><v-icon>mdi-account-check</v-icon></v-btn>
                   <v-btn v-if="f.viewer && f.viewer.muted" 
                   @click.prevent="unMute(f.did); f.viewer.muted = !f.viewer.muted" icon><v-icon>mdi-volume-high</v-icon></v-btn>
@@ -35,40 +35,23 @@
         </v-card>
       </v-list-item>
     </v-list>
-
   </div>
 </template>
 
-<script>
+<script setup>
 import { useFollow } from "../common/follow"
 import { useUnFollow } from "../common/unFollow"
 import { useMute } from "../common/mute"
 import { useUnMute } from "../common/unMute"
-import { provide } from 'vue'
+import { defineProps } from 'vue'
 import { useStore } from 'vuex'
-export default {
-  components: {
-  },
-  setup() {
-    provide('store', useStore())
-    const { follow } = useFollow()
-    const { unFollow } = useUnFollow()
-    const { mute } = useMute()
-    const { unMute } = useUnMute()
-    return { follow, unFollow, mute, unMute }
-  },
-  data() {
-    return {
-    }
-  },
-  props: {
-    users: {
-      type: Array,
-      required: true,
-    },
-  },
-  methods: {
 
-  }
-}
+const store = useStore()
+const { follow } = useFollow(store)
+const { unFollow } = useUnFollow(store)
+const { mute } = useMute(store)
+const { unMute } = useUnMute(store)
+const props = defineProps({
+  users: Array
+})
 </script>

@@ -2,10 +2,8 @@
 <div>
   <v-app-bar fixed color="pink-lighten-2 lighten-5">
     <v-app-bar-nav-icon @click="drawer = true"></v-app-bar-nav-icon>
-    <v-toolbar-title>RedOcean</v-toolbar-title>
+    <v-toolbar-title>redocean</v-toolbar-title>
     <v-spacer></v-spacer>
-<!--    <v-btn v-if="this.$store.getters.getAccessJwt" @click="searchDialog = true"><v-icon>mdi-magnify</v-icon></v-btn>
--->    
     <div v-if="unReadCount != 0">
       <v-badge right top overlap color="blue">
         <template #badge>
@@ -21,9 +19,7 @@
       <v-icon size="18">mdi-bell</v-icon>
     </v-btn>    
   </div>
-
-
-    <v-btn v-if="this.$store.getters.getAccessJwt" @click="postDialog = true"><v-icon>mdi-plus</v-icon></v-btn>
+    <v-btn v-if="store.getters.getAccessJwt" @click="postDialog = true"><v-icon>mdi-plus</v-icon></v-btn>
   </v-app-bar>
   <v-navigation-drawer v-model="drawer" fixed temporary>
       <v-list nav dense>
@@ -50,24 +46,23 @@
   </div>
 </template>
 
-<script>
-  import PostFormView from "./PostFormView.vue"
-  import SearchView from "./SearchView.vue"
-  export default {
-    name: "App",
-    components: {       
-      PostFormView,
-      SearchView
-    },
-    data() {
-      return {
-        drawer: false,
-        postDialog: false,
-        searchDialog: false,
-        unReadCount: 0,
-        isComplete: false,
-        cursor: null,
-        menuItems: [
+<script setup>
+import PostFormView from "./PostFormView.vue"
+import SearchView from "./SearchView.vue"
+import { ref, onMounted } from 'vue'
+import { useStore } from 'vuex'
+import { useRequestGet } from '../common/requestGet.js'
+import { createToaster } from '@meforma/vue-toaster'
+const completed = ref(false)
+const store = useStore()
+const toast = createToaster()
+const requestGet = useRequestGet(store)
+const drawer = ref(false) 
+const postDialog = ref( false)
+const searchDialog = ref( false)
+const unReadCount = ref( 0)
+const cursor = ref(null)
+const menuItems = ref([
         {
           icon: "mdi-account-plus",
           name: "Account",
@@ -99,100 +94,75 @@
           link: "/suggestions"
         },
         {
-          icon: "mdi-heart",
-          name: "Likes",
-          link: "/likes"
-        },
-        {
           icon: "mdi-shield-account",
           name: "PrivacyPolicy",
           link: "/privacypolicy"
         },
-        ]
-      }
-  },
-  async beforeMount() {
+])
+        
+onMounted(async () => {
+  setInterval(async () => {
+    await getUnreadCount()
+  }, 60000)
+
+  setInterval(async() => {
     try {
-      if ((this.$store.getters.getDid) && (this.$store.getters.getAccessJwt)) {
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getRefreshJwt
-        let response = await this.axios.post('https://bsky.social/xrpc/com.atproto.server.refreshSession')
-        this.$store.dispatch('doCreateSession', response.data)
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        this.$store.dispatch('doRemoveAllLikes')
-        this.isComplete = false
-        while (!this.isComplete) {
-          await this.getLikes(this.cursor)
-        }
+      if (!(store.getters.getDid) && !(store.getters.getAccessJwt)) {
+        return
+      }
+      if (!completed.value) {
+        await getLikes(cursor)        
       }
     } catch (e) {
-      console.log(e)
+      toast.error(e, { position: "top-right" })
+      completed.value = true
+    }
+  }, 1000)
+})
+
+const getUnreadCount = async () => {
+  try {
+    const response = await requestGet.get("app.bsky.notification.getUnreadCount")
+    unReadCount.value = response.res.count
+  } catch (e) {
+    toast.error(e, { position: "top-right" })
+  }
+}
+
+const getLikes = async (cursor) => {
+  try {
+    let params = {}
+    if (!cursor) {
+      params = {
+        repo: store.getters.getDid,
+        collection: "app.bsky.feed.like",
+        limit: 100
+      }
+    } else {
+      params = {
+        repo: store.getters.getDid,
+        collection: "app.bsky.feed.like",
+        cursor: cursor.value
+      }
+    }
+
+    const response = await requestGet.get("com.atproto.repo.listRecords", params)
+    cursor.value = response.res.cursor
+    if (response.res.records.length == 0) {
+      completed.value = true
       return
     }
-  },
-  mounted() {
-      setInterval(() => {
-        this.getUnreadCount()
-      }, 60000);
-    },
-    methods: {
-      async getUnreadCount() {
-        try {
-          this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-          let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.notification.getUnreadCount')
-          console.log(response.data)
-          this.unReadCount =  response.data.count
-        } catch (e) {
-          this.$toast.show(e.response.data.error + " " + e.response.data.message, {
-            type: "error",
-            position: "top-right",
-            duration: 8000
-          })
-        }
-      },
-      async getLikes(cursor) {
-      try {
-        let params = {}
-        if (!cursor) {
-          params = {
-            repo: this.$store.getters.getDid,
-            collection: "app.bsky.feed.like",
-            limit: 50
-          }
-        } else {
-          params = {
-            repo: this.$store.getters.getDid,
-            collection: "app.bsky.feed.like",
-            cursor: cursor
-          }
-        }
-
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get('https://bsky.social/xrpc/com.atproto.repo.listRecords', {
-          params
-        })
-        this.cursor = response.data.cursor
-        if (response.data.records.length == 0) {
-          this.isComplete = true
-          return
-        }
-        this.$store.dispatch('doAddLikes', response.data)
-      } catch (e) {
-        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
-          type: "error",
-          position: "top-right",
-          duration: 8000
-        })
-        this.isComplete = true
-      }
-    },
-    onPostDialogClose(value) {
-         this.postDialog = value;
-      },
-    onSearchDialogClose(value) {
-        this.searchDialog = value;
-    },
-    }
+    store.dispatch('doAddLikes', response.res)
+  } catch (e) {
+    completed.value = true
+    throw e
   }
-  </script>
+}
 
-  <style scoped></style>
+const onPostDialogClose = async (payload) => {
+  postDialog.value = payload;
+}
+const onSearchDialogClose = async (value) => {
+  searchDialog.value = value;
+}
+</script>

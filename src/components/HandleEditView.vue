@@ -16,60 +16,40 @@
   </div>
 </template>
 
-<script>
-export default {
-  components: {
-  },
-  setup() {
-  },
-  data() {
-    return {
-      profile: {},
-    };
-  },
-  computed: {
-  },
-  async beforeMount() {
-    this.getProfile(this.$store.getters.getHandle)
-  },
-  mounted() {
-  },
-  methods: {
-    async getProfile(handle) {
-      try {
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.get('https://bsky.social/xrpc/app.bsky.actor.getProfile', {
-          params: {
-            actor: handle
-          }
-        })
-        this.profile = response.data
-        console.log(this.profile)
-      } catch (e) {
-        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
-          type: "error",
-          position: "top-right",
-          duration: 8000
-        })
-      }
-    },
-    async updateHandle() {
-      try {
-        this.axios.defaults.headers.common['Authorization'] = `Bearer ` + this.$store.getters.getAccessJwt
-        let response = await this.axios.post('https://bsky.social/xrpc/com.atproto.identity.updateHandle', {
-            handle: this.profile.handle
-          
-        })
-        this.$store.dispatch('setHandle', response.data.handle);
-      } catch (e) {
-        console.log(e)
-        this.$toast.show(e.response.data.error + " " + e.response.data.message, {
-          type: "error",
-          position: "top-right",
-          duration: 8000
-        })
-      }
-    },
+<script setup>
+import { ref, onBeforeMount } from 'vue'
+import { useStore } from 'vuex'
+import { createToaster } from '@meforma/vue-toaster';
+import { useRequestGet } from '../common/requestGet.js'
+import { useRequestPost } from '../common/requestPost.js'
+
+const profile = ref(null)
+const toast = createToaster()
+const requestGet = useRequestGet(store)
+const requestPost = useRequestPost(store)
+const store = useStore()
+
+onBeforeMount(async () => {
+  await getProfile(store.getters.getHandle)
+})
+
+const getProfile = async (handle) => {
+  try {
+    const response = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
+    profile.value = response.res
+  } catch (e) {
+    toast.error(e, { position: "top-right" })
   }
 }
+
+const updateHandle = async () => {
+  try {
+    const response = await requestPost.post("com.atproto.identity.updateHandle", { handle: profile.value.handle })
+    const store = useStore()
+    store.dispatch('setHandle', response.req.handle);
+  } catch (e) {
+    toast.error(e, { position: "top-right" })
+  }
+}
+
 </script>
