@@ -4,7 +4,7 @@ import { useRequestPost } from './requestPost.js'
 export function useFollow(store) {
   async function follow(did) {
     try {
-      const request = useRequestPost()
+      const request = useRequestPost(store)
       await request.post("com.atproto.repo.createRecord", {
         collection: "app.bsky.graph.follow",
         repo: store.getters.getDid,

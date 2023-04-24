@@ -65,9 +65,9 @@
         <v-btn v-if="!props.root" class="ma-2" variant="text" icon="mdi-file-tree-outline"
           :to="`/thread/${encodeURIComponent(props.post.uri)}`"></v-btn>
             
-        <v-menu>
+        <v-menu offset+y>
           <template v-slot:activator="{ on }">
-            <v-btn @click="on" class="ma-2" variant="text" icon="mdi-dots-vertical" />
+            <v-btn  v-bind:click="on" class="ma-2" variant="text" icon="mdi-dots-vertical" />
           </template>
           <v-list v-if="props.post && props.post.author && props.post.author.handle == store.getters.getHandle">
             <v-list-item @click="deletePost(props.post.uri)">
@@ -107,9 +107,9 @@ const props = defineProps({
   depth: null,
   replies: null
 })
-
-const request = useRequestPost()
 const store = useStore()
+
+const request = useRequestPost(store)
 
 const visible = ref(false)
 

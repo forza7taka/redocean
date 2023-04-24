@@ -7,11 +7,15 @@ export default createStore({
     did: '',
     accessJwt: '',
     refreshJwt: '',
+    server: '',
     follows: [],
     likes: new Map(),
     mutes: []
   },
   getters: {
+    getServer(state) {
+      return state.server;
+    },
     getHandle(state) {
       return state.handle;
     },
@@ -81,6 +85,10 @@ export default createStore({
       state.handle = session.handle;
     },
 
+    setServer(state, session) {
+      state.server = session;
+    },
+
     removeAllLikes(state) {
       state.likes = new Map();
     },
@@ -114,6 +122,13 @@ export default createStore({
       if (index > -1) {
         commit('removeFollow', index);
       }
+    },
+    doSetServer({
+      commit
+    }, session) {
+      commit('setServer',
+        session
+      )
     },
     doSetHandle({
       commit

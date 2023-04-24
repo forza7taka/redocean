@@ -1,10 +1,11 @@
 import axios from 'axios'
 
-export function useRequestGet() {
+export function useRequestGet(store) {
   async function get(method, params, header) {
     console.log(method)
-    //console.trace(1)
-    const response = await axios.get(process.env.VUE_APP_BASE_URI + method, { params }, header)
+    //console.trace(1)               
+    //console.log(store.getters.getServer)
+    const response = await axios.get(store.getters.getServer + "/xrpc/" + method, { params }, header)
     const res = response.data
     return { res }
   }

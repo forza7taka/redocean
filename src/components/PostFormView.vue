@@ -60,7 +60,7 @@ import { useStore } from 'vuex'
 import { useReplaceUrls } from '../common/replaceUrls.js'
 const toast = useToast()
 const store = useStore()
-const requestPost = useRequestPost()
+const requestPost = useRequestPost(store)
 const { replaceUrls } = useReplaceUrls()
 
 

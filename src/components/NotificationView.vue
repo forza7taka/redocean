@@ -59,9 +59,10 @@ const notifications = ref([])
 const loading = ref(null)
 const posts = ref(new Map())
 const toast = createToaster()
-const requestGet = useRequestGet()
-const requestPost = useRequestPost()
 const store = useStore()
+const requestGet = useRequestGet(store)
+const requestPost = useRequestPost(store)
+
 
 onBeforeMount(async () => {
   if (historyState.action === 'reload') {

@@ -31,8 +31,8 @@ import { useRequestPost } from '../common/requestPost.js'
 import { useRequestGet } from '../common/requestGet.js'
 import { createToaster } from '@meforma/vue-toaster';
 
-const requestPost = useRequestPost()
-const requestGet = useRequestGet()
+const requestPost = useRequestPost(store)
+const requestGet = useRequestGet(store)
 const toast = createToaster()
 const store = useStore()
 

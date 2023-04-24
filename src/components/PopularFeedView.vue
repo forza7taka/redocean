@@ -16,13 +16,14 @@ import { ref, reactive, onBeforeMount } from 'vue'
 import { createToaster } from '@meforma/vue-toaster';
 import { useHistoryState, onBackupState } from 'vue-history-state';
 import { useRequestGet } from '../common/requestGet.js'
-
+import {useStore} from 'vuex'
 const complated = ref(false)
 const cursor = ref(null)
 const historyState = useHistoryState();
 const timeline = reactive({ feed: [] })
 const load = ref(null)
-
+const store = useStore()
+const request = useRequestGet(store)
 onBeforeMount(async () => {
   if (historyState.action === 'reload') {
     timeline.value = []
@@ -55,7 +56,6 @@ const getPopular = async (cursor) => {
     params = { cursor: cursor.value }
   }
   try {
-    const request = useRequestGet()
     const response = await request.get("app.bsky.unspecced.getPopular", params)
     timeline.feed = timeline.feed.concat(response.res.feed)
     cursor = response.res.cursor

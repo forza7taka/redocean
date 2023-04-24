@@ -4,7 +4,7 @@ import { useRequestPost } from './requestPost.js'
 export function useUnMute(store) {
   async function unMute(did) {
     try {
-      const request = useRequestPost()
+      const request = useRequestPost(store)
       await request.post("app.bsky.graph.unMuteActor", {
         actor: did
       })
