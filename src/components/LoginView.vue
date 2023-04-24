@@ -1,17 +1,22 @@
 <template>
-  <div>
-    <div>
-      <v-text-field label="xxxx.bsky.social" placeholder="xxxx.bsky.social"
-        color="green darken-5" clearable dense v-model="handle"></v-text-field>
-    </div>
-    <div>
-      <v-text-field label="password" placeholder="password" color="green darken-5" clearable dense type="password"
-        v-model="password"></v-text-field>
-    </div>
-    <v-row justify="center">
-      <v-btn @click.prevent="login">Login</v-btn>
-    </v-row>
-  </div>
+  <v-card>
+    <v-card-text>
+      <v-row>
+        <v-col v-for="(l, index) in logins" :key="index" cols="12" md="6" lg="4">
+          <v-card width="400px" class="mx-auto pa-4">
+            <v-text-field label="server" placeholder="https://bsky.social" color="green darken-5" clearable dense
+              v-model="l.server"></v-text-field>
+            <v-text-field label="xxxx.bsky.social" placeholder="xxxx.bsky.social" color="green darken-5" clearable dense
+              v-model="l.handle"></v-text-field>
+            <v-text-field label="password" placeholder="password" color="green darken-5" clearable dense type="password"
+              v-model="l.password"></v-text-field>
+            <v-btn @click.prevent="login">Login</v-btn>
+          </v-card>
+        </v-col>
+        <v-btn @click="add"><v-icon>mdi-plus</v-icon></v-btn>
+      </v-row>
+    </v-card-text>
+  </v-card>
 </template>
 
 <script setup>
@@ -37,6 +42,11 @@ const handle = ref(null)
 const password = ref(null)
 const completed = ref(false)
 
+const logins = ref([{ server: null, handle: null, password: null }])
+
+const add = async () => {
+  logins.value.push({ server: null, handle: null, password: null })
+}
 onBeforeMount(async () => {
   try {
     if (failed.value) {
@@ -64,7 +74,7 @@ const login = async () => {
     })
     store.dispatch('doCreateSession', response.res)
     axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getAccessJwt
-        
+
     while (!completed.value) {
       await getFollows(handle, followsCursor)
     }
@@ -91,7 +101,7 @@ const getFollows = async (handle, cursor) => {
     params = { actor: handle.value, cursor: cursor.value }
   }
   try {
-    const response = await requestGet.get("app.bsky.graph.getFollows", params )
+    const response = await requestGet.get("app.bsky.graph.getFollows", params)
     cursor.value = response.res.cursor
     if (response.res.follows.length == 0) {
       completed.value = true
