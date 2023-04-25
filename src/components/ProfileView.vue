@@ -132,7 +132,7 @@ const inviteCodes = ref([])
 
 const root = ref(null)
 const loading = ref(null)
-const requestGet = useRequestGet()
+const requestGet = useRequestGet(store)
 const toast = createToaster()
 
 useIntersectionObserver(

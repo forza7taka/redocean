@@ -109,9 +109,9 @@ const defProps = defineProps({
   depth: null,
   replies: null
 })
-
-const request = useRequestPost()
 const store = useStore()
+
+const request = useRequestPost(store)
 
 const visible = ref(false)
 

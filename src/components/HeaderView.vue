@@ -56,7 +56,7 @@ import { createToaster } from '@meforma/vue-toaster'
 const completed = ref(false)
 const store = useStore()
 const toast = createToaster()
-const requestGet = useRequestGet()
+const requestGet = useRequestGet(store)
 const drawer = ref(false) 
 const postDialog = ref( false)
 const searchDialog = ref( false)

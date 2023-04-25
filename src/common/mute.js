@@ -4,7 +4,7 @@ import { useRequestPost } from './requestPost.js'
 export function useMute(store) {
   async function mute(did) {
     try {
-      const request = useRequestPost()
+      const request = useRequestPost(store)
       await request.post("app.bsky.graph.muteActor", {
         actor: did
       })

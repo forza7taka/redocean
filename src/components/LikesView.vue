@@ -36,7 +36,7 @@ import { useIntersectionObserver } from '@vueuse/core'
 
 const store = useStore()
 const toast = createToaster()
-const requestGet = useRequestGet()
+const requestGet = useRequestGet(store)
 const route = useRoute()
 const historyState = useHistoryState();
 

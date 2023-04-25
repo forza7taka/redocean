@@ -11,7 +11,9 @@ import { ref, watch, onBeforeMount } from 'vue'
 import { createToaster } from '@meforma/vue-toaster';
 import { useRequestGet } from '../common/requestGet.js'
 import { useRoute } from "vue-router";
+import { useStore } from 'vuex'
 
+const store = useStore()
 const route = useRoute()
 const thread = ref(null)
 const cursor = ref(null)
@@ -26,7 +28,7 @@ const getThread = async () => {
       return
     }
     const params = { uri: route.params.uri }
-    const req = useRequestGet()
+    const req = useRequestGet(store)
     const response = await req.get("app.bsky.feed.getPostThread", params)
     thread.value = response.res.thread
   } catch (e) {

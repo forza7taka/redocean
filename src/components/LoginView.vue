@@ -10,7 +10,7 @@
               v-model="l.handle"></v-text-field>
             <v-text-field label="password" placeholder="password" color="green darken-5" clearable dense type="password"
               v-model="l.password"></v-text-field>
-            <v-btn @click.prevent="login">Login</v-btn>
+            <v-btn @click.prevent="login(l.server, l.handle, l.password)">Login</v-btn>
           </v-card>
         </v-col>
         <v-btn @click="add"><v-icon>mdi-plus</v-icon></v-btn>
@@ -20,26 +20,23 @@
 </template>
 
 <script setup>
-import axios from 'axios'
 import { ref, onBeforeMount } from 'vue'
 import { useStore } from 'vuex'
 import { createToaster } from '@meforma/vue-toaster';
 import { useRequestGet } from '../common/requestGet.js'
 import { useRequestPost } from '../common/requestPost.js'
 import { useRouter } from "vue-router"
+import { useLocalStorage } from '@vueuse/core'
 
 const failed = ref(false)
 const followsCursor = ref(null)
 const likesCursor = ref(null)
 const mutesCursor = ref(null)
-
 const store = useStore()
-const requestGet = useRequestGet()
-const requestPost = useRequestPost()
+const requestGet = useRequestGet(store)
+const requestPost = useRequestPost(store)
 const route = useRouter()
 const toast = createToaster()
-const handle = ref(null)
-const password = ref(null)
 const completed = ref(false)
 
 const logins = ref([{ server: null, handle: null, password: null }])
@@ -47,17 +44,20 @@ const logins = ref([{ server: null, handle: null, password: null }])
 const add = async () => {
   logins.value.push({ server: null, handle: null, password: null })
 }
+const storageLogins = useLocalStorage('storageLogins', logins)
+
 onBeforeMount(async () => {
+  logins.value = storageLogins.value
   try {
     if (failed.value) {
       return
     }
     if ((store.getters.getDid) && (store.getters.getAccessJwt)) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getRefreshJwt
-      const response = await requestPost.post("com.atproto.server.refreshSession")
-      store.dispatch('doCreateSession', response.res)
-      axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getAccessJwt
-      route.push('/timeline')
+      // axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getRefreshJwt
+      // const response = await requestPost.post("com.atproto.server.refreshSession")
+      // store.dispatch('doCreateSession', response.res)
+      // axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getAccessJwt 
+      // route.push('/timeline')
     }
   } catch (e) {
     failed.value = true
@@ -65,16 +65,16 @@ onBeforeMount(async () => {
   }
 })
 
-const login = async () => {
+const login = async (server, handle, password) => {
   failed.value = false
   try {
+    store.dispatch('doSetServer', server)
     const response = await requestPost.post("com.atproto.server.createSession", {
-      identifier: handle.value,
-      password: password.value
+      identifier: handle,
+      password: password
     })
     store.dispatch('doCreateSession', response.res)
-    axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getAccessJwt
-
+    storageLogins.value = logins.value
     while (!completed.value) {
       await getFollows(handle, followsCursor)
     }
@@ -96,9 +96,9 @@ const login = async () => {
 const getFollows = async (handle, cursor) => {
   let params = {}
   if (!cursor.value) {
-    params = { actor: handle.value }
+    params = { actor: handle }
   } else {
-    params = { actor: handle.value, cursor: cursor.value }
+    params = { actor: handle, cursor: cursor.value }
   }
   try {
     const response = await requestGet.get("app.bsky.graph.getFollows", params)

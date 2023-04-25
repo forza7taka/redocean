@@ -29,14 +29,15 @@ import { createToaster } from '@meforma/vue-toaster';
 import { useHistoryState, onBackupState } from 'vue-history-state';
 import { useRequestGet } from '../common/requestGet.js'
 import { useRoute } from "vue-router";
-
+import { useStore } from 'vuex'
+const store = useStore()
 const route = useRoute()
 const complated = ref(false)
 const followers = ref([])
 const followersCursor = ref(null)
 const historyState = useHistoryState();
 const load = ref(null)
-const requestGet = useRequestGet()
+const requestGet = useRequestGet(store)
 const toast = createToaster()
 const subject = ref(null)
 

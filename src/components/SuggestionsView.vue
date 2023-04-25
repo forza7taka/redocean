@@ -23,6 +23,10 @@ import { useHistoryState, onBackupState } from 'vue-history-state';
 import { useRequestGet } from '../common/requestGet.js'
 import { useIntersectionObserver } from '@vueuse/core'
 
+import { useStore } from 'vuex'
+
+const store = useStore()
+
 const complated = ref(false)
 const cursor = ref(null)
 const historyState = useHistoryState();
@@ -57,7 +61,7 @@ const getSuggestions = async (cursor) => {
     params = { cursor: cursor.value }
   }
   try {
-    const req = useRequestGet()
+    const req = useRequestGet(store)
     const response = await req.get("app.bsky.actor.getSuggestions", params)
     actors.value = actors.value.concat(response.res.actors)
     cursor = response.res.cursor
