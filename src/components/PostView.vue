@@ -8,7 +8,7 @@
     </PostFormView>
   </div>
   <div v-if="defProps.post">
-    <v-card :style="{ width: `${400 - this.depth * 30}px` }" class="mx-auto mt-5">
+    <v-card :style="{ width: `${400 - depth * 30}px` }" class="mx-auto mt-5">
       <div v-if="defProps.reason && defProps.reason.by">
         <v-card-subtitle>Reposted by {{ defProps.reason.by.displayName }}(@{{ defProps.reason.by.handle
         }})</v-card-subtitle>
