@@ -68,7 +68,10 @@
       </v-card-text>
       <v-card-subtitle v-if="inviteCodes && inviteCodes.length !== 0">
         <v-list-item-subtitle>
+          <router-link v-if=" mutes " :to=" `/inviteCodes` " style="text-decoration: none; color: inherit;">
           InviteCode:
+          </router-link>
+          
         </v-list-item-subtitle>
         <div v-for="(c, cIndex) in inviteCodes" :key="cIndex">
           <v-list-item-subtitle v-if="!c.disable">
