@@ -17,22 +17,22 @@ createApp(App)
   .use(router)
   .use(vueAxios, axios)
   .use(vuetify)
-  .use(VueGtag, { property: { id: process.env.VUE_APP_GA_TRACKING_ID, router }})
+  .use(VueGtag, { property: { id: process.env.VUE_APP_GA_TRACKING_ID, router } })
   .use(store)
   .use(toaster)
-  .use(HistoryStatePlugin, {/* optional options */})
+  .use(HistoryStatePlugin, {/* optional options */ })
   .component("infinite-loading", infiniteLoading)
   .mount('#app')
-  
-  axios.interceptors.request.use(
-    (config) => {
-      const accessJwt = store.getters.getAccessJwt
-      if (accessJwt) {
-        config.headers.Authorization = `Bearer ${accessJwt}`
-      }
-      return config
-    },
-    (error) => {
-      return Promise.reject(error)
+
+axios.interceptors.request.use(
+  (config) => {
+    const accessJwt = store.getters.getAccessJwt
+    if (accessJwt) {
+      config.headers.Authorization = `Bearer ${accessJwt}`
     }
-  )
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)

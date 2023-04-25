@@ -1,21 +1,24 @@
 <template>
-  <v-container>
-    <v-row>
-      <v-col cols="6" v-for="(l, index) in logins" :key="index">
-        <v-card width="400px" class="mx-auto mt-5">
-          <v-card-title>
-            <v-text-field label="server" placeholder="https://bsky.social/"
-                color="green darken-5" clearable dense v-model="l.server"></v-text-field>
-              <v-text-field label="xxxx.bsky.social" placeholder="xxxx.bsky.social"
-                color="green darken-5" clearable dense v-model="l.handle"></v-text-field>
-              <v-text-field label="password" placeholder="password" color="green darken-5" clearable dense type="password"
+  <v-card>
+    <v-card-text>
+      <v-row>
+        <v-col v-for="(l, index) in logins" :key="index" cols="12" md="6" lg="4">
+          <v-card width="400px" class="mx-auto pa-4">
+            <v-text-field label="server" placeholder="https://bsky.social" color="green darken-5" clearable dense
+              v-model="l.server"></v-text-field>
+            <v-text-field label="xxxx.bsky.social" placeholder="xxxx.bsky.social" color="green darken-5" clearable dense
+              v-model="l.handle"></v-text-field>
+            <v-text-field label="password" placeholder="password" color="green darken-5" clearable dense type="password"
               v-model="l.password"></v-text-field>
-              <v-btn @clike="login" class="login-button" @click="login(l.server, l.handle, l.password)" block>Login</v-btn>
-          </v-card-title>
-        </v-card>
-      </v-col>      
-    </v-row>
-  </v-container>
+            <v-btn @click.prevent="login(l.server, l.handle, l.password)">Login</v-btn>
+            <v-btn v-if="logins.length > 1" @click="del(index)"><v-icon>mdi-minus</v-icon></v-btn>
+            <v-btn v-if="l.server && l.handle && l.password && index == logins.length - 1"
+              @click="add"><v-icon>mdi-plus</v-icon></v-btn>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-card-text>
+  </v-card>
 </template>
 
 <script setup>
@@ -25,15 +28,12 @@ import { createToaster } from '@meforma/vue-toaster';
 import { useRequestGet } from '../common/requestGet.js'
 import { useRequestPost } from '../common/requestPost.js'
 import { useRouter } from "vue-router"
-import { useLocalStorage } from '@vueuse/core'
+import { useStorage } from '@vueuse/core'
 
 const failed = ref(false)
 const followsCursor = ref(null)
 const likesCursor = ref(null)
 const mutesCursor = ref(null)
-
-const logins = ref([{ server: "", handle: "", password: ""}])
-
 const store = useStore()
 const requestGet = useRequestGet(store)
 const requestPost = useRequestPost(store)
@@ -41,11 +41,24 @@ const route = useRouter()
 const toast = createToaster()
 const completed = ref(false)
 
-const storageLogins = useLocalStorage('storageLogins', logins)
+const logins = ref([{ server: null, handle: null, password: null }])
+
+const storageLogins = useStorage('storageLogins', logins)
+
+const del = async (index) => {
+  logins.value.splice(index, 1)
+}
+
+const add = async () => {
+  logins.value.push({ server: null, handle: null, password: null })
+}
 
 onBeforeMount(async () => {
-  logins.value = storageLogins.value
+
   try {
+
+    logins.value = storageLogins.value
+
     if (failed.value) {
       return
     }
@@ -71,7 +84,6 @@ const login = async (server, handle, password) => {
       password: password
     })
     store.dispatch('doCreateSession', response.res)
-    // axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getAccessJwt
     storageLogins.value = logins.value
     while (!completed.value) {
       await getFollows(handle, followsCursor)
@@ -99,7 +111,7 @@ const getFollows = async (handle, cursor) => {
     params = { actor: handle, cursor: cursor.value }
   }
   try {
-    const response = await requestGet.get("app.bsky.graph.getFollows", params )
+    const response = await requestGet.get("app.bsky.graph.getFollows", params)
     cursor.value = response.res.cursor
     if (response.res.follows.length == 0) {
       completed.value = true
@@ -150,7 +162,6 @@ const getLikes = async (cursor) => {
     }
     let response = null
     try {
-      console.log(params)
       response = await requestGet.get("com.atproto.repo.listRecords", params)
     } catch (e) {
       if (!(e.response && e.response.status === 400)) {
@@ -170,4 +181,3 @@ const getLikes = async (cursor) => {
   }
 }
 </script>
-
