@@ -11,9 +11,11 @@
             <v-text-field label="password" placeholder="password" color="green darken-5" clearable dense type="password"
               v-model="l.password"></v-text-field>
             <v-btn @click.prevent="login(l.server, l.handle, l.password)">Login</v-btn>
+            <v-btn v-if="logins.length > 1" @click="del(index)"><v-icon>mdi-minus</v-icon></v-btn>
+            <v-btn v-if="l.server && l.handle && l.password && index == logins.length - 1"
+              @click="add"><v-icon>mdi-plus</v-icon></v-btn>
           </v-card>
         </v-col>
-        <v-btn @click="add"><v-icon>mdi-plus</v-icon></v-btn>
       </v-row>
     </v-card-text>
   </v-card>
@@ -26,7 +28,7 @@ import { createToaster } from '@meforma/vue-toaster';
 import { useRequestGet } from '../common/requestGet.js'
 import { useRequestPost } from '../common/requestPost.js'
 import { useRouter } from "vue-router"
-import { useLocalStorage } from '@vueuse/core'
+import { useStorage } from '@vueuse/core'
 
 const failed = ref(false)
 const followsCursor = ref(null)
@@ -41,14 +43,22 @@ const completed = ref(false)
 
 const logins = ref([{ server: null, handle: null, password: null }])
 
+const storageLogins = useStorage('storageLogins', logins)
+
+const del = async (index) => {
+  logins.value.splice(index, 1)
+}
+
 const add = async () => {
   logins.value.push({ server: null, handle: null, password: null })
 }
-const storageLogins = useLocalStorage('storageLogins', logins)
 
 onBeforeMount(async () => {
-  logins.value = storageLogins.value
+
   try {
+
+    logins.value = storageLogins.value
+
     if (failed.value) {
       return
     }
@@ -152,7 +162,6 @@ const getLikes = async (cursor) => {
     }
     let response = null
     try {
-      console.log(params)
       response = await requestGet.get("com.atproto.repo.listRecords", params)
     } catch (e) {
       if (!(e.response && e.response.status === 400)) {
