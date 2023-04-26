@@ -21,7 +21,7 @@
             </v-list-item>
           </v-card-actions>
           <v-card-text class="text-pre-wrap">
-            <div v-if="parent && props.parent.record && props.parent.record.text" v-html="replaceUrls(props.parent.record.text)"></div>
+            <div v-if="parent && props.parent.record && props.parent.record.text">{{ props.parent.record.text}}</div>
           </v-card-text>
         </v-card>
       </div>
@@ -57,11 +57,11 @@ import { ref, defineEmits } from 'vue'
 import { useRequestPost }from '../common/requestPost.js'
 import { useToast } from 'vue-toastification'
 import { useStore } from 'vuex'
-import { useReplaceUrls } from '../common/replaceUrls.js'
+//import { useReplaceUrls } from '../common/replaceUrls.js'
 const toast = useToast()
 const store = useStore()
 const requestPost = useRequestPost(store)
-const { replaceUrls } = useReplaceUrls()
+//const { replaceUrls } = useReplaceUrls()
 
 
 const files = ref([])

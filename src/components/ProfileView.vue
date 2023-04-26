@@ -44,44 +44,48 @@
             </router-link>
           </v-list-item-subtitle>
           <v-list-item-subtitle>
-            <v-btn v-if="profile && store.getters.follows && store.getters.follows.includes(profile.did)" @click.prevent="doUnFollow()"
-              icon><v-icon>mdi-account-remove</v-icon></v-btn>
-            <v-btn v-if="profile && store.getters.follows && !store.getters.follows.includes(profile.did)" @click.prevent="doFollow()"
-              icon><v-icon>mdi-account-check</v-icon></v-btn>
+            <v-btn v-if="profile && store.getters.getFollows && store.getters.getFollows.includes(profile.did)"
+              @click.prevent="doUnFollow()" icon><v-icon>mdi-account-remove</v-icon></v-btn>
+            <v-btn v-if="profile && store.getters.getFollows && !store.getters.getFollows.includes(profile.did)"
+              @click.prevent="doFollow()" icon><v-icon>mdi-account-check</v-icon></v-btn>
 
             <v-btn v-if="profile && profile.did != store.getters.getDid && profile.viewer && profile.viewer.muted"
               @click.prevent="unMute(profile.did); profile.viewer.muted = !profile.viewer.muted"
               icon><v-icon>mdi-volume-high</v-icon></v-btn>
-            <v-btn v-if="profile && profile.did != store.getters.getDid && !(profile.viewer && profile.viewer.muted)"
-              @click.prevent="mute(profile.did); profile.viewer.muted = !profile.viewer.muted"
+            <v-btn v-if=" profile && profile.did != store.getters.getDid && !(profile.viewer && profile.viewer.muted) "
+              @click.prevent=" mute(profile.did); profile.viewer.muted = !profile.viewer.muted "
               icon><v-icon>mdi-volume-mute</v-icon></v-btn>
 
           </v-list-item-subtitle>
-          <v-btn size=15 v-if="profile && profile.did == store.getters.getDid" icon to="/profileEdit">
+          <v-btn size=15 v-if=" profile && profile.did == store.getters.getDid " icon to="/profileEdit">
             <v-icon size="15">mdi-pencil</v-icon>
           </v-btn>
         </v-list-item>
       </v-card-actions>
       <v-card-text class="text-pre-wrap">
-        <div v-if="profile && profile.description" v-html="profile.description">
+        <div v-if=" profile && profile.description ">
+          {{ profile.description }}
         </div>
       </v-card-text>
-      <v-card-subtitle v-if="inviteCodes && inviteCodes.length !== 0">
+      <v-card-subtitle v-if=" inviteCodes && inviteCodes.length !== 0 ">
         <v-list-item-subtitle>
-          InviteCode:
+          <router-link v-if=" mutes " :to=" `/inviteCodes` " style="text-decoration: none; color: inherit;">
+            InviteCode:
+          </router-link>
+
         </v-list-item-subtitle>
-        <div v-for="(c, cIndex) in inviteCodes" :key="cIndex">
-          <v-list-item-subtitle v-if="!c.disable">
-            <div v-if="c.available - c.uses.length != 0">
-              {{ c.code }} 
+        <div v-for="(  c, cIndex  ) in   inviteCodes  " :key=" cIndex ">
+          <v-list-item-subtitle v-if=" !c.disable ">
+            <div v-if=" c.available - c.uses.length != 0 ">
+              {{ c.code }}
             </div>
           </v-list-item-subtitle>
         </div>
       </v-card-subtitle>
     </v-card>
   </div>
-  <div ref="root"> 
-    <FeedView :timeline="timeline"></FeedView>
+  <div ref="root">
+    <FeedView :timeline=" timeline "></FeedView>
     <div ref="loading">
       <v-container class="my-5">
         <v-row justify="center">
@@ -124,7 +128,7 @@ const mutesCursor = ref(null)
 
 const historyState = useHistoryState();
 const handle = ref(null)
-const timeline = reactive({ feed : new Array()})
+const timeline = reactive({ feed: new Array() })
 const profile = ref(null)
 const mutes = ref([])
 const likes = ref([])
@@ -171,7 +175,7 @@ onBackupState(() => ({
   feed: timeline.feed,
   mutes: mutes,
   likes: likes,
-  inviteCodes: inviteCodes, 
+  inviteCodes: inviteCodes,
 }));
 
 const load = async () => {
@@ -201,7 +205,7 @@ const getAuthorFeed = async (handle, cursor) => {
   }
   try {
     const response = await requestGet.get("app.bsky.feed.getAuthorFeed", params)
-    timeline.feed = timeline.feed.concat(response.res.feed) 
+    timeline.feed = timeline.feed.concat(response.res.feed)
     cursor = response.res.cursor
     if (response.res.feed.length == 0) {
       completedAuthorFeed.value = true
@@ -214,7 +218,7 @@ const getAuthorFeed = async (handle, cursor) => {
 
 const getProfile = async (handle) => {
   try {
-    const response = await requestGet.get("app.bsky.actor.getProfile",  { actor: handle.value  })
+    const response = await requestGet.get("app.bsky.actor.getProfile", { actor: handle.value })
     profile.value = response.res
   } catch (e) {
     toast.error(e, { position: "top-right" })
@@ -240,7 +244,7 @@ const getMutes = async (cursor) => {
     params = { cursor: cursor.value }
   }
   try {
-    const response = await requestGet.get("app.bsky.graph.getMutes",  params )
+    const response = await requestGet.get("app.bsky.graph.getMutes", params)
     mutesCursor.value = response.res.cursor
     if (response.res.mutes.length == 0) {
       completedMutes.value = true
@@ -268,7 +272,7 @@ const getLikes = async (handle, cursor) => {
         limit: 100
       }
     }
-    const response = await requestGet.get("com.atproto.repo.listRecords",  params )
+    const response = await requestGet.get("com.atproto.repo.listRecords", params)
     likes.value = likes.value.concat(response.res.records)
     likesCursor.value = response.res.cursor
     if (response.res.records.length == 0) {
@@ -282,7 +286,7 @@ const getLikes = async (handle, cursor) => {
 
 const getInviteCodes = async () => {
   try {
-    const response = await requestGet.get("com.atproto.server.getAccountInviteCodes", {  })
+    const response = await requestGet.get("com.atproto.server.getAccountInviteCodes", {})
     inviteCodes.value = response.res.codes
   } catch (e) {
     toast.error(e, { position: "top-right" })

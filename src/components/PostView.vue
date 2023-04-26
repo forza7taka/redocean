@@ -34,8 +34,8 @@
         </v-list-item>
       </v-card-actions>
       <v-card-text class="text-pre-wrap">
-        <div v-if="defProps.post && defProps.post.record && defProps.post.record.text"
-          v-html="replaceUrls(defProps.post.record.text)"></div>
+        <div v-if="defProps.post && defProps.post.record && defProps.post.record.text">
+        {{ defProps.post.record.text }}</div>
       </v-card-text>
       <div v-if="defProps.post.embed && defProps.post.embed.images">
         <v-card-text>
@@ -94,12 +94,12 @@
 <script setup>
 import PostFormView from "./PostFormView.vue"
 import { ref, defineProps } from 'vue'
-import { useReplaceUrls } from '../common/replaceUrls.js'
+//import { useReplaceUrls } from '../common/replaceUrls.js'
 import { useStore } from 'vuex'
 import { createToaster } from '@meforma/vue-toaster';
 import { useRequestPost } from "@/common/requestPost";
 
-const { replaceUrls } = useReplaceUrls()
+//const { replaceUrls } = useReplaceUrls()
 
 const defProps = defineProps({
   post: null,
