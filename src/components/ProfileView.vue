@@ -63,7 +63,8 @@
         </v-list-item>
       </v-card-actions>
       <v-card-text class="text-pre-wrap">
-        <div v-if=" profile && profile.description " v-html=" profile.description ">
+        <div v-if=" profile && profile.description ">
+          {{ profile.description }}
         </div>
       </v-card-text>
       <v-card-subtitle v-if=" inviteCodes && inviteCodes.length !== 0 ">
