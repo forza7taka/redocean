@@ -43,7 +43,12 @@
               Mutes: {{ mutes.length }}
             </router-link>
           </v-list-item-subtitle>
-          <v-list-item-subtitle>
+          <v-list-item-subtitle v-if="inviteCodes && inviteCodes.length !== 0">  
+              <router-link v-if="mutes" :to="`/inviteCodes`" style="text-decoration: none; color: inherit;">
+                  InviteCode: {{ inviteCodes.length }}
+                </router-link>
+          </v-list-item-subtitle>
+        <v-list-item-subtitle>
             <v-btn v-if="profile && store.getters.getFollows && store.getters.getFollows.includes(profile.did)"
               @click.prevent="doUnFollow()" icon><v-icon>mdi-account-remove</v-icon></v-btn>
             <v-btn v-if="profile && store.getters.getFollows && !store.getters.getFollows.includes(profile.did)"
@@ -67,21 +72,6 @@
           {{ profile.description }}
         </div>
       </v-card-text>
-      <v-card-subtitle v-if=" inviteCodes && inviteCodes.length !== 0 ">
-        <v-list-item-subtitle>
-          <router-link v-if=" mutes " :to=" `/inviteCodes` " style="text-decoration: none; color: inherit;">
-            InviteCode:
-          </router-link>
-
-        </v-list-item-subtitle>
-        <div v-for="(  c, cIndex  ) in   inviteCodes  " :key=" cIndex ">
-          <v-list-item-subtitle v-if=" !c.disable ">
-            <div v-if=" c.available - c.uses.length != 0 ">
-              {{ c.code }}
-            </div>
-          </v-list-item-subtitle>
-        </div>
-      </v-card-subtitle>
     </v-card>
   </div>
   <div ref="root">
