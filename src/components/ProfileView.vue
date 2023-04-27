@@ -4,8 +4,8 @@
       <v-card-actions>
         <v-list-item class="w-100">
           <template v-slot:prepend>
-            <v-avatar color="grey" size="150" rounded="0">
-              <v-img cover v-bind:src=profile.avatar alt="avatar"></v-img>
+            <v-avatar size="150" rounded="0">
+              <v-img v-bind:src=profile.avatar alt="avatar" cover class="rounded-xl"></v-img>
             </v-avatar>
           </template>
           <v-list-item-title>
@@ -43,12 +43,12 @@
               Mutes: {{ mutes.length }}
             </router-link>
           </v-list-item-subtitle>
-          <v-list-item-subtitle v-if="inviteCodes && inviteCodes.length !== 0">  
-              <router-link v-if="mutes" :to="`/inviteCodes`" style="text-decoration: none; color: inherit;">
-                  InviteCode: {{ inviteCodes.length }}
-                </router-link>
+          <v-list-item-subtitle v-if="inviteCodes && inviteCodes.length !== 0">
+            <router-link v-if="mutes" :to="`/inviteCodes`" style="text-decoration: none; color: inherit;">
+              InviteCode: {{ inviteCodes.length }}
+            </router-link>
           </v-list-item-subtitle>
-        <v-list-item-subtitle>
+          <v-list-item-subtitle>
             <v-btn v-if="profile && store.getters.getFollows && store.getters.getFollows.includes(profile.did)"
               @click.prevent="doUnFollow()" icon><v-icon>mdi-account-remove</v-icon></v-btn>
             <v-btn v-if="profile && store.getters.getFollows && !store.getters.getFollows.includes(profile.did)"
