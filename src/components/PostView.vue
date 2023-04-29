@@ -35,8 +35,17 @@
       </v-card-actions>
       <v-card-text class="text-pre-wrap">
         <div v-if="defProps.post && defProps.post.record && defProps.post.record.text">
-        {{ defProps.post.record.text }}</div>
+          {{ defProps.post.record.text }}</div>
       </v-card-text>
+      <v-card-actions>
+        <v-list-item v-for="(facet, facetIndex) in defProps.post.record.facets" :key="facetIndex">
+          <div v-if="facet.features">
+            <v-list-item v-for="(feature, featureIndex) in facet.features" :key="featureIndex">
+              <a :href="feature.uri">{{ feature.uri }}</a>
+            </v-list-item>
+          </div>
+        </v-list-item>
+      </v-card-actions>
       <div v-if="defProps.post.embed && defProps.post.embed.images">
         <v-card-text>
           <v-list-item v-for="(i, iIndex) in defProps.post.embed.images" :key="iIndex">

@@ -11,6 +11,9 @@
             </v-card-subtitle>
             <v-card-subtitle>avaival:{{ c.available }}</v-card-subtitle>
             <v-card-subtitle>uses:{{ c.uses.length }}</v-card-subtitle>
+            <div v-for="(u, uIndex) in  c.uses" :key="uIndex">
+            <v-card-subtitle>used by :<a :href="`https://plc.directory/${u.usedBy}/log`">{{ u.usedBy }}</a></v-card-subtitle>
+            </div>
             <v-text-field label="remark" clearable dense v-model="c.remark" @input="onInputRemark"></v-text-field>
           </v-card>
         </v-col>
@@ -61,8 +64,8 @@ onBeforeMount(async () => {
       remarkMap.value.set(el.code, el.remark)
     })    
   }
-  console.log(remarkMap.value)
-  inviteCodes.value.forEach(el => {
+
+  inviteCodes.value.forEach(async el => {
     const remark = remarkMap.value.get(el.code)
     const code = { code: el.code, available: el.available, uses: el.uses, remark: remark }
     codes.value.push(code)
