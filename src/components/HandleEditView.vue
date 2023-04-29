@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="profile">
     <v-card width="400px" class="mx-auto mt-5">
       <template v-slot:prepend>
         <v-avatar color="grey" size="150" rounded="0">
@@ -25,9 +25,10 @@ import { useRequestPost } from '../common/requestPost.js'
 
 const profile = ref(null)
 const toast = createToaster()
+const store = useStore()
+
 const requestGet = useRequestGet(store)
 const requestPost = useRequestPost(store)
-const store = useStore()
 
 onBeforeMount(async () => {
   await getProfile(store.getters.getHandle)

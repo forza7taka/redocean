@@ -100,13 +100,14 @@ import { useHistoryState, onBackupState } from 'vue-history-state'
 import { useRoute } from "vue-router"
 import { createToaster } from '@meforma/vue-toaster'
 
-const { follow } = useFollow()
-const { unFollow } = useUnFollow()
-const { mute } = useMute()
-const { unMute } = useUnMute()
-
 const route = useRoute()
 const store = useStore()
+
+const { follow } = useFollow(store)
+const { unFollow } = useUnFollow(store)
+const { mute } = useMute(store)
+const { unMute } = useUnMute(store)
+
 
 const completedAuthorFeed = ref(false)
 const completedLikes = ref(false)
