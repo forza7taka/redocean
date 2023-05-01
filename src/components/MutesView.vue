@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-card width="400px" class="mx-auto mt-5">
+    <v-card width="380px" class="mx-auto mt-5">
       <v-card-title>
         <router-link :to="`/profile/${store.getters.getHandle}`">
           <v-avatar color="surface-variant">

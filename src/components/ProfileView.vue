@@ -1,6 +1,6 @@
 <template>
   <div v-if="profile">
-    <v-card width="400px" class="mx-auto mt-5">
+    <v-card width="380px" class="mx-auto mt-5">
       <v-card-actions>
         <v-list-item class="w-100">
           <template v-slot:prepend>
@@ -10,6 +10,9 @@
           </template>
           <v-list-item-title>
             {{ profile.displayName }}
+            <v-btn size=15 v-if="profile && profile.did == store.getters.getDid" icon to="/profileEdit">
+              <v-icon size="15">mdi-pencil</v-icon>
+            </v-btn>
           </v-list-item-title>
           <v-list-item-subtitle>
             @{{ profile.handle }}
@@ -62,9 +65,6 @@
               icon><v-icon>mdi-volume-mute</v-icon></v-btn>
 
           </v-list-item-subtitle>
-          <v-btn size=15 v-if=" profile && profile.did == store.getters.getDid " icon to="/profileEdit">
-            <v-icon size="15">mdi-pencil</v-icon>
-          </v-btn>
         </v-list-item>
       </v-card-actions>
       <v-card-text class="text-pre-wrap">

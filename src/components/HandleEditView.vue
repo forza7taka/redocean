@@ -1,6 +1,6 @@
 <template>
   <div v-if="profile">
-    <v-card width="400px" class="mx-auto mt-5">
+    <v-card width="380px" class="mx-auto mt-5">
       <template v-slot:prepend>
         <v-avatar color="grey" size="150" rounded="0">
           <v-img cover v-bind:src=profile.avatar alt="avatar"></v-img>

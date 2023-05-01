@@ -1,14 +1,14 @@
 <template>
-  <div v-if="visible == true">
-    <PostFormView v-if="defProps.root" v-model="visible" @onClose="onClose" mode="Reply" :root="defProps.root"
+  <div v-if="postDialog == true">
+    <PostFormView v-if="defProps.root" @onPostDialogClose="onPostDialogClose" mode="Reply" :root="defProps.root"
       :parent="defProps.post">
     </PostFormView>
-    <PostFormView v-if="!defProps.root" v-model="visible" @onClose="onClose" mode="Reply" :root="defProps.post"
+    <PostFormView v-if="!defProps.root" @onPostDialogClose="onPostDialogClose" mode="Reply" :root="defProps.post"
       :parent="defProps.post">
     </PostFormView>
   </div>
   <div v-if="defProps.post">
-    <v-card :style="{ width: `${400 - depth * 30}px` }" class="mx-auto mt-5">
+    <v-card :style="{ width: `${380 - depth * 30}px` }" class="mx-auto mt-5">
       <div v-if="defProps.reason && defProps.reason.by">
         <v-card-subtitle>Reposted by {{ defProps.reason.by.displayName }}(@{{ defProps.reason.by.handle
         }})</v-card-subtitle>
@@ -30,7 +30,7 @@
           </template>
           <v-list-item-subtitle>{{ defProps.post.author.displayName }}</v-list-item-subtitle>
           <v-list-item-subtitle>@{{ defProps.post.author.handle }}</v-list-item-subtitle>
-          <v-list-item-subtitle>{{ defProps.post.record.createdAt }}</v-list-item-subtitle>
+          <v-list-item-subtitle>{{ convertDate(defProps.post.record.createdAt) }}</v-list-item-subtitle>
         </v-list-item>
       </v-card-actions>
       <v-card-text class="text-pre-wrap">
@@ -38,27 +38,25 @@
           {{ defProps.post.record.text }}</div>
       </v-card-text>
       <v-card-actions>
-        <v-list-item v-for="(facet, facetIndex) in defProps.post.record.facets" :key="facetIndex">
-          <div v-if="facet.features">
-            <v-list-item v-for="(feature, featureIndex) in facet.features" :key="featureIndex">
-              <a :href="feature.uri">{{ feature.uri }}</a>
-            </v-list-item>
-          </div>
-        </v-list-item>
+        <div v-for="(facet, facetIndex) in defProps.post.record.facets" :key="facetIndex">
+          <v-list-item v-for="(feature, featureIndex) in facet.features" :key="featureIndex">
+            <v-list-item-subtitle><a :href="feature.uri">{{ feature.uri }}</a></v-list-item-subtitle>
+          </v-list-item>
+        </div>
       </v-card-actions>
-      <div v-if="defProps.post.embed && defProps.post.embed.images">
+        <div v-if="defProps.post.embed && defProps.post.embed.images">
         <v-card-text>
           <v-list-item v-for="(i, iIndex) in defProps.post.embed.images" :key="iIndex">
             <v-row>
               <v-col>
-                <v-img v-bind:src=i.fullsize v-bind:lazy-src=i.thumb alt=""></v-img>
+                <v-img v-bind:src=i.fullsize v-bind:lazy-src=i.thumb class="rounded-xl" alt=""></v-img>
               </v-col>
             </v-row>
           </v-list-item>
         </v-card-text>
       </div>
       <v-list-item-subtitle>
-        <v-btn class="ma-2" variant="text" icon="mdi-comment-outline" @click="visible = true">
+        <v-btn class="ma-2" variant="text" icon="mdi-comment-outline" @click="postDialog = true">
         </v-btn>{{ defProps.post.replyCount }}
 
         <v-btn class="ma-2" variant="text" icon="mdi-repeat" @click="repost(defProps.post)">
@@ -122,8 +120,14 @@ const store = useStore()
 
 const request = useRequestPost(store)
 
-const visible = ref(false)
+const postDialog = ref(false)
 
+const convertDate = (date) => {
+  const timezoneOffsetInMinutes = new Date().getTimezoneOffset();
+  const convertedDatetime = new Date(date);
+  convertedDatetime.setMinutes(convertedDatetime.getMinutes() - timezoneOffsetInMinutes);
+  return convertedDatetime.toISOString().replace('T', ' ').substr(0, 19);
+}
 const deletePost = async (uri) => {
   try {
     await request.post("com.atproto.repo.deleteRecord", {
@@ -183,7 +187,8 @@ const like = async (post) => {
     toast.error(e, { position: "top-right" })
   }
 }
-const onClose = async (value) => {
-  visible.value = value;
+
+const onPostDialogClose = async (payload) => {
+  postDialog.value = payload;
 }
 </script>

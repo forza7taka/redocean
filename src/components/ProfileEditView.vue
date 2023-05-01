@@ -1,6 +1,6 @@
 <template>
   <div v-if="profile">
-    <v-card width="400px" class="mx-auto mt-5">
+    <v-card width="380px" class="mx-auto mt-5">
       <template v-slot:prepend>
         <v-avatar color="grey" size="150" rounded="0">
           <v-img v-if="!avatar" cover v-bind:src=profile.avatar alt="avatar"></v-img>
@@ -31,10 +31,11 @@ import { useRequestPost } from '../common/requestPost.js'
 import { useRequestGet } from '../common/requestGet.js'
 import { createToaster } from '@meforma/vue-toaster';
 
+const store = useStore()
 const requestPost = useRequestPost(store)
 const requestGet = useRequestGet(store)
 const toast = createToaster()
-const store = useStore()
+
 
 const profile = ref(null)
 const avatar = ref(null)
