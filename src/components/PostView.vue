@@ -1,9 +1,9 @@
 <template>
   <div v-if="postDialog == true">
-    <PostFormView v-if="defProps.root" @onPostDialogClose="onPostDialogClose" mode="Reply" :root="defProps.root"
+    <PostFormView v-if="defProps.root" v-model="postDialog" @onPostDialogClose="onPostDialogClose" mode="Reply" :root="defProps.root"
       :parent="defProps.post">
     </PostFormView>
-    <PostFormView v-if="!defProps.root" @onPostDialogClose="onPostDialogClose" mode="Reply" :root="defProps.post"
+    <PostFormView v-if="!defProps.root" v-model="postDialog" @onPostDialogClose="onPostDialogClose" mode="Reply" :root="defProps.post"
       :parent="defProps.post">
     </PostFormView>
   </div>
