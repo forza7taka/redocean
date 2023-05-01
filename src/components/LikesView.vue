@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-card width="400px" class="mx-auto mt-5">
+    <v-card width="380px" class="mx-auto mt-5">
       <v-card-title>
         Likes
       </v-card-title>

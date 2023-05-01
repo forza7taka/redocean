@@ -2,7 +2,7 @@
   <div>
     <v-list v-if="props.users">
       <v-list-item v-for="(f, fIndex) in   props.users  " :key="fIndex">
-        <v-card width="400px" class="mx-auto mt-5" elevation="20">
+        <v-card width="350px" class="mx-auto mt-5" elevation="20">
           <v-card-actions>
             <v-list-item class="w-100">
 

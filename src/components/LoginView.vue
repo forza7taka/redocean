@@ -3,7 +3,7 @@
     <v-card-text>
       <v-row>
         <v-col v-for="(l, index) in logins" :key="index" cols="12" md="6" lg="4">
-          <v-card width="400px" class="mx-auto pa-4">
+          <v-card width="380px" class="mx-auto pa-4">
             <v-text-field label="server" placeholder="https://bsky.social" color="green darken-5" clearable dense
               v-model="l.server"></v-text-field>
             <v-text-field label="xxxx.bsky.social" placeholder="xxxx.bsky.social" color="green darken-5" clearable dense

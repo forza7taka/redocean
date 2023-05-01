@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-card width="400px" class="mx-auto mt-5">
+    <v-card width="380px" class="mx-auto mt-5">
       <v-card-title>
         Notifications
       </v-card-title>
@@ -14,6 +14,7 @@
             <v-icon v-if="n.reason == 'repost'">mdi-repeat</v-icon>
             <v-icon v-if="n.reason == 'reply'">mdi-comment-outline</v-icon>
             <v-icon v-if="n.reason == 'like'" color="red">mdi-heart-outline</v-icon>
+            <v-icon v-if="n.reason == 'mention'">mdi-at</v-icon>
             by @{{ n.author.handle }}
             <router-link :to="`/profile/${n.author.handle}`">
               <v-avatar size=20 color="surface-variant" small>
@@ -26,6 +27,12 @@
             <v-card-subtitle>{{ posts.get(n.reasonSubject).value.createdAt }}</v-card-subtitle>
             <v-card-text class="text-pre-wrap">
               {{ posts.get(n.reasonSubject).value.text }}
+            </v-card-text>
+          </v-card>
+          <v-card v-if="posts.get(n.uri)">
+            <v-card-subtitle>{{ posts.get(n.uri).value.createdAt }}</v-card-subtitle>
+            <v-card-text class="text-pre-wrap">
+              {{ posts.get(n.uri).value.text }}
             </v-card-text>
           </v-card>
         </v-card>
@@ -126,20 +133,29 @@ const getPosts = async (notifications) => {
       if (n.reason == "follow") {
         continue
       }
-      if (!n.reasonSubject) {
-        continue
-      }
-      if (n.reasonSubject in posts.value) {
-        continue
+      let reasonSubject = ""
+      let handle = ""
+      if (n.reason == "mention") {
+        reasonSubject = n.uri
+        handle = n.author.handle
+      } else {
+        if (!n.reasonSubject) {
+          continue
+        }
+        if (n.reasonSubject in posts.value) {
+          continue
+        }
+        reasonSubject = n.reasonSubject
+        handle = store.getters.getHandle
       }
       let params = {
-        repo: store.getters.getHandle,
+        repo: handle,
         collection: "app.bsky.feed.post",
-        rkey: String(n.reasonSubject).substr(-13)
+        rkey: String(reasonSubject).substr(-13)
       }
       try {
         const response = await requestGet.get("com.atproto.repo.getRecord", params)
-        posts.value.set(n.reasonSubject, response.res)
+        posts.value.set(reasonSubject, response.res)
       } catch (e) {
         if (e.response && e.response.status === 400) {
           continue

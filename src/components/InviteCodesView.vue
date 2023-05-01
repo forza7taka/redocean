@@ -3,7 +3,7 @@
     <v-card-text>
       <v-row>
         <v-col v-for="(c, index) in inviteCodes" :key="index" cols="12" md="6" lg="4">
-          <v-card width="400px" class="mx-auto pa-4 py-5">
+          <v-card width="380px" class="mx-auto pa-4 py-5">
             <v-card-subtitle class="py-2" @click='copyToClipboard(c.code)'>
               <v-label v-if="c.available === c.uses.length" class="strike-through">{{ c.code
               }}</v-label>
