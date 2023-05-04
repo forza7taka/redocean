@@ -134,7 +134,7 @@ export default createStore({
       commit('setProfile', session)
     },
     doSetCloudTranslationApiKey({ commit }, session) {
-      commit('SetCloudTranslationApiKey' ,session)
+      commit('setCloudTranslationApiKey' ,session)
     },
     doAddFollows({ commit }, session) {
       commit('addFollows', session )
