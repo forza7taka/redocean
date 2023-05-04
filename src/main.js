@@ -13,10 +13,19 @@ import HistoryStatePlugin from 'vue-history-state'
 
 loadFonts()
 
+const opts = {
+  icons: {
+    values: {
+      formatQuote: 'mdi-format-quote'
+    },
+    iconfont: 'mdiSvg'
+  }
+}
+
 createApp(App)
   .use(router)
   .use(vueAxios, axios)
-  .use(vuetify)
+  .use(vuetify, opts)
   .use(VueGtag, { property: { id: process.env.VUE_APP_GA_TRACKING_ID, router } })
   .use(store)
   .use(toaster)
@@ -26,14 +35,11 @@ createApp(App)
 
 axios.interceptors.request.use(
   (config) => {
- const url = config.url
-  if (url != 'https://translation.googleapis.com/language/translate/v2') {
     const accessJwt = store.getters.getAccessJwt
     if (accessJwt) {
       config.headers.Authorization = `Bearer ${accessJwt}`
     }
-  }
-  return config
+    return config
   },
   (error) => {
     return Promise.reject(error)
