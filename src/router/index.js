@@ -17,6 +17,7 @@ import Thread from '@/components/ThreadView.vue'
 import Mutes from '@/components/MutesView.vue'
 import InviteCodes from '@/components/InviteCodesView.vue'
 import Post from '@/components/PostFormView.vue'
+import Settings from '@/components/SettingsView.vue'
 
 import { trackRouter } from "vue-gtag-next";
 const routes = [
@@ -145,6 +146,11 @@ const routes = [
     path: '/quoteRepost/:uri',
     name: 'quoteRepost',
     component: Post
+  },
+  {
+    path: '/settings',
+    name: 'settings',
+    component: Settings
   },
   {
     path: '/',

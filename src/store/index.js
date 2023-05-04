@@ -12,7 +12,8 @@ export default createStore({
     likes: new Map(),
     mutes: [],
     color: null,
-    profile: null
+    profile: null,
+    cloudTranslationApiKey: null
   },
   getters: {
     getServer(state) {
@@ -35,6 +36,9 @@ export default createStore({
     },
     getProfile(state) {
       return state.profile;
+    },
+    getCloudTranslationApiKey(state) {
+      return state.cloudTranslationApiKey;
     },
     getFollows(state) {
       return state.follows;
@@ -67,6 +71,9 @@ export default createStore({
     },
     setProfile(state, session) {
       state.profile = session
+    },
+    setCloudTranslationApiKey(state, session) {
+      state.cloudTranslationApiKey = session
     },
     addFollows(state, session) {
       session.follows.forEach(element => {
@@ -125,6 +132,9 @@ export default createStore({
     },
     doSetProfile({ commit }, session) {
       commit('setProfile', session)
+    },
+    doSetCloudTranslationApiKey({ commit }, session) {
+      commit('SetCloudTranslationApiKey' ,session)
     },
     doAddFollows({ commit }, session) {
       commit('addFollows', session )

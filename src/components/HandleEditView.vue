@@ -7,7 +7,7 @@
         </v-avatar>
       </template>
       <v-card-text class="text-pre-wrap">
-        <v-text-field v-model="profile.handle" label="handle"></v-text-field>
+        <v-text-field dense v-model="profile.handle" label="handle"></v-text-field>
       </v-card-text>
       <v-card-actions>
         <v-btn icon @click="updateHandle"><v-icon>mdi-content-save</v-icon></v-btn>

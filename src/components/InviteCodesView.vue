@@ -12,7 +12,13 @@
             <v-card-subtitle>avaival:{{ c.available }}</v-card-subtitle>
             <v-card-subtitle>uses:{{ c.uses.length }}</v-card-subtitle>
             <div v-for="(u, uIndex) in  c.uses" :key="uIndex">
-            <v-card-subtitle>used by :<a :href="`https://plc.directory/${u.usedBy}/log`">{{ u.usedBy }}</a></v-card-subtitle>
+            <v-card-subtitle>used by :<a :href="`https://plc.directory/${u.usedBy}/log`"></a></v-card-subtitle>
+            <v-expansion-panels>
+              <v-expansion-panel
+                :title=u.usedBy 
+                :text=u.handles
+                />
+            </v-expansion-panels>
             </div>
             <v-text-field label="remark" clearable dense v-model="c.remark" @input="onInputRemark"></v-text-field>
           </v-card>
@@ -22,6 +28,7 @@
   </v-card>
 </template>
 <script setup>
+import axios from 'axios'
 import { ref, onBeforeMount } from 'vue'
 import { useStore } from 'vuex'
 import { useRequestGet } from '../common/requestGet.js'
@@ -65,11 +72,22 @@ onBeforeMount(async () => {
     })    
   }
 
-  inviteCodes.value.forEach(async el => {
-    const remark = remarkMap.value.get(el.code)
-    const code = { code: el.code, available: el.available, uses: el.uses, remark: remark }
-    codes.value.push(code)
-  });
+  for (const el of inviteCodes.value) {
+    const remark = remarkMap.value.get(el.code);
+    let uses = [];
+    for (const u of el.uses) {
+      const response = await axios.get("https://plc.directory/" + u.usedBy + "/log");
+      let handles = [];
+      for (const d of response.data) {
+        handles.push(d.alsoKnownAs);
+      }
+      uses.push({ usedBy: u.usedBy, handles: handles.join('\n') });
+      console.log(uses);
+    }
+    const code = { code: el.code, available: el.available, uses: uses, remark: remark };
+    console.log(code);
+    codes.value.push(code);
+  }
   inviteCodes.value = codes.value
 });
 

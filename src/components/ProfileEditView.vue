@@ -13,7 +13,7 @@
           :multiple=false prepend-icon="mdi-upload"></v-file-input>
       </v-card-actions>
       <v-card-text class="text-pre-wrap">
-        <v-text-field v-model="profile.displayName" label="displayName"></v-text-field>
+        <v-text-field dense v-model="profile.displayName" label="displayName"></v-text-field>
         <v-textarea counter v-model="profile.description" label="description"></v-textarea>
       </v-card-text>
       <v-card-actions>
