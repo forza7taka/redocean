@@ -29,6 +29,12 @@
         <div v-if="defProps.post && defProps.post.record && defProps.post.record.text">
           {{ defProps.post.record.text }}</div>
       </v-card-text>
+      <div v-if="translateText">
+      <v-card-text class="text-pre-wrap">
+         {{ translateText }}
+      </v-card-text>
+      </div>
+
       <v-card-actions>
         <div v-for="(facet, facetIndex) in defProps.post.record.facets" :key="facetIndex">
           <v-list-item v-for="(feature, featureIndex) in facet.features" :key="featureIndex">
@@ -113,42 +119,45 @@
       </div>
 
       <v-list-item-subtitle>
-        <v-btn class="ma-2" variant="text" icon="mdi-comment-outline" :to="`/reply/${encodeURIComponent(defProps.post.uri)}`">
+        <v-btn class="ma-2" variant="text" size="32" icon="mdi-comment-outline" :to="`/reply/${encodeURIComponent(defProps.post.uri)}`">
         </v-btn>{{ defProps.post.replyCount }}
 
         <v-menu offset-y>
           <template v-slot:activator="{ props }">
-            <v-btn v-bind="props" class="ma-2" variant="text" icon="mdi-repeat" />
+            <v-btn v-bind="props" class="ma-2" variant="text" size="32" icon="mdi-repeat" />
           </template>
           <v-list>
             <v-list-item @click="repost(defProps.post)">
-              <v-icon small>mdi-repeat</v-icon>
+              <v-icon size="32">mdi-repeat</v-icon>
             </v-list-item>
             <v-list-item :to="`/quoteRepost/${encodeURIComponent(defProps.post.uri)}`">
-               <v-icon small>mdi-comma-circle-outline</v-icon>
+               <v-icon size="32">mdi-comma-circle-outline</v-icon>
             </v-list-item>
           </v-list>
         </v-menu>
         {{ defProps.post.repostCount }}
 
-        <v-btn class=" ma-2" variant="text" icon="mdi-heart" color="red" v-if="store.getters.hasLike(defProps.post.uri)"
+        <v-btn class=" ma-2" variant="text" size="32" icon="mdi-heart" color="red" v-if="store.getters.hasLike(defProps.post.uri)"
           @click="like(defProps.post)"></v-btn>
-        <v-btn class="ma-2" variant="text" icon="mdi-heart-outline" color="red"
+        <v-btn class="ma-2" variant="text" size="32" icon="mdi-heart-outline" color="red"
           v-if="!store.getters.hasLike(defProps.post.uri)" @click="like(defProps.post)"></v-btn>
         {{ defProps.post.likeCount }}
 
-        <v-btn v-if="defProps.root" class="ma-2" variant="text" icon="mdi-file-tree-outline"
+        <v-btn class=" ma-2" variant="text" size="32" icon="mdi-translate" @click="translate(defProps.post.record.text)"></v-btn>
+
+        <v-btn v-if="defProps.root" class="ma-2" variant="text" size="32" icon="mdi-file-tree-outline"
           :to="`/thread/${encodeURIComponent(defProps.root.uri)}`"></v-btn>
-        <v-btn v-if="!defProps.root" class="ma-2" variant="text" icon="mdi-file-tree-outline"
+        <v-btn v-if="!defProps.root" class="ma-2" variant="text" size="32" icon="mdi-file-tree-outline"
           :to="`/thread/${encodeURIComponent(defProps.post.uri)}`"></v-btn>
+
 
         <v-menu offset-y>
           <template v-slot:activator="{ props }">
-            <v-btn v-bind="props" class="ma-2" variant="text" icon="mdi-dots-vertical" />
+            <v-btn v-bind="props" class="ma-2" variant="text" size="32" icon="mdi-dots-vertical" />
           </template>
           <v-list v-if="defProps.post.author.handle == store.getters.getHandle">
             <v-list-item @click="deletePost(defProps.post.uri)">
-              <v-icon small>mdi-delete</v-icon>
+              <v-icon size="32">mdi-delete</v-icon>
             </v-list-item>
           </v-list>
         </v-menu>
@@ -168,7 +177,8 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue'
+import axios from 'axios'
+import { ref, defineProps } from 'vue'
 import { useStore } from 'vuex'
 import { createToaster } from '@meforma/vue-toaster';
 import { useRequestPost } from "@/common/requestPost";
@@ -184,6 +194,27 @@ const defProps = defineProps({
 const store = useStore()
 
 const request = useRequestPost(store)
+
+const translateText = ref(null)
+
+const translate = async(text) => {
+
+
+  const URL = 'https://translation.googleapis.com/language/translate/v2'
+
+  const params = {
+    q: text,
+    target: 'ja',
+    key: "AIzaSyBGS7AKlE8abuzq0bmvaDHpo8w_xAfptZw"
+  }
+
+  const response = await axios.get(URL, { params } )
+  translateText.value = response.data.data.translations[0].translatedText
+
+  console.log(translateText.value)
+
+  
+}
 
 const convertDate = (date) => {
   const timezoneOffsetInMinutes = new Date().getTimezoneOffset();

@@ -87,6 +87,11 @@ const menuItems = ref([
           link: "/suggestions"
         },
         {
+          icon: "mdi-cog-outline",
+          name: "Settings",
+          link: "/settings"
+        },
+        {
           icon: "mdi-shield-account",
           name: "PrivacyPolicy",
           link: "/privacypolicy"
