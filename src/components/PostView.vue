@@ -1,14 +1,6 @@
 <template>
-  <div v-if="postDialog == true">
-    <PostFormView v-if="defProps.root" v-model="postDialog" @onPostDialogClose="onPostDialogClose" mode="Reply" :root="defProps.root"
-      :parent="defProps.post">
-    </PostFormView>
-    <PostFormView v-if="!defProps.root" v-model="postDialog" @onPostDialogClose="onPostDialogClose" mode="Reply" :root="defProps.post"
-      :parent="defProps.post">
-    </PostFormView>
-  </div>
   <div v-if="defProps.post">
-    <v-card :style="{ width: `${380 - depth * 30}px` }" class="mx-auto mt-5">
+    <v-card :style="{ width: `${380 - depth * 10}px` }" class="mx-auto mt-5">
       <div v-if="defProps.reason && defProps.reason.by">
         <v-card-subtitle>Reposted by {{ defProps.reason.by.displayName }}(@{{ defProps.reason.by.handle
         }})</v-card-subtitle>
@@ -44,7 +36,7 @@
           </v-list-item>
         </div>
       </v-card-actions>
-        <div v-if="defProps.post.embed && defProps.post.embed.images">
+      <div v-if="defProps.post.embed && defProps.post.embed.images">
         <v-card-text>
           <v-list-item v-for="(i, iIndex) in defProps.post.embed.images" :key="iIndex">
             <v-row>
@@ -55,12 +47,89 @@
           </v-list-item>
         </v-card-text>
       </div>
+
+      <div v-if="defProps.post.embed && defProps.post.embed.media">
+        <v-card-text>
+          <v-list-item v-for="(i, iIndex) in defProps.post.embed.media.images" :key="iIndex">
+            <v-row>
+              <v-col>
+                <v-img v-bind:src=i.fullsize v-bind:lazy-src=i.thumb class="rounded-xl" alt=""></v-img>
+              </v-col>
+            </v-row>
+          </v-list-item>
+        </v-card-text>
+      </div>
+
+      
+      <div v-if="defProps.post.embed && defProps.post.embed.record">
+        <div v-if="defProps.post.embed.$type == 'app.bsky.embed.recordWithMedia#view'">
+          <v-card :style="{ width: `380px` }" class="mx-auto mt-5" variant="outlined">
+            <v-card-actions>
+              <v-list-item class="w-100">
+                <template v-slot:prepend>
+                  <div style="padding-right: 10px">
+                    <router-link :to="`/profile/${defProps.post.embed.record.record.author.handle}`">
+                      <v-avatar color="surface-variant">
+                        <v-img cover v-bind:src=defProps.post.embed.record.record.author.avatar alt="avatar"></v-img>
+                      </v-avatar>
+                    </router-link>
+                  </div>
+                </template>
+                <v-list-item-subtitle>{{ defProps.post.embed.record.record.author.displayName }}</v-list-item-subtitle>
+                <v-list-item-subtitle>@{{ defProps.post.embed.record.record.author.handle }}</v-list-item-subtitle>
+                <v-list-item-subtitle>{{ defProps.post.embed.record.record.value.createdAt }}</v-list-item-subtitle>
+              </v-list-item>
+            </v-card-actions>
+            <v-card-text class="text-pre-wrap">
+              <div v-if="defProps.post.embed && defProps.post.embed.record && defProps.post.embed.record.record && defProps.post.embed.record.record.value">
+                {{ defProps.post.embed.record.record.value.text }}</div>
+            </v-card-text>
+          </v-card>
+        </div>
+
+        <div v-if="defProps.post.embed.$type == 'app.bsky.embed.record#view'">
+          <v-card :style="{ width: `380px` }" class="mx-auto mt-5" variant="outlined">
+            <v-card-actions>
+              <v-list-item class="w-100">
+                <template v-slot:prepend>
+                  <div style="padding-right: 10px">
+                    <router-link :to="`/profile/${defProps.post.embed.record.author.handle}`">
+                      <v-avatar color="surface-variant">
+                        <v-img cover v-bind:src=defProps.post.embed.record.author.avatar alt="avatar"></v-img>
+                      </v-avatar>
+                    </router-link>
+                  </div>
+                </template>
+                <v-list-item-subtitle>{{ defProps.post.embed.record.author.displayName }}</v-list-item-subtitle>
+                <v-list-item-subtitle>@{{ defProps.post.embed.record.author.handle }}</v-list-item-subtitle>
+                <v-list-item-subtitle>{{ defProps.post.embed.record.value.createdAt }}</v-list-item-subtitle>
+              </v-list-item>
+            </v-card-actions>
+            <v-card-text class="text-pre-wrap">
+              <div v-if="defProps.post.embed && defProps.post.embed.record && defProps.post.embed.record.value">{{ defProps.post.embed.record.value.text }}</div>
+            </v-card-text>
+          </v-card>
+        </div>
+      </div>
+
       <v-list-item-subtitle>
-        <v-btn class="ma-2" variant="text" icon="mdi-comment-outline" @click="postDialog = true">
+        <v-btn class="ma-2" variant="text" icon="mdi-comment-outline" :to="`/reply/${encodeURIComponent(defProps.post.uri)}`">
         </v-btn>{{ defProps.post.replyCount }}
 
-        <v-btn class="ma-2" variant="text" icon="mdi-repeat" @click="repost(defProps.post)">
-        </v-btn>{{ defProps.post.repostCount }}
+        <v-menu offset-y>
+          <template v-slot:activator="{ props }">
+            <v-btn v-bind="props" class="ma-2" variant="text" icon="mdi-repeat" />
+          </template>
+          <v-list>
+            <v-list-item @click="repost(defProps.post)">
+              <v-icon small>mdi-repeat</v-icon>
+            </v-list-item>
+            <v-list-item :to="`/quoteRepost/${encodeURIComponent(defProps.post.uri)}`">
+               <v-icon small>mdi-comma-circle-outline</v-icon>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+        {{ defProps.post.repostCount }}
 
         <v-btn class=" ma-2" variant="text" icon="mdi-heart" color="red" v-if="store.getters.hasLike(defProps.post.uri)"
           @click="like(defProps.post)"></v-btn>
@@ -99,14 +168,10 @@
 </template>
 
 <script setup>
-import PostFormView from "./PostFormView.vue"
-import { ref, defineProps } from 'vue'
-//import { useReplaceUrls } from '../common/replaceUrls.js'
+import { defineProps } from 'vue'
 import { useStore } from 'vuex'
 import { createToaster } from '@meforma/vue-toaster';
 import { useRequestPost } from "@/common/requestPost";
-
-//const { replaceUrls } = useReplaceUrls()
 
 const defProps = defineProps({
   post: null,
@@ -119,8 +184,6 @@ const defProps = defineProps({
 const store = useStore()
 
 const request = useRequestPost(store)
-
-const postDialog = ref(false)
 
 const convertDate = (date) => {
   const timezoneOffsetInMinutes = new Date().getTimezoneOffset();
@@ -188,7 +251,4 @@ const like = async (post) => {
   }
 }
 
-const onPostDialogClose = async (payload) => {
-  postDialog.value = payload;
-}
 </script>

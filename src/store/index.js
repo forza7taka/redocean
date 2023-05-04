@@ -10,7 +10,9 @@ export default createStore({
     server: '',
     follows: [],
     likes: new Map(),
-    mutes: []
+    mutes: [],
+    color: null,
+    profile: null
   },
   getters: {
     getServer(state) {
@@ -27,6 +29,12 @@ export default createStore({
     },
     getRefreshJwt(state) {
       return state.refreshJwt;
+    },
+    getColor(state) {
+      return state.color;
+    },
+    getProfile(state) {
+      return state.profile;
     },
     getFollows(state) {
       return state.follows;
@@ -53,6 +61,12 @@ export default createStore({
       state.handle = session.handle
       state.accessJwt = session.accessJwt
       state.refreshJwt = session.refreshJwt
+    },
+    setColor(state, session) {
+      state.color = session
+    },
+    setProfile(state, session) {
+      state.profile = session
     },
     addFollows(state, session) {
       session.follows.forEach(element => {
@@ -100,22 +114,20 @@ export default createStore({
     removeMute(state, index) {
       state.mutes.splice(index, 1);
     },
-
   },
   actions: {
-    doCreateSession({
-      commit
-    }, session) {
-      commit('createSession',
-        session
-      )
+    doCreateSession({ commit }, session) {
+      commit('createSession', session)
     },
-    doAddFollows({
-      commit
-    }, session) {
-      commit('addFollows',
-        session
-      )
+    doSetColor({ commit }, session) {
+      console.log(session)
+      commit('setColor', session)
+    },
+    doSetProfile({ commit }, session) {
+      commit('setProfile', session)
+    },
+    doAddFollows({ commit }, session) {
+      commit('addFollows', session )
     },
     removeFollow({ commit, state }, did) {
       const index = state.follows.indexOf(did);
@@ -123,48 +135,26 @@ export default createStore({
         commit('removeFollow', index);
       }
     },
-    doSetServer({
-      commit
-    }, session) {
-      commit('setServer',
-        session
-      )
+    doSetServer({commit}, session) {
+      commit('setServer', session)
     },
-    doSetHandle({
-      commit
-    }, session) {
-      commit('setHandle',
-        session
-      )
+    doSetHandle({commit}, session) {
+      commit('setHandle', session)
     },
-    doAddLikes({
-      commit
-    }, session) {
-      commit('addLikes',
-        session
-      )
+    doAddLikes({commit}, session) {
+      commit('addLikes', session)
     },
     doAddLike({ commit }, { key, value }) {
-      commit('addLike', { key, value }
-      )
+      commit('addLike', { key, value })
     },
     doRemoveLike({ commit }, key) {
-      commit('removeLike',
-        key
-      )
+      commit('removeLike', key)
     },
-    doRemoveAllLikes({ commit },
-      session) {
-      commit('removeAllLikes',
-        session
-      )
+    doRemoveAllLikes({ commit }, session) {
+      commit('removeAllLikes', session)
     },
-    doAddMutes({
-      commit
-    }, session) {
-      commit('addMutes',
-        session
-      )
+    doAddMutes({commit}, session) {
+      commit('addMutes', session)
     },
     removeMute({ commit, state }, did) {
       const index = state.mutes.indexOf(did);

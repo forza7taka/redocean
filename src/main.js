@@ -13,10 +13,19 @@ import HistoryStatePlugin from 'vue-history-state'
 
 loadFonts()
 
+const opts = {
+  icons: {
+    values: {
+      formatQuote: 'mdi-format-quote'
+    },
+    iconfont: 'mdiSvg'
+  }
+}
+
 createApp(App)
   .use(router)
   .use(vueAxios, axios)
-  .use(vuetify)
+  .use(vuetify, opts)
   .use(VueGtag, { property: { id: process.env.VUE_APP_GA_TRACKING_ID, router } })
   .use(store)
   .use(toaster)

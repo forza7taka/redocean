@@ -64,7 +64,6 @@ const onInputServer = async () => {
   } 
 }
 
-
 const create = async () => {
   try {
     const url = urlJoin(server.value, 'xrpc', "com.atproto.server.createAccount")

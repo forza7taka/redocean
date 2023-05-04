@@ -10,10 +10,24 @@
               v-model="l.handle"></v-text-field>
             <v-text-field label="password" placeholder="password" color="green darken-5" clearable dense type="password"
               v-model="l.password"></v-text-field>
-            <v-btn @click.prevent="login(l.server, l.handle, l.password)">Login</v-btn>
-            <v-btn v-if="logins.length > 1" @click="del(index)"><v-icon>mdi-minus</v-icon></v-btn>
+            <v-color-picker
+              disabled
+              hide-canvas
+              hide-inputs
+              hide-mode-switch
+              hide-sliders
+              mode="rgba"
+              show-swatches
+              swatches-max-height="210"
+              v-model=l.color
+            ></v-color-picker>
+            <br>
+            <v-btn @click.prevent="login(l.server, l.handle, l.password, l.color)" icon="mdi-login" size="42"></v-btn>
+            &nbsp;
+            <v-btn v-if="logins.length > 1" @click="del(index)" icon="mdi-minus" size="42"></v-btn>
+            &nbsp;
             <v-btn v-if="l.server && l.handle && l.password && index == logins.length - 1"
-              @click="add"><v-icon>mdi-plus</v-icon></v-btn>
+              @click="add" size="42" icon="mdi-plus"></v-btn>
           </v-card>
         </v-col>
       </v-row>
@@ -29,7 +43,6 @@ import { useRequestGet } from '../common/requestGet.js'
 import { useRequestPost } from '../common/requestPost.js'
 import { useRouter } from "vue-router"
 import { useStorage } from '@vueuse/core'
-
 const failed = ref(false)
 const followsCursor = ref(null)
 const likesCursor = ref(null)
@@ -40,8 +53,7 @@ const requestPost = useRequestPost(store)
 const route = useRouter()
 const toast = createToaster()
 const completed = ref(false)
-
-const logins = ref([{ server: null, handle: null, password: null }])
+const logins = ref([{ server: null, handle: null, password: null, color: null }])
 
 const storageLogins = useStorage('storageLogins', logins)
 
@@ -50,7 +62,7 @@ const del = async (index) => {
 }
 
 const add = async () => {
-  logins.value.push({ server: null, handle: null, password: null })
+  logins.value.push({ server: null, handle: null, password: null, color: null })
 }
 
 onBeforeMount(async () => {
@@ -75,16 +87,22 @@ onBeforeMount(async () => {
   }
 })
 
-const login = async (server, handle, password) => {
+const login = async (server, handle, password, color) => {
   failed.value = false
   try {
     store.dispatch('doSetServer', server)
-    const response = await requestPost.post("com.atproto.server.createSession", {
+    const res1 = await requestPost.post("com.atproto.server.createSession", {
       identifier: handle,
       password: password
     })
-    store.dispatch('doCreateSession', response.res)
-    storageLogins.value = logins.value
+    store.dispatch('doCreateSession', res1.res);
+    store.dispatch('doSetColor', color );
+
+    const res2 = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
+    store.dispatch('doSetProfile', res2.res);
+
+    storageLogins.value = logins.value 
+
     while (!completed.value) {
       await getFollows(handle, followsCursor)
     }
