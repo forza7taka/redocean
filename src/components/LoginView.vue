@@ -56,6 +56,8 @@ const completed = ref(false)
 const logins = ref([{ server: null, handle: null, password: null, color: null }])
 
 const storageLogins = useStorage('storageLogins', logins)
+const cloudTranslationApiKey = ref(null)
+const storageCloudTranslationApiKey = useStorage('storageCloudTranslationApiKey', cloudTranslationApiKey)
 
 const del = async (index) => {
   logins.value.splice(index, 1)
@@ -70,7 +72,10 @@ onBeforeMount(async () => {
   try {
 
     logins.value = storageLogins.value
+    cloudTranslationApiKey.value = storageCloudTranslationApiKey.value
+    store.dispatch('doSetCloudTranslationApiKey', cloudTranslationApiKey.value);
 
+    
     if (failed.value) {
       return
     }
