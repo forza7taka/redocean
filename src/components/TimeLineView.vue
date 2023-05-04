@@ -12,7 +12,7 @@
 <script setup>
 import FeedView from "./FeedView.vue"
 import { useIntersectionObserver } from '@vueuse/core'
-import { ref, reactive, onBeforeMount } from 'vue'
+import { ref, reactive, onBeforeMount, onMounted } from 'vue'
 import { useStore } from 'vuex'
 import { createToaster } from '@meforma/vue-toaster';
 import { useHistoryState, onBackupState } from 'vue-history-state';
@@ -24,6 +24,7 @@ const historyState = useHistoryState();
 const timeline = reactive({ feed: []})
 const store = useStore()
 const loading = ref(null)
+const firstLoad = ref(false)
 
 onBeforeMount(async () => {
   if (historyState.action === 'reload') {
@@ -38,12 +39,16 @@ onBeforeMount(async () => {
   await getTimeline()
 });
 
+onMounted(async () => {
+  firstLoad.value=true
+})
+
 onBackupState(() => timeline);
 
 useIntersectionObserver(
   loading,
   async ([{ isIntersecting }]) => {
-    if (isIntersecting && !complated.value) {
+    if (isIntersecting && !complated.value && firstLoad.value) {
       await getTimeline(cursor)
     }
   }

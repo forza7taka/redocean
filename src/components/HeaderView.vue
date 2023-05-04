@@ -1,8 +1,13 @@
 <template>
 <div>
-  <v-app-bar fixed color="pink-lighten-2 lighten-5">
-    <v-app-bar-nav-icon @click="drawer = true"></v-app-bar-nav-icon>
+  <v-app-bar  fixed :color="color">    
+  <v-app-bar-nav-icon @click="drawer = true"></v-app-bar-nav-icon>
     <v-toolbar-title>redocean</v-toolbar-title>
+    <div v-if="store.getters.getProfile">
+    <v-avatar color="surface-variant">
+      <v-img cover v-bind:src=store.getters.getProfile.avatar alt="avatar"></v-img>
+    </v-avatar>
+    </div>
     <v-spacer></v-spacer>
     <div v-if="unReadCount != 0">
       <v-badge right top overlap color="blue">
@@ -19,15 +24,14 @@
       <v-icon size="18">mdi-bell</v-icon>
     </v-btn>    
   </div>
-    <v-btn v-if="store.getters.getAccessJwt" @click="postDialog = true"><v-icon>mdi-plus</v-icon></v-btn>
+    <v-btn v-if="store.getters.getAccessJwt" to="/post"><v-icon>mdi-plus</v-icon></v-btn>
   </v-app-bar>
   <v-navigation-drawer v-model="drawer" fixed temporary>
       <v-list nav dense>
         <v-list-item
           v-for="menuItem in menuItems"
           :key="menuItem.name"
-          :prepend-icon="menuItem.icon"
-          
+          :prepend-icon="menuItem.icon"          
           active-class="deep-purple--text text--accent-4">
           <router-link :to= menuItem.link>   
             {{menuItem.name}}
@@ -36,20 +40,10 @@
       </v-list>
     </v-navigation-drawer>
   </div>
-
-  <div v-if="postDialog == true">
-      <PostFormView v-model="postDialog" @onPostDialogClose="onPostDialogClose" mode="Post"></PostFormView>    
-  </div>
-  <div v-if="searchDialog == true">
-      <SearchView
-       v-model="searchDialog" @onSearchDialogClose="onSearchDialogClose" mode="Post"></SearchView>    
-  </div>
 </template>
 
 <script setup>
-import PostFormView from "./PostFormView.vue"
-import SearchView from "./SearchView.vue"
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted} from 'vue'
 import { useStore } from 'vuex'
 import { useRequestGet } from '../common/requestGet.js'
 import { createToaster } from '@meforma/vue-toaster'
@@ -58,10 +52,9 @@ const store = useStore()
 const toast = createToaster()
 const requestGet = useRequestGet(store)
 const drawer = ref(false) 
-const postDialog = ref( false)
-const searchDialog = ref( false)
-const unReadCount = ref( 0)
+const unReadCount = ref(0)
 const cursor = ref(null)
+const color = ref("pink-lighten-2")
 const menuItems = ref([
         {
           icon: "mdi-account-plus",
@@ -99,7 +92,11 @@ const menuItems = ref([
           link: "/privacypolicy"
         },
 ])
-        
+
+watch(() => store.getters.getColor, () => {
+  color.value = store.getters.getColor || 'pink-lighten-2'
+})
+
 onMounted(async () => {
   setInterval(async () => {
     await getUnreadCount()
@@ -157,12 +154,5 @@ const getLikes = async (cursor) => {
     completed.value = true
     throw e
   }
-}
-
-const onPostDialogClose = async (payload) => {
-  postDialog.value = payload;
-}
-const onSearchDialogClose = async (value) => {
-  searchDialog.value = value;
 }
 </script>

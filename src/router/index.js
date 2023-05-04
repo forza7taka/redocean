@@ -16,6 +16,8 @@ import Likes from '@/components/LikesView.vue'
 import Thread from '@/components/ThreadView.vue'
 import Mutes from '@/components/MutesView.vue'
 import InviteCodes from '@/components/InviteCodesView.vue'
+import Post from '@/components/PostFormView.vue'
+
 import { trackRouter } from "vue-gtag-next";
 const routes = [
   {
@@ -94,7 +96,6 @@ const routes = [
     name: 'privacypolicy',
     component: PrivacyPolicy
   },
-
   {
     path: '/suggestions',
     name: 'suggestions',
@@ -130,7 +131,21 @@ const routes = [
     name: 'inviteCodes',
     component: InviteCodes
   },
-
+  {
+    path: '/post',
+    name: 'post',
+    component: Post
+  },
+  {
+    path: '/reply/:uri',
+    name: 'reply',
+    component: Post
+  },
+  {
+    path: '/quoteRepost/:uri',
+    name: 'quoteRepost',
+    component: Post
+  },
   {
     path: '/',
     name: 'login',
