@@ -198,22 +198,13 @@ const request = useRequestPost(store)
 const translateText = ref(null)
 
 const translate = async(text) => {
-
-
-  const URL = 'https://translation.googleapis.com/language/translate/v2'
-
   const params = {
     q: text,
     target: 'ja',
-    key: "AIzaSyBGS7AKlE8abuzq0bmvaDHpo8w_xAfptZw"
+    key: store.getters.getCloudTranslationApiKey
   }
-
-  const response = await axios.get(URL, { params } )
+  const response = await axios.get('https://translation.googleapis.com/language/translate/v2', { params } )
   translateText.value = response.data.data.translations[0].translatedText
-
-  console.log(translateText.value)
-
-  
 }
 
 const convertDate = (date) => {
