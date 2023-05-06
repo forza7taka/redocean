@@ -10,6 +10,7 @@ export default createStore({
     server: '',
     follows: [],
     likes: new Map(),
+    reposts: new Map(),
     mutes: [],
     color: null,
     profile: null,
@@ -46,6 +47,10 @@ export default createStore({
     getLikes(state) {
       return state.likes;
     },
+    getReposts(state) {
+      return state.reposts;
+    },
+
     hasLike: (state) => (key) => {
       if (!(state.likes instanceof Map)) {
         return false;
@@ -55,6 +60,16 @@ export default createStore({
       }
       return state.likes.has(key);
     },
+    hasRepost: (state) => (key) => {
+      if (!(state.reposts instanceof Map)) {
+        return false;
+      }
+      if (state.reposts.size == 0) {
+        return false;
+      }
+      return state.reposts.has(key);
+    },
+
     getMutes(state) {
       return state.mutes;
     },
@@ -83,6 +98,15 @@ export default createStore({
     removeFollow(state, index) {
       state.follows.splice(index, 1);
     },
+    
+    setHandle(state, session) {
+      state.handle = session.handle;
+    },
+
+    setServer(state, session) {
+      state.server = session;
+    },
+
     addLikes(state, session) {
       if (!(state.likes instanceof Map)) {
         state.likes = new Map(Object.entries(state.likes))
@@ -102,17 +126,33 @@ export default createStore({
       state.likes.delete(key);
     },
 
-    setHandle(state, session) {
-      state.handle = session.handle;
-    },
-
-    setServer(state, session) {
-      state.server = session;
-    },
-
     removeAllLikes(state) {
       state.likes = new Map();
     },
+
+    addReposts(state, session) {
+      if (!(state.reposts instanceof Map)) {
+        state.reposts = new Map(Object.entries(state.reposts))
+      }
+      session.records.forEach(element => {
+        state.reposts.set(element.value.subject.uri, element.uri)
+      });
+    },
+    addRepost(state, { key, value }) {
+      if (!(state.reposts instanceof Map)) {
+        state.reposts = new Map(Object.entries(state.reposts))
+      }
+      return state.reposts.set(key, value);
+    },
+
+    removeRepost(state, key) {
+      state.likes.delete(key);
+    },
+
+    removeAllReposts(state) {
+      state.reposts = new Map();
+    },
+
     addMutes(state, session) {
       session.mutes.forEach(element => {
         state.mutes.push(element.did)
@@ -163,6 +203,19 @@ export default createStore({
     doRemoveAllLikes({ commit }, session) {
       commit('removeAllLikes', session)
     },
+    doAddReposts({commit}, session) {
+      commit('addReposts', session)
+    },
+    doAddRepost({ commit }, { key, value }) {
+      commit('addRepost', { key, value })
+    },
+    doRemoveRepost({ commit }, key) {
+      commit('removeRepost', key)
+    },
+    doRemoveAllReposts({ commit }, session) {
+      commit('removeAllReposts', session)
+    },
+
     doAddMutes({commit}, session) {
       commit('addMutes', session)
     },

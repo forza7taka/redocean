@@ -75,7 +75,7 @@
     </v-card>
   </div>
   <div ref="root">
-    <FeedView :timeline=" timeline "></FeedView>
+    <FeedView :feeds=" timeline.array "></FeedView>
     <div ref="loading">
       <v-container class="my-5">
         <v-row justify="center">
@@ -92,13 +92,14 @@ import { useFollow } from "../common/follow"
 import { useUnFollow } from "../common/unFollow"
 import { useMute } from "../common/mute"
 import { useUnMute } from "../common/unMute"
-import { ref, reactive, watch, onBeforeMount, onUnmounted } from 'vue'
+import { ref, watch, onBeforeMount, onUnmounted } from 'vue'
 import { useStore } from 'vuex'
 import { useIntersectionObserver } from '@vueuse/core'
 import { useRequestGet } from '../common/requestGet.js'
 import { useHistoryState, onBackupState } from 'vue-history-state'
 import { useRoute } from "vue-router"
 import { createToaster } from '@meforma/vue-toaster'
+import Timeline from '@/common/timeline.js'
 
 const route = useRoute()
 const store = useStore()
@@ -107,7 +108,6 @@ const { follow } = useFollow(store)
 const { unFollow } = useUnFollow(store)
 const { mute } = useMute(store)
 const { unMute } = useUnMute(store)
-
 
 const completedAuthorFeed = ref(false)
 const completedLikes = ref(false)
@@ -119,7 +119,7 @@ const mutesCursor = ref(null)
 
 const historyState = useHistoryState();
 const handle = ref(null)
-const timeline = reactive({ feed: new Array() })
+const timeline = ref(new Timeline())
 const profile = ref(null)
 const mutes = ref([])
 const likes = ref([])
@@ -129,32 +129,36 @@ const root = ref(null)
 const loading = ref(null)
 const requestGet = useRequestGet(store)
 const toast = createToaster()
+const loadingCount = ref(0)
 
 useIntersectionObserver(
   loading,
   async ([{ isIntersecting }]) => {
-    if (isIntersecting && !completedAuthorFeed.value) {
+    if (isIntersecting && !completedAuthorFeed.value && loadingCount.value != 0) {
       await getAuthorFeed(handle, cursor)
-      completedAuthorFeed.value = false
     }
+    loadingCount.value = loadingCount.value + 1
   },
 )
 
 onBeforeMount(async () => {
   if (historyState.action === 'reload') {
     handle.value = await getHandle()
-    timeline.feed = new Array()
-    completedAuthorFeed.value = false
+    profile.value = historyState.data.profile
+    likes.value = Object.values(historyState.data.likes)
+    mutes.value = Object.values(historyState.data.mutes)
+    inviteCodes.value = Object.values(historyState.data.inviteCodes)
+    timeline.value = new Timeline()
     await getAuthorFeed(handle, cursor)
     return
   }
   if (historyState.action === 'back' || historyState.action === 'forward') {
     handle.value = historyState.data.handle
     profile.value = historyState.data.profile
-    likes.value = Array(historyState.data.likes)
-    mutes.value = Array(historyState.data.mutes)
-    inviteCodes.value = historyState.data.inviteCodes
-    timeline.feed = Array(historyState.data.feed)
+    likes.value = Object.values(historyState.data.likes)
+    mutes.value = Object.values(historyState.data.mutes)
+    inviteCodes.value = Object.values(historyState.data.inviteCodes)
+    timeline.value.setArray(Object.values(historyState.data.timeline))
     return
   }
   await load()
@@ -163,7 +167,7 @@ onBeforeMount(async () => {
 onBackupState(() => ({
   handle: handle,
   profile: profile,
-  feed: timeline.feed,
+  timeline: timeline.value.array,
   mutes: mutes,
   likes: likes,
   inviteCodes: inviteCodes,
@@ -187,22 +191,21 @@ const load = async () => {
   }
 };
 
-const getAuthorFeed = async (handle, cursor) => {
+const getAuthorFeed = async (handle, cur) => {
   let params = {}
-  if (!cursor) {
+  if (!cur) {
     params = { actor: handle.value }
   } else {
-    params = { actor: handle.value, cursor: cursor.value }
+    params = { actor: handle.value, cursor: cur.value }
   }
   try {
     const response = await requestGet.get("app.bsky.feed.getAuthorFeed", params)
-    timeline.feed = timeline.feed.concat(response.res.feed)
-    cursor = response.res.cursor
+    timeline.value.setArray(response.res.feed)
+    cursor.value = response.res.cursor
     if (response.res.feed.length == 0) {
       completedAuthorFeed.value = true
     }
   } catch (e) {
-    console.log(e)
     toast.error(e.toString(), { position: "top-right" })
   }
 }

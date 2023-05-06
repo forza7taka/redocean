@@ -46,6 +46,7 @@ const cursor = ref(null)
 const likes = ref(new Array())
 const handle = ref(null)
 const loading = ref(null)
+const loadingCount = ref(0)
 
 onBeforeMount(async () => {
   if (historyState.action === 'reload') {
@@ -70,9 +71,10 @@ onBackupState(() => ({ feed : timeline.feed, likes : likes, handle : handle }));
 useIntersectionObserver(
   loading,
   async ([{ isIntersecting }]) => {
-    if (isIntersecting && !completed.value) {
+    if (isIntersecting && !completed.value && loadingCount.value != 0) {
       await getLikes(handle, cursor)
     }
+    loadingCount.value = loadingCount.value + 1
   }
 )
 

@@ -41,11 +41,11 @@ const requestGet = useRequestGet(store)
 const toast = createToaster()
 const muteActors = ref([])
 const subject = ref(null)
+const loadingCount = ref(0)
 
 onBeforeMount(async () => {
   if (historyState.action === 'reload') {
     await getProfile(store.getters.getHandle)
-    await getMutes(cursor)
     await getMutes(cursor)
     return
   }
@@ -62,11 +62,11 @@ onBackupState(() => ({ mutes: mutes, subject: subject, muteActors: muteActors })
 useIntersectionObserver(
   loading,
   async ([{ isIntersecting }]) => {
-    if (isIntersecting && !complated.value) {
+    if (isIntersecting && !complated.value && loadingCount.value != 0) {
       await getProfile(store.getters.getHandle)
       await getMutes(cursor)
-      await getMutes(cursor)
     }
+    loadingCount.value = loadingCount.value + 1
   }
 )
 

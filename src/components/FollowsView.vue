@@ -40,6 +40,8 @@ const load = ref(null)
 const requestGet = useRequestGet(store)
 const toast = createToaster()
 const subject = ref(null)
+const loadingCount = ref(0)
+
 
 onBeforeMount(async () => {
   if (historyState.action === 'reload') {
@@ -59,9 +61,10 @@ onBackupState(() => ({follows:follows, subject: subject}));
 useIntersectionObserver(
   load,
   async ([{ isIntersecting }]) => {
-    if (isIntersecting && !complated.value && followsCursor.value) {
+    if (isIntersecting && !complated.value && followsCursor.value && loadingCount.value != 0) {
       await getFollows(route.params.handle, followsCursor)
     }
+    loadingCount.value = loadingCount.value + 1
   }
 )
 
