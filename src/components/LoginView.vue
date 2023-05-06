@@ -47,6 +47,8 @@ const failed = ref(false)
 const followsCursor = ref(null)
 const likesCursor = ref(null)
 const mutesCursor = ref(null)
+const blocksCursor = ref(null)
+const repostsCursor = ref(null)
 const store = useStore()
 const requestGet = useRequestGet(store)
 const requestPost = useRequestPost(store)
@@ -101,7 +103,8 @@ const login = async (server, handle, password, color) => {
       password: password
     })
     store.dispatch('doCreateSession', res1.res);
-    store.dispatch('doSetColor', color );
+
+    store.dispatch('doSetColor', color);
 
     const res2 = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
     store.dispatch('doSetProfile', res2.res);
@@ -111,14 +114,21 @@ const login = async (server, handle, password, color) => {
     while (!completed.value) {
       await getFollows(handle, followsCursor)
     }
-
     completed.value = false
     while (!completed.value) {
       await getLikes(likesCursor)
     }
     completed.value = false
     while (!completed.value) {
+      await getReposts(repostsCursor)
+    }
+    completed.value = false
+    while (!completed.value) {
       await getMutes(mutesCursor)
+    }
+    completed.value = false
+    while (!completed.value) {
+      await getBlocks(blocksCursor)
     }
     route.push('/timeline')
   } catch (e) {
@@ -126,16 +136,16 @@ const login = async (server, handle, password, color) => {
   }
 }
 
-const getFollows = async (handle, cursor) => {
+const getFollows = async (handle, cur) => {
   let params = {}
-  if (!cursor.value) {
-    params = { actor: handle }
+  if (!cur.value) {
+    params = { actor: handle, limit: 100 }
   } else {
-    params = { actor: handle, cursor: cursor.value }
+    params = { actor: handle, cursor: cur.value, limit: 100 }
   }
   try {
     const response = await requestGet.get("app.bsky.graph.getFollows", params)
-    cursor.value = response.res.cursor
+    followsCursor.value = response.res.cursor
     if (response.res.follows.length == 0) {
       completed.value = true
       return
@@ -146,16 +156,16 @@ const getFollows = async (handle, cursor) => {
   }
 }
 
-const getMutes = async (cursor) => {
+const getMutes = async (cur) => {
   let params = {}
-  if (!cursor.value) {
+  if (!cur.value) {
     params = {}
   } else {
-    params = { cursor: cursor.value }
+    params = { cursor: cur.value }
   }
   try {
     const response = await requestGet.get("app.bsky.graph.getMutes", params)
-    cursor.cursor = response.res.cursor
+    mutesCursor.value = response.res.cursor
     if (response.res.mutes.length == 0) {
       completed.value = true
       return
@@ -167,10 +177,33 @@ const getMutes = async (cursor) => {
   }
 }
 
-const getLikes = async (cursor) => {
+const getBlocks = async (cur) => {
+  let params = {}
+  if (!cur.value) {
+    params = {}
+  } else {
+    params = { cursor: cur.value }
+  }
+  try {
+    const response = await requestGet.get("app.bsky.graph.getBlocks", params)
+    blocksCursor.value = response.res.cursor
+    if (response.res.blocks.length == 0) {
+      completed.value = true
+      return
+    }
+    console.log(response.res)
+    store.dispatch('doAddBlocks', response.res)
+  } catch (e) {
+    toast.error(e, { position: "top-right" })
+    completed.value = true
+  }
+}
+
+
+const getLikes = async (cur) => {
   try {
     let params = {}
-    if (!cursor) {
+    if (!cur) {
       params = {
         repo: store.getters.getDid,
         collection: "app.bsky.feed.like",
@@ -180,7 +213,8 @@ const getLikes = async (cursor) => {
       params = {
         repo: store.getters.getDid,
         collection: "app.bsky.feed.like",
-        cursor: cursor.value
+        cursor: cur.value,
+        limit: 100
       }
     }
     let response = null
@@ -192,12 +226,50 @@ const getLikes = async (cursor) => {
         throw e
       }
     }
-    cursor.value = response.res.cursor
+    likesCursor.value = response.res.cursor
     if (response.res.records.length == 0) {
       completed.value = true
       return
     }
     store.dispatch('doAddLikes', response.res)
+  } catch (e) {
+    toast.error(e, { position: "top-right" })
+    completed.value = true
+  }
+}
+
+const getReposts = async (cur) => {
+  try {
+    let params = {}
+    if (!cur) {
+      params = {
+        repo: store.getters.getDid,
+        collection: "app.bsky.feed.repost",
+        limit: 100
+      }
+    } else {
+      params = {
+        repo: store.getters.getDid,
+        collection: "app.bsky.feed.repost",
+        cursor: cur.value,
+      }
+    }
+    let response = null
+    try {
+      response = await requestGet.get("com.atproto.repo.listRecords", params)
+    } catch (e) {
+      if (!(e.response && e.response.status === 400)) {
+        completed.value = true
+        throw e
+      }
+    }
+    repostsCursor.value = response.res.cursor
+    if (response.res.records.length == 0) {
+      completed.value = true
+      return
+    }
+    console.log(response.res)
+    store.dispatch('doAddReposts', response.res)
   } catch (e) {
     toast.error(e, { position: "top-right" })
     completed.value = true

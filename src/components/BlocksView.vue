@@ -7,10 +7,10 @@
             <v-img v-if="subject" cover v-bind:src=subject.avatar alt="avatar"></v-img>
           </v-avatar>
         </router-link>
-        @{{ store.getters.getHandle }} mutes
+        @{{ store.getters.getHandle }} blocks
       </v-card-title>
     </v-card>
-    <UsersView :users="mutes"></UsersView>
+    <UsersView :users="blocks"></UsersView>
     <div ref="loading">
       <v-container class="my-5">
         <v-row justify="center">
@@ -32,40 +32,41 @@ import { useHistoryState, onBackupState } from 'vue-history-state';
 import { useRequestGet } from '../common/requestGet.js'
 
 const complated = ref(false)
-const mutes = ref([])
+const blocks = ref([])
 const cursor = ref(null)
 const historyState = useHistoryState();
 const store = useStore()
 const loading = ref(null)
 const requestGet = useRequestGet(store)
 const toast = createToaster()
-const muteActors = ref([])
+const blockActors = ref([])
 const subject = ref(null)
 const loadingCount = ref(0)
 
 onBeforeMount(async () => {
   if (historyState.action === 'reload') {
     subject.value = historyState.subject
-    await getMutes(cursor)
+    await getBlocks(cursor)
     return
   }
   if (historyState.action === 'back' || historyState.action === 'forward') {
-    muteActors.value = historyState.muteActors
-    mutes.value = historyState.mutes
+    subject.value = historyState.subject
+    blockActors.value = historyState.blockActors
+    blocks.value = historyState.blocks
     return
   }
   await getProfile(store.getters.getHandle)
-  await getMutes(cursor)
+  await getBlocks(cursor)
 });
 
-onBackupState(() => ({ mutes: mutes, subject: subject, muteActors: muteActors }));
+onBackupState(() => ({ blocks: blocks, subject: subject, blockActors: blockActors }));
 
 useIntersectionObserver(
   loading,
   async ([{ isIntersecting }]) => {
     if (isIntersecting && !complated.value && loadingCount.value != 0) {
       await getProfile(store.getters.getHandle)
-      await getMutes(cursor)
+      await getBlocks(cursor)
     }
     loadingCount.value = loadingCount.value + 1
   }
@@ -80,16 +81,16 @@ const getProfile = async (handle) => {
   }
 }
 
-const getMutesProfile = async (handle) => {
+const getBlocksProfile = async (handle) => {
   try {
     const response = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
-    muteActors.value = muteActors.value.concat(response.res)
+    blockActors.value = blockActors.value.concat(response.res)
   } catch (e) {
     toast.error(e, { position: "top-right" })
   }
 }
 
-const getMutes = async (cursor) => {
+const getBlocks = async (cursor) => {
   let params = {}
   if (!cursor) {
     params = {}
@@ -97,16 +98,16 @@ const getMutes = async (cursor) => {
     params = { cursor: cursor.value }
   }
   try {
-    let response = await requestGet.get("app.bsky.graph.getMutes", params)
+    let response = await requestGet.get("app.bsky.graph.getBlocks", params)
     cursor.value = response.res.cursor
-    if (response.res.mutes.length == 0) {
+    if (response.res.blocks.length == 0) {
       complated.value = true
       return
     }
-    for (let i = 0; i < response.res.mutes.length - 1; i++) {
-      await getMutesProfile(response.res.mutes[i].did)
+    for (let i = 0; i < response.res.blocks.length - 1; i++) {
+      await getBlocksProfile(response.res.blocks[i].did)
     }
-    mutes.value = mutes.value.concat(response.res.mutes)
+    blocks.value = blocks.value.concat(response.res.blocks)
   } catch (e) {
     toast.error(e, { position: "top-right" })
   }

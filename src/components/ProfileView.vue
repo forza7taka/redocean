@@ -46,6 +46,11 @@
               Mutes: {{ mutes.length }}
             </router-link>
           </v-list-item-subtitle>
+          <v-list-item-subtitle v-if="profile && profile.did == store.getters.getDid">
+              <router-link v-if="blocks" :to="`/blocks`" style="text-decoration: none; color: inherit;">
+                Blocks: {{ blocks.length }}
+              </router-link>
+          </v-list-item-subtitle>
           <v-list-item-subtitle v-if="inviteCodes && inviteCodes.length !== 0">
             <router-link v-if="mutes" :to="`/inviteCodes`" style="text-decoration: none; color: inherit;">
               InviteCode: {{ inviteCodes.length }}
@@ -63,6 +68,11 @@
             <v-btn v-if=" profile && profile.did != store.getters.getDid && !(profile.viewer && profile.viewer.muted) "
               @click.prevent=" mute(profile.did); profile.viewer.muted = !profile.viewer.muted "
               icon><v-icon>mdi-volume-mute</v-icon></v-btn>
+            
+            <v-btn v-if="profile && store.getters.getBlocks && store.getters.getBlocks.includes(profile.did)"
+              @click.prevent="doUnBlock()" icon><svg-icon type="mdi" :path=mdiAccountLockOpen></svg-icon></v-btn>
+            <v-btn v-if="profile && store.getters.getBlocks && !store.getters.getBlocks.includes(profile.did)"
+              @click.prevent="doBlock()" icon><v-icon>mdi-account-cancel</v-icon></v-btn>
 
           </v-list-item-subtitle>
         </v-list-item>
@@ -72,10 +82,20 @@
           {{ profile.description }}
         </div>
       </v-card-text>
+      <v-card-text >
+      <div justify="center"></div>  
+      </v-card-text>
     </v-card>
   </div>
-  <div ref="root">
-    <FeedView :timeline=" timeline "></FeedView>
+  <div v-if="profile && profile.viewer && (profile.viewer.blocking || profile.viewer.blockedBy)">
+    <v-container class="my-5">
+      <v-row justify="center">
+        Blocked User
+      </v-row>
+    </v-container>
+  </div>
+  <div v-else ref="root">
+    <FeedView :feeds=" timeline.array "></FeedView>
     <div ref="loading">
       <v-container class="my-5">
         <v-row justify="center">
@@ -87,41 +107,43 @@
 </template>
 
 <script setup>
+import SvgIcon from '@jamescoyle/vue-icon'
+import { mdiAccountLockOpen } from '@mdi/js'
 import FeedView from './FeedView.vue'
 import { useFollow } from "../common/follow"
-import { useUnFollow } from "../common/unFollow"
 import { useMute } from "../common/mute"
-import { useUnMute } from "../common/unMute"
-import { ref, reactive, watch, onBeforeMount, onUnmounted } from 'vue'
+import { useBlock } from "../common/block"
+import { ref, watch, onBeforeMount, onUnmounted } from 'vue'
 import { useStore } from 'vuex'
 import { useIntersectionObserver } from '@vueuse/core'
 import { useRequestGet } from '../common/requestGet.js'
 import { useHistoryState, onBackupState } from 'vue-history-state'
 import { useRoute } from "vue-router"
 import { createToaster } from '@meforma/vue-toaster'
+import Timeline from '@/common/timeline.js'
 
 const route = useRoute()
 const store = useStore()
 
-const { follow } = useFollow(store)
-const { unFollow } = useUnFollow(store)
-const { mute } = useMute(store)
-const { unMute } = useUnMute(store)
-
+const { follow, unFollow } = useFollow(store)
+const { mute, unMute } = useMute(store)
+const { block, unBlock } = useBlock(store)
 
 const completedAuthorFeed = ref(false)
 const completedLikes = ref(false)
 const completedMutes = ref(false)
+const completedBlocks = ref(false)
 
 const cursor = ref(null)
 const likesCursor = ref(null)
 const mutesCursor = ref(null)
-
+const blocksCursor = ref(null)
 const historyState = useHistoryState();
 const handle = ref(null)
-const timeline = reactive({ feed: new Array() })
+const timeline = ref(new Timeline())
 const profile = ref(null)
 const mutes = ref([])
+const blocks = ref([])
 const likes = ref([])
 const inviteCodes = ref([])
 
@@ -129,32 +151,38 @@ const root = ref(null)
 const loading = ref(null)
 const requestGet = useRequestGet(store)
 const toast = createToaster()
+const loadingCount = ref(0)
 
 useIntersectionObserver(
   loading,
   async ([{ isIntersecting }]) => {
-    if (isIntersecting && !completedAuthorFeed.value) {
+    if (isIntersecting && !completedAuthorFeed.value && loadingCount.value != 0) {
       await getAuthorFeed(handle, cursor)
-      completedAuthorFeed.value = false
     }
+    loadingCount.value = loadingCount.value + 1
   },
 )
 
 onBeforeMount(async () => {
   if (historyState.action === 'reload') {
     handle.value = await getHandle()
-    timeline.feed = new Array()
-    completedAuthorFeed.value = false
+    profile.value = historyState.data.profile
+    likes.value = Object.values(historyState.data.likes)
+    mutes.value = Object.values(historyState.data.mutes)
+    blocks.value = Object.values(historyState.data.blocks)
+    inviteCodes.value = Object.values(historyState.data.inviteCodes)
+    timeline.value = new Timeline()
     await getAuthorFeed(handle, cursor)
     return
   }
   if (historyState.action === 'back' || historyState.action === 'forward') {
     handle.value = historyState.data.handle
     profile.value = historyState.data.profile
-    likes.value = Array(historyState.data.likes)
-    mutes.value = Array(historyState.data.mutes)
-    inviteCodes.value = historyState.data.inviteCodes
-    timeline.feed = Array(historyState.data.feed)
+    likes.value = Object.values(historyState.data.likes)
+    mutes.value = Object.values(historyState.data.mutes)
+    blocks.value = Object.values(historyState.data.blocks)
+    inviteCodes.value = Object.values(historyState.data.inviteCodes)
+    timeline.value.setArray(Object.values(historyState.data.timeline))
     return
   }
   await load()
@@ -163,8 +191,9 @@ onBeforeMount(async () => {
 onBackupState(() => ({
   handle: handle,
   profile: profile,
-  feed: timeline.feed,
+  timeline: timeline.value.array,
   mutes: mutes,
+  blocks: blocks,
   likes: likes,
   inviteCodes: inviteCodes,
 }));
@@ -172,37 +201,48 @@ onBackupState(() => ({
 const load = async () => {
   handle.value = await getHandle()
   await getProfile(handle)
+
+  completedLikes.value = false
   while (!completedLikes.value) {
     await getLikes(handle, likesCursor)
   }
+
   completedAuthorFeed.value = false
   await getAuthorFeed(handle, cursor)
-  completedMutes.value = false
+
   if (handle.value == store.getters.getHandle) {
     await getInviteCodes()
   }
-  completedLikes.value = false
+
+  completedMutes.value = false
   while (!completedMutes.value) {
     await getMutes(mutesCursor)
   }
+  completedBlocks.value = false
+  while (!completedBlocks.value) {
+    await getBlocks(blocksCursor)
+  }
 };
 
-const getAuthorFeed = async (handle, cursor) => {
+const getAuthorFeed = async (handle, cur) => {
+  if (profile.value.viewer.blocking || profile.value.viewer.blockedBy) {
+    return
+  }
+
   let params = {}
-  if (!cursor) {
+  if (!cur) {
     params = { actor: handle.value }
   } else {
-    params = { actor: handle.value, cursor: cursor.value }
+    params = { actor: handle.value, cursor: cur.value }
   }
   try {
     const response = await requestGet.get("app.bsky.feed.getAuthorFeed", params)
-    timeline.feed = timeline.feed.concat(response.res.feed)
-    cursor = response.res.cursor
+    timeline.value.setArray(response.res.feed)
+    cursor.value = response.res.cursor
     if (response.res.feed.length == 0) {
       completedAuthorFeed.value = true
     }
   } catch (e) {
-    console.log(e)
     toast.error(e.toString(), { position: "top-right" })
   }
 }
@@ -241,6 +281,25 @@ const getMutes = async (cursor) => {
       completedMutes.value = true
     }
     mutes.value = mutes.value.concat(response.res.mutes)
+  } catch (e) {
+    toast.error(e, { position: "top-right" })
+  }
+}
+
+const getBlocks = async (cursor) => {
+  let params = {}
+  if (!cursor) {
+    params = {}
+  } else {
+    params = { cursor: cursor.value }
+  }
+  try {
+    const response = await requestGet.get("app.bsky.graph.getBlocks", params)
+    blocksCursor.value = response.res.cursor
+    if (response.res.blocks.length == 0) {
+      completedBlocks.value = true
+    }
+    blocks.value = blocks.value.concat(response.res.blocks)
   } catch (e) {
     toast.error(e, { position: "top-right" })
   }
@@ -291,6 +350,16 @@ const doFollow = async () => {
 
 const doUnFollow = async () => {
   await unFollow(store.getters.getDid, profile.value.did)
+  await getProfile(handle)
+}
+
+const doBlock = async () => {
+  await block(profile.value.did)
+  await getProfile(handle)
+}
+
+const doUnBlock = async () => {
+  await unBlock(store.getters.getDid, profile.value.did)
   await getProfile(handle)
 }
 

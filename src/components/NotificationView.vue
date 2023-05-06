@@ -6,8 +6,8 @@
       </v-card-title>
     </v-card>
     <v-list v-if="notifications">
-      <v-list-item v-for="(n, nIndex) in notifications" :key="nIndex">
-        <v-card v-if="!store.getters.getMutes.includes(n.author.did)" width="400px" class="mx-auto mt-5">
+      <v-list-item v-for="(n, nIndex) in notifications.array" :key="nIndex">
+        <v-card v-if="!store.getters.getMutes.includes(n.author.did)" width="380px" class="mx-auto mt-5">
           <v-card-text>
             <v-icon v-if="!n.isRead" color="red">mdi-circle</v-icon>
             <v-icon v-if="n.reason == 'follow'">mdi-account-check</v-icon>
@@ -24,13 +24,13 @@
             {{ n.author.displayName }}
           </v-card-text>
           <v-card v-if="posts.get(n.reasonSubject)">
-            <v-card-subtitle>{{ posts.get(n.reasonSubject).value.createdAt }}</v-card-subtitle>
+            <v-card-subtitle>{{ convertDate(posts.get(n.reasonSubject).value.createdAt) }}</v-card-subtitle>
             <v-card-text class="text-pre-wrap">
               {{ posts.get(n.reasonSubject).value.text }}
             </v-card-text>
           </v-card>
           <v-card v-if="posts.get(n.uri)">
-            <v-card-subtitle>{{ posts.get(n.uri).value.createdAt }}</v-card-subtitle>
+            <v-card-subtitle>{{ convertDate(posts.get(n.uri).value.createdAt) }}</v-card-subtitle>
             <v-card-text class="text-pre-wrap">
               {{ posts.get(n.uri).value.text }}
             </v-card-text>
@@ -56,47 +56,88 @@ import { ref, onBeforeMount } from 'vue'
 import { useStore } from 'vuex'
 import { createToaster } from '@meforma/vue-toaster';
 import { useHistoryState, onBackupState } from 'vue-history-state';
-import { useRequestGet } from '../common/requestGet.js'
-import { useRequestPost } from '../common/requestPost.js'
+import { useRequestGet } from '@/common/requestGet.js'
+import { useRequestPost } from '@/common/requestPost.js'
+import { useDate } from '@/common/date.js'
 
+class Notirfications {
+  constructor() {
+    this.array = new Array()
+    this.map = new Map()
+  }
+
+  async add(notification) {
+    if (this.map.has(notification.uri)) {
+      return
+    }
+    if (this.array.length == 0) {
+      this.array.push(notification)
+      this.map.set(notification.uri, notification)
+      return
+    }
+    for (let i = 0; i < this.array.length; i++) {
+      const el = this.array[i]
+      if (notification.indexedAt > el.indexedAt) {
+        this.array.splice(i, 0, notification)
+        this.map.set(notification.uri, notification)
+        return
+      }
+    }
+    if (!this.map.has(notification.uri)) {
+      this.array.push(notification)
+      this.map.set(notification.uri, notification)
+    }
+    return
+  }
+
+  async setArray(array) {
+    array.forEach(el => {
+      this.add(el)
+    });
+  }
+}
+
+const { convertDate } = useDate()
 const complated = ref(false)
 const cursor = ref(null)
 const historyState = useHistoryState();
-const notifications = ref([])
+const notifications = ref(new Notirfications())
 const loading = ref(null)
+const loadingCount = ref(0)
 const posts = ref(new Map())
 const toast = createToaster()
 const store = useStore()
 const requestGet = useRequestGet(store)
 const requestPost = useRequestPost(store)
 
-
 onBeforeMount(async () => {
   if (historyState.action === 'reload') {
-    notifications.value = []
+    notifications.value = new Notirfications()
     await getNotifications()
-    await getPosts(notifications)
+    await getPosts(notifications.value.array)
     await updateSeen()
     return
   }
   if (historyState.action === 'back' || historyState.action === 'forward') {
-    notifications.value = historyState.data.notifications
-    posts.value = historyState.data.posts
+    notifications.value.setArray(Object.values(historyState.data.notifications))
+    await getPosts(notifications.value.array)
     return
   }
   await getNotifications()
-  await getPosts(notifications)
+  await getPosts(notifications.value.array)
   await updateSeen()
 });
 
-onBackupState(() => ({ notifications: notifications, posts: posts }));
+onBackupState(() => ({ notifications: notifications.value.array }));
 
 useIntersectionObserver(
   loading,
   async ([{ isIntersecting }]) => {
-    if (isIntersecting && !complated.value) {
+    if (isIntersecting && !complated.value && loadingCount.value != 0) {
       await getNotifications(cursor)
+      await getPosts(notifications.value.array)
     }
+    loadingCount.value = loadingCount.value + 1
   }
 )
 
@@ -108,20 +149,21 @@ const updateSeen = async () => {
   }
 }
 
-const getNotifications = async (cursor) => {
+const getNotifications = async (cur) => {
   let params = {}
-  if (!cursor) {
+  if (!cur) {
     params = {}
   } else {
-    params = { cursor: cursor.value }
+    params = { cursor: cur.value }
   }
+  console.log(params)
   try {
     const response = await requestGet.get("app.bsky.notification.listNotifications", params)
-    cursor = response.res.cursor
+    cursor.value = response.res.cursor
     if (response.res.notifications.length == 0) {
       complated.value = true
     }
-    notifications.value = notifications.value.concat(response.res.notifications)
+    notifications.value.setArray(response.res.notifications)
   } catch (e) {
     toast.error(e, { position: "top-right" })
   }
@@ -129,7 +171,7 @@ const getNotifications = async (cursor) => {
 
 const getPosts = async (notifications) => {
   try {
-    for (const n of notifications.value) {
+    for (const n of notifications) {
       if (n.reason == "follow") {
         continue
       }
