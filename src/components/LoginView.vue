@@ -47,6 +47,7 @@ const failed = ref(false)
 const followsCursor = ref(null)
 const likesCursor = ref(null)
 const mutesCursor = ref(null)
+const blocksCursor = ref(null)
 const repostsCursor = ref(null)
 const store = useStore()
 const requestGet = useRequestGet(store)
@@ -125,6 +126,10 @@ const login = async (server, handle, password, color) => {
     while (!completed.value) {
       await getMutes(mutesCursor)
     }
+    completed.value = false
+    while (!completed.value) {
+      await getBlocks(blocksCursor)
+    }
     route.push('/timeline')
   } catch (e) {
     toast.error(e, { position: "top-right" })
@@ -171,6 +176,29 @@ const getMutes = async (cur) => {
     completed.value = true
   }
 }
+
+const getBlocks = async (cur) => {
+  let params = {}
+  if (!cur.value) {
+    params = {}
+  } else {
+    params = { cursor: cur.value }
+  }
+  try {
+    const response = await requestGet.get("app.bsky.graph.getBlocks", params)
+    blocksCursor.value = response.res.cursor
+    if (response.res.blocks.length == 0) {
+      completed.value = true
+      return
+    }
+    console.log(response.res)
+    store.dispatch('doAddBlocks', response.res)
+  } catch (e) {
+    toast.error(e, { position: "top-right" })
+    completed.value = true
+  }
+}
+
 
 const getLikes = async (cur) => {
   try {

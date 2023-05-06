@@ -9,6 +9,7 @@ export default createStore({
     refreshJwt: '',
     server: '',
     follows: [],
+    blocks: [],
     likes: new Map(),
     reposts: new Map(),
     mutes: [],
@@ -43,6 +44,9 @@ export default createStore({
     },
     getFollows(state) {
       return state.follows;
+    },
+    getBlocks(state) {
+      return state.blocks;
     },
     getLikes(state) {
       return state.likes;
@@ -97,6 +101,14 @@ export default createStore({
     },
     removeFollow(state, index) {
       state.follows.splice(index, 1);
+    },
+    addBlocks(state, session) {
+      session.blocks.forEach(element => {
+        state.blocks.push(element.did)
+      });
+    },
+    removeBlock(state, index) {
+      state.blocks.splice(index, 1);
     },
     
     setHandle(state, session) {
@@ -183,6 +195,15 @@ export default createStore({
       const index = state.follows.indexOf(did);
       if (index > -1) {
         commit('removeFollow', index);
+      }
+    },
+    doAddBlocks({ commit }, session) {
+      commit('addBlocks', session )
+    },
+    removeBlock({ commit, state }, did) {
+      const index = state.blocks.indexOf(did);
+      if (index > -1) {
+        commit('removeBlock', index);
       }
     },
     doSetServer({commit}, session) {

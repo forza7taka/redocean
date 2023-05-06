@@ -18,6 +18,7 @@ import Mutes from '@/components/MutesView.vue'
 import InviteCodes from '@/components/InviteCodesView.vue'
 import Post from '@/components/PostFormView.vue'
 import Settings from '@/components/SettingsView.vue'
+import Blocks from '@/components/BlocksView.vue'
 
 import { trackRouter } from "vue-gtag-next";
 const routes = [
@@ -76,6 +77,11 @@ const routes = [
     path: '/logout',
     name: 'logout',
     component: TimeLine
+  },
+  {
+    path: '/blocks',
+    name: 'blocks',
+    component: Blocks
   },
   {
     path: '/followers/:handle',
