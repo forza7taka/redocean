@@ -68,11 +68,16 @@
             <v-btn v-if=" profile && profile.did != store.getters.getDid && !(profile.viewer && profile.viewer.muted) "
               @click.prevent=" mute(profile.did); profile.viewer.muted = !profile.viewer.muted "
               icon><v-icon>mdi-volume-mute</v-icon></v-btn>
-            
+          </v-list-item-subtitle>
+          <v-list-item-subtitle>            
             <v-btn v-if="profile && store.getters.getBlocks && store.getters.getBlocks.includes(profile.did)"
               @click.prevent="doUnBlock()" icon><svg-icon type="mdi" :path=mdiAccountLockOpen></svg-icon></v-btn>
             <v-btn v-if="profile && store.getters.getBlocks && !store.getters.getBlocks.includes(profile.did)"
               @click.prevent="doBlock()" icon><v-icon>mdi-account-cancel</v-icon></v-btn>
+
+            <v-btn v-if="profile" :to="`/reportUser/${encodeURIComponent(profile.handle)}`" icon>
+              <v-icon>mdi-alert-circle-outline</v-icon>
+            </v-btn>
 
           </v-list-item-subtitle>
         </v-list-item>
