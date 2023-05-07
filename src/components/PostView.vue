@@ -132,10 +132,10 @@
           </template>
           <v-list>
             <v-list-item @click="repost(defProps.post)">
-              <v-icon size="24">mdi-repeat</v-icon>
+              <v-icon size="24">mdi-repeat</v-icon>Repost
             </v-list-item>
             <v-list-item :to="`/quoteRepost/${encodeURIComponent(defProps.post.uri)}`">
-               <v-icon size="24">mdi-comma-circle-outline</v-icon>
+               <v-icon size="24">mdi-comma-circle-outline</v-icon>Quote Repost
             </v-list-item>
           </v-list>
         </v-menu>
@@ -158,9 +158,12 @@
           <template v-slot:activator="{ props }">
             <v-btn v-bind="props" class="ma-2" variant="text" size="32" icon="mdi-dots-vertical" />
           </template>
-          <v-list v-if="defProps.post.author.handle == store.getters.getHandle">
-            <v-list-item @click="deletePost(defProps.post.uri)">
-              <v-icon size="24">mdi-delete</v-icon>
+          <v-list>
+            <v-list-item :to="`/reportPost/${encodeURIComponent(defProps.post.uri)}`">
+              <v-icon size="24">mdi-alert-circle-outline</v-icon>Report Post
+            </v-list-item>
+            <v-list-item v-if="defProps.post.author.handle == store.getters.getHandle" @click="deletePost(defProps.post.uri)">
+              <v-icon size="24">mdi-delete</v-icon>Delete
             </v-list-item>
           </v-list>
         </v-menu>

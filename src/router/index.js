@@ -19,6 +19,7 @@ import InviteCodes from '@/components/InviteCodesView.vue'
 import Post from '@/components/PostFormView.vue'
 import Settings from '@/components/SettingsView.vue'
 import Blocks from '@/components/BlocksView.vue'
+import Moderation from '@/components/ModerationView.vue'
 
 import { trackRouter } from "vue-gtag-next";
 const routes = [
@@ -157,6 +158,16 @@ const routes = [
     path: '/settings',
     name: 'settings',
     component: Settings
+  },
+  {
+    path: '/reportPost/:uri',
+    name: 'reportPost',
+    component: Moderation
+  },
+  {
+    path: '/reportUser/:handle',
+    name: 'reportUser',
+    component: Moderation
   },
   {
     path: '/',
