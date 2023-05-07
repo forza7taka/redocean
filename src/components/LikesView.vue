@@ -93,13 +93,14 @@ const getLikes = async (handle, cursor) => {
       params = {
         repo: handle.value,
         collection: "app.bsky.feed.like",
-        limit: 30
+        limit: 20
       }
     } else {
       params = {
         repo: handle.value,
         collection: "app.bsky.feed.like",
-        cursor: cursor.value
+        cursor: cursor.value,
+        limit: 20
       }
     }
     const response = await requestGet.get("com.atproto.repo.listRecords", params)
@@ -117,18 +118,14 @@ const getLikes = async (handle, cursor) => {
 
 const getPosts = async (likes) => {
   try {
-    for (var i = 0; i < likes.length; i++) {
-      try {
-        const response = await requestGet.get("app.bsky.feed.getPostThread", {uri: likes[i].value.subject.uri})
-        const post = reactive({ post: response.res.thread.post })
-        timeline.feed.push(post)
-      } catch (e) {
-        if (e.response && e.response.status === 400) {
-          continue
-        }
-        throw e
-      }
-    }
+    let uris = []
+    likes.forEach(el => {
+      uris.push(el.value.subject.uri)
+    })
+    const response = await requestGet.get("app.bsky.feed.getPosts", { uris: uris })
+    response.res.posts.forEach(el => {
+      timeline.feed.push({post:el})      
+    })
   } catch (e) {
     toast.error(e, { position: "top-right" })
   }

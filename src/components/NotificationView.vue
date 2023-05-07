@@ -72,20 +72,20 @@ class Notirfications {
     }
     if (this.array.length == 0) {
       this.array.push(notification)
-      this.map.set(notification.uri, notification)
+      this.map.set(notification.uri, null)
       return
     }
     for (let i = 0; i < this.array.length; i++) {
       const el = this.array[i]
       if (notification.indexedAt > el.indexedAt) {
         this.array.splice(i, 0, notification)
-        this.map.set(notification.uri, notification)
+        this.map.set(notification.uri, null)
         return
       }
     }
     if (!this.map.has(notification.uri)) {
       this.array.push(notification)
-      this.map.set(notification.uri, notification)
+      this.map.set(notification.uri, null)
     }
     return
   }

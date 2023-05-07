@@ -207,11 +207,6 @@ const load = async () => {
   handle.value = await getHandle()
   await getProfile(handle)
 
-  completedLikes.value = false
-  while (!completedLikes.value) {
-    await getLikes(handle, likesCursor)
-  }
-
   completedAuthorFeed.value = false
   await getAuthorFeed(handle, cursor)
 
@@ -226,6 +221,11 @@ const load = async () => {
   completedBlocks.value = false
   while (!completedBlocks.value) {
     await getBlocks(blocksCursor)
+  }
+
+  completedLikes.value = false
+  while (!completedLikes.value) {
+    await getLikes(handle, likesCursor)
   }
 };
 

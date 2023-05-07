@@ -2,12 +2,12 @@
 <div>
   <v-app-bar  fixed :color="color">    
   <v-app-bar-nav-icon @click="drawer = true"></v-app-bar-nav-icon>
-    <v-toolbar-title>redocean</v-toolbar-title>
-    <div v-if="store.getters.getProfile">
+  <div v-if="store.getters.getProfile">
     <v-avatar color="surface-variant">
       <v-img cover v-bind:src=store.getters.getProfile.avatar alt="avatar"></v-img>
     </v-avatar>
-    </div>
+  </div>
+  <v-toolbar-title>redocean</v-toolbar-title>
     <v-spacer></v-spacer>
     <div v-if="unReadCount != 0">
       <v-badge right top overlap color="blue">
