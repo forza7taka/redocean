@@ -1,6 +1,6 @@
 <template>
   <div v-if="profile">
-    <v-card width="380px" class="mx-auto mt-5">
+    <v-card class="mx-auto mt-5">
       <template v-slot:prepend>
         <v-avatar color="grey" size="150" rounded="0">
           <v-img v-if="!avatar" cover v-bind:src=profile.avatar alt="avatar"></v-img>
@@ -76,9 +76,9 @@ const updateProfile = async () => {
     let params = {}
     if (!avatar.value) {
       const response = await requestGet.get("com.atproto.repo.getRecord", {
-          repo: store.getters.getDid,
-          collection: "app.bsky.actor.profile",
-          rkey: "self"
+        repo: store.getters.getDid,
+        collection: "app.bsky.actor.profile",
+        rkey: "self"
       })
 
       params = {

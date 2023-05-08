@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-card width="380px" class="mx-auto mt-5">
+    <v-card class="mx-auto mt-5">
       <v-card-title>
         Likes
       </v-card-title>
@@ -66,7 +66,7 @@ onBeforeMount(async () => {
   await getLikes(handle, cursor)
 });
 
-onBackupState(() => ({ feed : timeline.feed, likes : likes, handle : handle }));
+onBackupState(() => ({ feed: timeline.feed, likes: likes, handle: handle }));
 
 useIntersectionObserver(
   loading,
@@ -86,7 +86,7 @@ const getHandle = async () => {
 }
 
 const getLikes = async (handle, cursor) => {
-  console.log("getLikes") 
+  console.log("getLikes")
   try {
     let params = {}
     if (!cursor) {
@@ -124,7 +124,7 @@ const getPosts = async (likes) => {
     })
     const response = await requestGet.get("app.bsky.feed.getPosts", { uris: uris })
     response.res.posts.forEach(el => {
-      timeline.feed.push({post:el})      
+      timeline.feed.push({ post: el })
     })
   } catch (e) {
     toast.error(e, { position: "top-right" })
@@ -134,9 +134,9 @@ const getPosts = async (likes) => {
 const stopRouteWatch = watch(
   () => route.currentRoute,
   async () => {
-  handle.value = await getHandle()
-  await getLikes(handle.value, cursor)
-})
+    handle.value = await getHandle()
+    await getLikes(handle.value, cursor)
+  })
 
 onUnmounted(stopRouteWatch)
 </script>

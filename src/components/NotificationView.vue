@@ -1,13 +1,13 @@
 <template>
   <div>
-    <v-card width="380px" class="mx-auto mt-5">
+    <v-card class="mx-auto mt-5">
       <v-card-title>
         Notifications
       </v-card-title>
     </v-card>
     <v-list v-if="notifications">
       <v-list-item v-for="(n, nIndex) in notifications.array" :key="nIndex">
-        <v-card v-if="!store.getters.getMutes.includes(n.author.did)" width="380px" class="mx-auto mt-5">
+        <v-card v-if="!store.getters.getMutes.includes(n.author.did)" class="mx-auto mt-5">
           <v-card-text>
             <v-icon v-if="!n.isRead" color="red">mdi-circle</v-icon>
             <v-icon v-if="n.reason == 'follow'">mdi-account-check</v-icon>
@@ -25,13 +25,13 @@
           </v-card-text>
           <v-card v-if="posts.get(n.reasonSubject)">
             <v-card-subtitle>{{ convertDate(posts.get(n.reasonSubject).value.createdAt) }}</v-card-subtitle>
-            <v-card-text class="text-pre-wrap">
+            <v-card-text>
               {{ posts.get(n.reasonSubject).value.text }}
             </v-card-text>
           </v-card>
           <v-card v-if="posts.get(n.uri)">
             <v-card-subtitle>{{ convertDate(posts.get(n.uri).value.createdAt) }}</v-card-subtitle>
-            <v-card-text class="text-pre-wrap">
+            <v-card-text>
               {{ posts.get(n.uri).value.text }}
             </v-card-text>
           </v-card>

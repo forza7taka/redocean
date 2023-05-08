@@ -2,7 +2,7 @@
   <div>
     <v-list v-if="props.users">
       <v-list-item v-for="(f, fIndex) in   props.users  " :key="fIndex">
-        <v-card width="380px" class="mx-auto mt-5" elevation="20">
+        <v-card class="mx-auto mt-5" elevation="20">
           <v-card-actions>
             <v-list-item class="w-100">
 
@@ -23,8 +23,7 @@
                   <v-btn v-if="store.getters.getFollows.includes(f.did)"
                     @click.prevent="unFollow(store.getters.getDid, f.did)"
                     icon><v-icon>mdi-account-remove</v-icon></v-btn>
-                  <v-btn v-if="!store.getters.getFollows.includes(f.did)" 
-                    @click.prevent="follow(f.did)"
+                  <v-btn v-if="!store.getters.getFollows.includes(f.did)" @click.prevent="follow(f.did)"
                     icon><v-icon>mdi-account-check</v-icon></v-btn>
                   <v-btn v-if="f.viewer && f.viewer.muted"
                     @click.prevent="unMute(f.did); f.viewer.muted = !f.viewer.muted"
@@ -33,10 +32,9 @@
                     @click.prevent=" mute(f.did); f.viewer.muted = !f.viewer.muted "
                     icon><v-icon>mdi-volume-mute</v-icon></v-btn>
                   <v-btn v-if="store.getters.getBlocks.includes(f.did)"
-                    @click.prevent="unBlock(store.getters.getDid, f.did)"
-                    icon><svg-icon type="mdi" :path=mdiAccountLockOpen></svg-icon></v-btn>
-                  <v-btn v-if="!store.getters.getBlocks.includes(f.did)"
-                    @click.prevent="block(f.did)"
+                    @click.prevent="unBlock(store.getters.getDid, f.did)" icon><svg-icon type="mdi"
+                      :path=mdiAccountLockOpen></svg-icon></v-btn>
+                  <v-btn v-if="!store.getters.getBlocks.includes(f.did)" @click.prevent="block(f.did)"
                     icon><v-icon>mdi-account-cancel</v-icon></v-btn>
                 </div>
               </template>

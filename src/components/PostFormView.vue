@@ -1,82 +1,82 @@
 <template>
-    <v-card :style="{ width: `400px` }" class="mx-auto mt-5">
-      <v-card-title>{{ mode }}</v-card-title>
-      <div v-if="parentPost">
-        <v-card :style="{ width: `380px` }" class="mx-auto mt-5">
-          <v-card-actions>
-            <v-list-item class="w-100">
-              <template v-slot:prepend>
-                <div style="padding-right: 10px">
-                  <router-link :to="`/profile/${parentPost.author.handle}`">
-                    <v-avatar color="surface-variant">
-                      <v-img cover v-bind:src=parentPost.author.avatar alt="avatar"></v-img>
-                    </v-avatar>
-                  </router-link>
-                </div>
-              </template>
-              <v-list-item-subtitle>{{ parentPost.author.displayName }}</v-list-item-subtitle>
-              <v-list-item-subtitle>@{{ parentPost.author.handle }}</v-list-item-subtitle>
-              <v-list-item-subtitle>{{ parentPost.record.createdAt }}</v-list-item-subtitle>
-            </v-list-item>
-          </v-card-actions>
-          <v-card-text class="text-pre-wrap">
-            <div v-if="parentPost && parentPost.record && parentPost.record.text">{{ parentPost.record.text}}</div>
-          </v-card-text>
-        </v-card>
-      </div>
+  <v-card class="mx-auto mt-5">
+    <v-card-title>{{ mode }}</v-card-title>
+    <div v-if="parentPost">
+      <v-card class="mx-auto mt-5">
+        <v-card-actions>
+          <v-list-item class="w-100">
+            <template v-slot:prepend>
+              <div style="padding-right: 10px">
+                <router-link :to="`/profile/${parentPost.author.handle}`">
+                  <v-avatar color="surface-variant">
+                    <v-img cover v-bind:src=parentPost.author.avatar alt="avatar"></v-img>
+                  </v-avatar>
+                </router-link>
+              </div>
+            </template>
+            <v-list-item-subtitle>{{ parentPost.author.displayName }}</v-list-item-subtitle>
+            <v-list-item-subtitle>@{{ parentPost.author.handle }}</v-list-item-subtitle>
+            <v-list-item-subtitle>{{ parentPost.record.createdAt }}</v-list-item-subtitle>
+          </v-list-item>
+        </v-card-actions>
+        <v-card-text>
+          <div v-if="parentPost && parentPost.record && parentPost.record.text">{{ parentPost.record.text }}</div>
+        </v-card-text>
+      </v-card>
+    </div>
 
-      <v-card-text>
-        <v-textarea required counter v-model=contents label="contents" maxlength=300></v-textarea>
-      </v-card-text>
-      <v-card-text>
-        <v-row>
-          <div v-for="(image, index) in imageUrls" :key="index">
-            <v-col>
-              <v-img width="100" id="image" :src=image>
-              </v-img>
-            </v-col>
-          </div>
-        </v-row>
-      </v-card-text>
-
-        <div v-if="quotePost">
-          <v-card :style="{ width: `380px` }" class="mx-auto mt-5">
-            <v-card-actions>
-              <v-list-item class="w-100">
-                <template v-slot:prepend>
-                  <div style="padding-right: 10px">
-                    <router-link :to="`/profile/${quotePost.author.handle}`">
-                      <v-avatar color="surface-variant">
-                        <v-img cover v-bind:src=quotePost.author.avatar alt="avatar"></v-img>
-                      </v-avatar>
-                    </router-link>
-                  </div>
-                </template>
-                <v-list-item-subtitle>{{ quotePost.author.displayName }}</v-list-item-subtitle>
-                <v-list-item-subtitle>@{{ quotePost.author.handle }}</v-list-item-subtitle>
-                <v-list-item-subtitle>{{ quotePost.record.createdAt }}</v-list-item-subtitle>
-              </v-list-item>
-            </v-card-actions>
-            <v-card-text class="text-pre-wrap">
-              <div v-if="quotePost && quotePost.record && quotePost.record.text">{{ quotePost.record.text }}</div>
-            </v-card-text>
-          </v-card>
+    <v-card-text>
+      <v-textarea required counter v-model=contents label="contents" maxlength=300></v-textarea>
+    </v-card-text>
+    <v-card-text>
+      <v-row>
+        <div v-for="(image, index) in imageUrls" :key="index">
+          <v-col>
+            <v-img width="100" id="image" :src=image>
+            </v-img>
+          </v-col>
         </div>
+      </v-row>
+    </v-card-text>
+
+    <div v-if="quotePost">
+      <v-card class="mx-auto mt-5">
+        <v-card-actions>
+          <v-list-item class="w-100">
+            <template v-slot:prepend>
+              <div style="padding-right: 10px">
+                <router-link :to="`/profile/${quotePost.author.handle}`">
+                  <v-avatar color="surface-variant">
+                    <v-img cover v-bind:src=quotePost.author.avatar alt="avatar"></v-img>
+                  </v-avatar>
+                </router-link>
+              </div>
+            </template>
+            <v-list-item-subtitle>{{ quotePost.author.displayName }}</v-list-item-subtitle>
+            <v-list-item-subtitle>@{{ quotePost.author.handle }}</v-list-item-subtitle>
+            <v-list-item-subtitle>{{ quotePost.record.createdAt }}</v-list-item-subtitle>
+          </v-list-item>
+        </v-card-actions>
+        <v-card-text>
+          <div v-if="quotePost && quotePost.record && quotePost.record.text">{{ quotePost.record.text }}</div>
+        </v-card-text>
+      </v-card>
+    </div>
 
 
-      <v-card-actions>
-        <v-btn icon  type="button" @click="open">
-          <v-icon>mdi-upload</v-icon>
-        </v-btn>
-        <v-btn icon @click.prevent="send"><v-icon>mdi-send</v-icon></v-btn>
-      </v-card-actions>
-    </v-card>
+    <v-card-actions>
+      <v-btn icon type="button" @click="open">
+        <v-icon>mdi-upload</v-icon>
+      </v-btn>
+      <v-btn icon @click.prevent="send"><v-icon>mdi-send</v-icon></v-btn>
+    </v-card-actions>
+  </v-card>
 </template>
 
 <script setup>
 import { ref, onBeforeMount } from 'vue'
 import { useFileDialog } from '@vueuse/core'
-import { useRequestPost }from '../common/requestPost.js'
+import { useRequestPost } from '../common/requestPost.js'
 import { useRequestGet } from '../common/requestGet.js'
 import { useRoute, useRouter } from "vue-router"
 import { useToast } from 'vue-toastification'
@@ -107,10 +107,10 @@ const root = ref(null)
 const parent = ref(null)
 const quotePost = ref(null)
 
-onBeforeMount( async() => {
+onBeforeMount(async () => {
   if (route.path.startsWith("/post")) {
     mode.value = "post"
-  } else if (route.path.startsWith("/reply")){
+  } else if (route.path.startsWith("/reply")) {
     mode.value = "reply"
     try {
       const response = await requestGet.get("app.bsky.feed.getPosts", { uris: [route.params.uri] })
@@ -157,17 +157,17 @@ const getRichTexts = async (text) => {
   const mentionRegex = /@[^\s@]+/g
   let match;
   const facets = [];
-  
+
   while ((match = urlRegex.exec(text)) !== null) {
     const index = { byteStart: match.index, byteEnd: match.index + match[0].length }
     const features = [{ $type: "app.bsky.richtext.facet#link", uri: match[0] }]
     facets.push({ index: index, features: features });
   }
   while ((match = mentionRegex.exec(text)) !== null) {
-    const index = { byteStart: match.index , byteEnd: match.index + match[0].length }
+    const index = { byteStart: match.index, byteEnd: match.index + match[0].length }
     let did = ""
     try {
-      const response = await requestGet.get("com.atproto.identity.resolveHandle", { handle : match[0].replace('@','') })
+      const response = await requestGet.get("com.atproto.identity.resolveHandle", { handle: match[0].replace('@', '') })
       did = response.res.did
     } catch (e) {
       toast.error(e, { position: "top-right" })
@@ -180,11 +180,11 @@ const getRichTexts = async (text) => {
 }
 
 const post = async () => {
-    await requestPost.post("com.atproto.repo.createRecord", {
-      collection: "app.bsky.feed.post",
-      repo: store.getters.getDid,
-      record: { text: contents.value, createdAt: new Date(), facets: await getRichTexts(contents.value) }
-    })
+  await requestPost.post("com.atproto.repo.createRecord", {
+    collection: "app.bsky.feed.post",
+    repo: store.getters.getDid,
+    record: { text: contents.value, createdAt: new Date(), facets: await getRichTexts(contents.value) }
+  })
 }
 const postWithImage = async () => {
   if (files.value.length != 0) {

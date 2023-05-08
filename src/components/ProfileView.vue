@@ -1,6 +1,6 @@
 <template>
   <div v-if="profile">
-    <v-card width="380px" class="mx-auto mt-5">
+    <v-card class="mx-auto mt-5">
       <v-card-actions>
         <v-list-item class="w-100">
           <template v-slot:prepend>
@@ -47,9 +47,9 @@
             </router-link>
           </v-list-item-subtitle>
           <v-list-item-subtitle v-if="profile && profile.did == store.getters.getDid">
-              <router-link v-if="blocks" :to="`/blocks`" style="text-decoration: none; color: inherit;">
-                Blocks: {{ blocks.length }}
-              </router-link>
+            <router-link v-if="blocks" :to="`/blocks`" style="text-decoration: none; color: inherit;">
+              Blocks: {{ blocks.length }}
+            </router-link>
           </v-list-item-subtitle>
           <v-list-item-subtitle v-if="inviteCodes && inviteCodes.length !== 0">
             <router-link v-if="mutes" :to="`/inviteCodes`" style="text-decoration: none; color: inherit;">
@@ -69,30 +69,30 @@
               @click.prevent=" mute(profile.did); profile.viewer.muted = !profile.viewer.muted "
               icon><v-icon>mdi-volume-mute</v-icon></v-btn>
           </v-list-item-subtitle>
-          <v-list-item-subtitle>            
-            <v-btn v-if="profile && store.getters.getBlocks && store.getters.getBlocks.includes(profile.did)"
-              @click.prevent="doUnBlock()" icon><svg-icon type="mdi" :path=mdiAccountLockOpen></svg-icon></v-btn>
-            <v-btn v-if="profile && store.getters.getBlocks && !store.getters.getBlocks.includes(profile.did)"
-              @click.prevent="doBlock()" icon><v-icon>mdi-account-cancel</v-icon></v-btn>
+          <v-list-item-subtitle>
+            <v-btn v-if=" profile && store.getters.getBlocks && store.getters.getBlocks.includes(profile.did) "
+              @click.prevent=" doUnBlock() " icon><svg-icon type="mdi" :path= mdiAccountLockOpen ></svg-icon></v-btn>
+            <v-btn v-if=" profile && store.getters.getBlocks && !store.getters.getBlocks.includes(profile.did) "
+              @click.prevent=" doBlock() " icon><v-icon>mdi-account-cancel</v-icon></v-btn>
 
-            <v-btn v-if="profile" :to="`/reportUser/${encodeURIComponent(profile.handle)}`" icon>
+            <v-btn v-if=" profile " :to=" `/reportUser/${encodeURIComponent(profile.handle)}` " icon>
               <v-icon>mdi-alert-circle-outline</v-icon>
             </v-btn>
 
           </v-list-item-subtitle>
         </v-list-item>
       </v-card-actions>
-      <v-card-text class="text-pre-wrap">
+      <v-card-text>
         <div v-if=" profile && profile.description ">
           {{ profile.description }}
         </div>
       </v-card-text>
-      <v-card-text >
-      <div justify="center"></div>  
+      <v-card-text>
+        <div justify="center"></div>
       </v-card-text>
     </v-card>
   </div>
-  <div v-if="profile && profile.viewer && (profile.viewer.blocking || profile.viewer.blockedBy)">
+  <div v-if=" profile && profile.viewer && (profile.viewer.blocking || profile.viewer.blockedBy) ">
     <v-container class="my-5">
       <v-row justify="center">
         Blocked User

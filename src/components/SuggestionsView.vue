@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-card width="380px" class="mx-auto mt-5">
+    <v-card class="mx-auto mt-5">
       <v-card-title>
         suggestions
       </v-card-title>
@@ -13,7 +13,7 @@
         </v-row>
       </v-container>
     </div>
-</div>
+  </div>
 </template>
 <script setup>
 import UsersView from './UsersView.vue'
