@@ -4,31 +4,22 @@
       <v-row>
         <v-col v-for="(l, index) in logins" :key="index" cols="12" md="6" lg="4">
           <v-card width="380px" class="mx-auto pa-4">
-            <v-combobox v-model="l.server" 
-            :items="['https://bsky.social', 'https://boobee.blue', 'https://atproto.forza7.org']"
-            label="server" placeholder="https://bsky.social" color="green darken-5" clearable dense></v-combobox>
+            <v-combobox v-model="l.server"
+              :items="['https://bsky.social', 'https://boobee.blue', 'https://atproto.forza7.org']" label="server"
+              placeholder="https://bsky.social" color="green darken-5" clearable dense></v-combobox>
             <v-text-field label="xxxx.bsky.social" placeholder="xxxx.bsky.social" color="green darken-5" clearable dense
               v-model="l.handle"></v-text-field>
             <v-text-field label="password" placeholder="password" color="green darken-5" clearable dense type="password"
               v-model="l.password"></v-text-field>
-            <v-color-picker
-              disabled
-              hide-canvas
-              hide-inputs
-              hide-mode-switch
-              hide-sliders
-              mode="rgba"
-              show-swatches
-              swatches-max-height="210"
-              v-model=l.color
-            ></v-color-picker>
+            <v-color-picker disabled hide-canvas hide-inputs hide-mode-switch hide-sliders mode="rgba" show-swatches
+              swatches-max-height="210" v-model=l.color></v-color-picker>
             <br>
             <v-btn @click.prevent="login(l.server, l.handle, l.password, l.color)" icon="mdi-login" size="42"></v-btn>
             &nbsp;
             <v-btn v-if="logins.length > 1" @click="del(index)" icon="mdi-minus" size="42"></v-btn>
             &nbsp;
-            <v-btn v-if="l.server && l.handle && l.password && index == logins.length - 1"
-              @click="add" size="42" icon="mdi-plus"></v-btn>
+            <v-btn v-if="l.server && l.handle && l.password && index == logins.length - 1" @click="add" size="42"
+              icon="mdi-plus"></v-btn>
           </v-card>
         </v-col>
       </v-row>
@@ -78,7 +69,7 @@ onBeforeMount(async () => {
     cloudTranslationApiKey.value = storageCloudTranslationApiKey.value
     store.dispatch('doSetCloudTranslationApiKey', cloudTranslationApiKey.value);
 
-    
+
     if (failed.value) {
       return
     }
@@ -110,7 +101,7 @@ const login = async (server, handle, password, color) => {
     const res2 = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
     store.dispatch('doSetProfile', res2.res);
 
-    storageLogins.value = logins.value 
+    storageLogins.value = logins.value
 
     while (!completed.value) {
       await getFollows(handle, followsCursor)

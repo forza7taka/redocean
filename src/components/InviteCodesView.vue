@@ -1,28 +1,30 @@
 <template>
-  <v-card>
-    <v-card-text>
-      <v-row>
-        <v-col v-for="(c, index) in inviteCodes" :key="index" cols="12" md="6" lg="4">
-          <v-card class="mx-auto pa-4 py-5">
-            <v-card-subtitle class="py-2" @click='copyToClipboard(c.code)'>
-              <v-label v-if="c.available === c.uses.length" class="strike-through">{{ c.code
-              }}</v-label>
-              <v-label v-if="c.available != c.uses.length">{{ c.code }}</v-label>
-            </v-card-subtitle>
-            <v-card-subtitle>avaival:{{ c.available }}</v-card-subtitle>
-            <v-card-subtitle>uses:{{ c.uses.length }}</v-card-subtitle>
-            <div v-for="(u, uIndex) in  c.uses" :key="uIndex">
-              <v-card-subtitle>used by :<a :href="`https://plc.directory/${u.usedBy}/log`"></a></v-card-subtitle>
-              <v-expansion-panels>
-                <v-expansion-panel :title=u.usedBy :text=u.handles />
-              </v-expansion-panels>
-            </div>
-            <v-text-field label="remark" clearable dense v-model="c.remark" @input="onInputRemark"></v-text-field>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-card-text>
-  </v-card>
+  <div class="displayArea mx-auto">
+    <v-card>
+      <v-card-text>
+        <v-row>
+          <v-col v-for="(c, index) in inviteCodes" :key="index" cols="12" md="6" lg="4">
+            <v-card class="mx-auto pa-4 py-5">
+              <v-card-subtitle class="py-2" @click='copyToClipboard(c.code)'>
+                <v-label v-if="c.available === c.uses.length" class="strike-through">{{ c.code
+                }}</v-label>
+                <v-label v-if="c.available != c.uses.length">{{ c.code }}</v-label>
+              </v-card-subtitle>
+              <v-card-subtitle>avaival:{{ c.available }}</v-card-subtitle>
+              <v-card-subtitle>uses:{{ c.uses.length }}</v-card-subtitle>
+              <div v-for="(u, uIndex) in  c.uses" :key="uIndex">
+                <v-card-subtitle>used by :<a :href="`https://plc.directory/${u.usedBy}/log`"></a></v-card-subtitle>
+                <v-expansion-panels>
+                  <v-expansion-panel :title=u.usedBy :text=u.handles />
+                </v-expansion-panels>
+              </div>
+              <v-text-field label="remark" clearable dense v-model="c.remark" @input="onInputRemark"></v-text-field>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-card-text>
+    </v-card>
+  </div>
 </template>
 <script setup>
 import axios from 'axios'

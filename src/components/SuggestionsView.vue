@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="displayArea mx-auto">
     <v-card class="mx-auto mt-5">
       <v-card-title>
         suggestions

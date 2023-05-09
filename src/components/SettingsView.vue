@@ -1,15 +1,17 @@
 <template>
-  <v-card>
-    <v-card-text>
-      <v-card class="mx-auto pa-4">
-        <v-text-field label="Google Cloud Translation API" color="green darken-5" clearable dense
-          v-model="cloudTranslationApiKey"></v-text-field>
-      </v-card>
-    </v-card-text>
-    <v-card-actions>
-      <v-btn icon @click="update"><v-icon>mdi-content-save</v-icon></v-btn>
-    </v-card-actions>
-  </v-card>
+  <div class="displayArea mx-auto">
+    <v-card>
+      <v-card-text>
+        <v-card class="mx-auto pa-4">
+          <v-text-field label="Google Cloud Translation API" color="green darken-5" clearable dense
+            v-model="cloudTranslationApiKey"></v-text-field>
+        </v-card>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn icon @click="update"><v-icon>mdi-content-save</v-icon></v-btn>
+      </v-card-actions>
+    </v-card>
+  </div>
 </template>
 
 <script setup>

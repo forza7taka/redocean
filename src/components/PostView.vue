@@ -25,12 +25,12 @@
           <v-list-item-subtitle>{{ convertDate(defProps.post.record.createdAt) }}</v-list-item-subtitle>
         </v-list-item>
       </v-card-actions>
-      <v-card-text>
+      <v-card-text class="text-pre-wrap">
         <div v-if="defProps.post && defProps.post.record && defProps.post.record.text">
           {{ defProps.post.record.text }}</div>
       </v-card-text>
       <div v-if="translateText">
-        <v-card-text>
+        <v-card-text class="text-pre-wrap">
           {{ translateText }}
         </v-card-text>
       </div>
@@ -68,7 +68,7 @@
       <!--quoteRepostWithImage S-->
       <div v-if="defProps.post.embed && defProps.post.embed.record">
         <div v-if="defProps.post.embed.$type == 'app.bsky.embed.recordWithMedia#view'">
-          <v-card class="mx-auto mt-5" variant="outlined">
+          <v-card class="mx-auto" variant="outlined">
             <v-card-actions>
               <v-list-item class="w-100">
                 <template v-slot:prepend>
@@ -178,7 +178,7 @@
       <v-list>
         <v-list-item v-for="(r, rIndex) in defProps.replies" :key="rIndex">
           <v-row>
-            <v-col class="d-flex justify-center align-center">
+            <v-col class="justify-center align-center">
               <PostView :post="r.post" :root="root" :depth="depth + 1" :replies="r.replies"></PostView>
             </v-col>
           </v-row>

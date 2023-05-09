@@ -1,5 +1,5 @@
 <template>
-  <div v-if="profile">
+  <div v-if="profile" class="displayArea mx-auto">
     <v-card class="mx-auto mt-5">
       <template v-slot:prepend>
         <v-avatar color="grey" size="150" rounded="0">
