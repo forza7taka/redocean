@@ -1,7 +1,7 @@
 <template>
   <div v-if="thread" class="displayArea mx-auto">
     <v-row>
-      <v-col class="v-list-item__content justify-center align-center">
+      <v-col class="justify-center align-center">
         <PostView :post="thread.post" :root="thread.post" :replies="thread.replies" :depth=0 />
       </v-col>
     </v-row>

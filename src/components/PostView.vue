@@ -1,6 +1,6 @@
 <template>
   <div v-if="defProps.post">
-    <v-card class="mx-auto mt-5" variant="outlined">
+    <v-card class="mx-auto mt-5">
       <div v-if="defProps.reason && defProps.reason.by">
         <v-card-subtitle>Reposted by {{ defProps.reason.by.displayName }}(@{{ defProps.reason.by.handle
         }})</v-card-subtitle>

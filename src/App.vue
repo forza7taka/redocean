@@ -44,7 +44,10 @@ export default {
   }
 }
 </script>
-.v-card {
-  border: 2px solid black;
+<style>
+.displayArea {
+  margin: 5px;
+  min-width:375px;
+  max-width:600px;
 }
-<style></style>
+</style>

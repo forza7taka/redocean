@@ -155,18 +155,27 @@ const uploadImage = async (blob) => {
 }
 
 const getRichTexts = async (text) => {
+
+  const encoder = new TextEncoder()
+
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const mentionRegex = /@[^\s@]+/g
   let match;
   const facets = [];
 
   while ((match = urlRegex.exec(text)) !== null) {
-    const index = { byteStart: match.index, byteEnd: match.index + match[0].length }
+    const utf8Match = encoder.encode(match[0])
+    const byteStart = encoder.encode(text.substring(0, match.index)).length
+    const byteEnd = byteStart + utf8Match.length
+    const index = { byteStart: byteStart, byteEnd: byteEnd }
     const features = [{ $type: "app.bsky.richtext.facet#link", uri: match[0] }]
     facets.push({ index: index, features: features });
   }
   while ((match = mentionRegex.exec(text)) !== null) {
-    const index = { byteStart: match.index, byteEnd: match.index + match[0].length }
+    const utf8Match = encoder.encode(match[0])
+    const byteStart = encoder.encode(text.substring(0, match.index)).length
+    const byteEnd = byteStart + utf8Match.length
+    const index = { byteStart: byteStart, byteEnd: byteEnd }
     let did = ""
     try {
       const response = await requestGet.get("com.atproto.identity.resolveHandle", { handle: match[0].replace('@', '') })
@@ -183,9 +192,9 @@ const getRichTexts = async (text) => {
 
 const post = async () => {
   await requestPost.post("com.atproto.repo.createRecord", {
-    collection: "app.bsky.feed.post",
-    repo: store.getters.getDid,
-    record: { text: contents.value, createdAt: new Date(), facets: await getRichTexts(contents.value) }
+     collection: "app.bsky.feed.post",
+     repo: store.getters.getDid,
+     record: { text: contents.value, createdAt: new Date(), facets: await getRichTexts(contents.value) }
   })
 }
 const postWithImage = async () => {
