@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="displayArea mx-auto">
     <div>
       <v-text-field label="server" placeholder="https:://bsky.social" color="green darken-5" clearable dense
         v-model="server" @input="onInputServer"></v-text-field>
@@ -11,7 +11,7 @@
     <div>
       <v-text-field label="handle" placeholder="handle" color="green darken-5" clearable dense
         v-model="handle"></v-text-field>
-      </div>
+    </div>
     <div>
       <v-text-field label="password" placeholder="password" color="green darken-5" clearable dense type="password"
         v-model="password"></v-text-field>
@@ -32,7 +32,7 @@
     <v-row v-if="links" justify="center">
       <a :href=links.termsOfService>termsOfService</a>
     </v-row>
-</div>
+  </div>
 </template>
 
 <script setup>
@@ -50,10 +50,10 @@ const mailAddress = ref(null)
 const handle = ref(null)
 const password = ref(null)
 const inviteCode = ref("")
-const userDomain = ref(".bsky.social") 
+const userDomain = ref(".bsky.social")
 const links = ref(null)
 const onInputServer = async () => {
-  try { 
+  try {
     const url = urlJoin(server.value, 'xrpc', "com.atproto.server.describeServer")
     const response = await axios.get(url)
     userDomain.value = response.data.availableUserDomains[0]
@@ -61,13 +61,13 @@ const onInputServer = async () => {
   } catch {
     userDomain.value = ".bsky.social"
     links.value = null
-  } 
+  }
 }
 
 const create = async () => {
   try {
     const url = urlJoin(server.value, 'xrpc', "com.atproto.server.createAccount")
-    await axios.post(url ,{
+    await axios.post(url, {
       email: mailAddress.value,
       handle: handle.value + userDomain.value,
       password: password.value,

@@ -1,8 +1,8 @@
 <template>
   <v-app color="red-lighten-4">
-    <Header/>
+    <Header />
     <v-main>
-      <router-view/>
+      <router-view />
       <!-- <v-btn v-if="this.$store.getters.getAccessJwt" @click="dialog = true" fixed bottom right fab><v-icon>mdi-plus</v-icon></v-btn>
 
       <div v-if="dialog == true">
@@ -20,7 +20,7 @@ export default {
   name: 'App',
   components: {
     Header,
-   // PostView
+    // PostView
   },
   created() {
     this.$gtag.pageview({
@@ -39,8 +39,15 @@ export default {
   mounted() {
     // 最初のページビューのみトラッキング
     if (this.$route.path === '/') {
-     this.$gtag.pageview(window.location.pathname);
+      this.$gtag.pageview(window.location.pathname);
     }
   }
 }
 </script>
+<style>
+.displayArea {
+  margin: 5px;
+  min-width:375px;
+  max-width:600px;
+}
+</style>

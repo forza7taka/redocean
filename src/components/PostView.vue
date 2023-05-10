@@ -1,6 +1,6 @@
 <template>
   <div v-if="defProps.post">
-    <v-card :style="{ width: `${380 - depth * 15}px` }" class="mx-auto mt-5">
+    <v-card class="mx-auto mt-5">
       <div v-if="defProps.reason && defProps.reason.by">
         <v-card-subtitle>Reposted by {{ defProps.reason.by.displayName }}(@{{ defProps.reason.by.handle
         }})</v-card-subtitle>
@@ -65,10 +65,10 @@
         </v-card-text>
       </div>
 
-<!--quoteRepostWithImage S-->
+      <!--quoteRepostWithImage S-->
       <div v-if="defProps.post.embed && defProps.post.embed.record">
         <div v-if="defProps.post.embed.$type == 'app.bsky.embed.recordWithMedia#view'">
-          <v-card :style="{ width: `${370 - depth * 15}px` }" class="mx-auto mt-5" variant="outlined">
+          <v-card class="mx-auto" variant="outlined">
             <v-card-actions>
               <v-list-item class="w-100">
                 <template v-slot:prepend>
@@ -85,17 +85,18 @@
                 <v-list-item-subtitle>{{ defProps.post.embed.record.record.value.createdAt }}</v-list-item-subtitle>
               </v-list-item>
             </v-card-actions>
-            <v-card-text class="text-pre-wrap">
-              <div v-if="defProps.post.embed && defProps.post.embed.record && defProps.post.embed.record.record && defProps.post.embed.record.record.value">
+            <v-card-text>
+              <div
+                v-if="defProps.post.embed && defProps.post.embed.record && defProps.post.embed.record.record && defProps.post.embed.record.record.value">
                 {{ defProps.post.embed.record.record.value.text }}</div>
             </v-card-text>
           </v-card>
         </div>
-<!--quoteRepostWithImage E-->
+        <!--quoteRepostWithImage E-->
 
-<!--quoteRepost S-->
+        <!--quoteRepost S-->
         <div v-if="defProps.post.embed.$type == 'app.bsky.embed.record#view'">
-          <v-card :style="{ width: `${370 - depth * 15}px` }" class="mx-auto mt-5" variant="outlined">
+          <v-card class="mx-auto mt-5" variant="outlined">
             <v-card-actions>
               <v-list-item class="w-100">
                 <template v-slot:prepend>
@@ -112,42 +113,46 @@
                 <v-list-item-subtitle>{{ defProps.post.embed.record.value.createdAt }}</v-list-item-subtitle>
               </v-list-item>
             </v-card-actions>
-            <v-card-text class="text-pre-wrap">
-              <div v-if="defProps.post.embed && defProps.post.embed.record && defProps.post.embed.record.value">{{ defProps.post.embed.record.value.text }}</div>
+            <v-card-text>
+              <div v-if="defProps.post.embed && defProps.post.embed.record && defProps.post.embed.record.value">{{
+                defProps.post.embed.record.value.text }}</div>
             </v-card-text>
           </v-card>
         </div>
       </div>
-<!--quoteRepost E-->
+      <!--quoteRepost E-->
       <v-list-item-subtitle>
-        <v-btn class="ma-2" variant="text" size="32" icon="mdi-comment-outline" :to="`/reply/${encodeURIComponent(defProps.post.uri)}`">
+        <v-btn class="ma-2" variant="text" size="32" icon="mdi-comment-outline"
+          :to="`/reply/${encodeURIComponent(defProps.post.uri)}`">
         </v-btn>{{ defProps.post.replyCount }}
 
         <v-menu offset-y>
           <template v-slot:activator="{ props }">
 
-            <v-btn v-bind="props" v-if="store.getters.hasRepost(defProps.post.uri)" class="ma-2" variant="text" size="32" color="red" icon="mdi-repeat" />
+            <v-btn v-bind="props" v-if="store.getters.hasRepost(defProps.post.uri)" class="ma-2" variant="text" size="32"
+              color="red" icon="mdi-repeat" />
             <v-btn v-bind="props" v-else class="ma-2" variant="text" size="32" icon="mdi-repeat" />
-          
+
           </template>
           <v-list>
             <v-list-item @click="repost(defProps.post)">
               <v-icon size="24">mdi-repeat</v-icon>Repost
             </v-list-item>
             <v-list-item :to="`/quoteRepost/${encodeURIComponent(defProps.post.uri)}`">
-               <v-icon size="24">mdi-comma-circle-outline</v-icon>Quote Repost
+              <v-icon size="24">mdi-comma-circle-outline</v-icon>Quote Repost
             </v-list-item>
           </v-list>
         </v-menu>
         {{ defProps.post.repostCount }}
 
-        <v-btn class=" ma-2" variant="text" size="32" icon="mdi-heart" color="red" v-if="store.getters.hasLike(defProps.post.uri)"
+        <v-btn class=" ma-2" variant="text" size="32" icon="mdi-heart" color="red"
+          v-if="store.getters.hasLike(defProps.post.uri)" @click="like(defProps.post)"></v-btn>
+        <v-btn class="ma-2" variant="text" size="32" icon="mdi-heart-outline" color="red" v-else
           @click="like(defProps.post)"></v-btn>
-        <v-btn class="ma-2" variant="text" size="32" icon="mdi-heart-outline" color="red"
-          v-else @click="like(defProps.post)"></v-btn>
         {{ defProps.post.likeCount }}
 
-         <v-btn class=" ma-2" variant="text" size="32" icon="mdi-translate" @click="translate(defProps.post.record.text)"></v-btn>
+        <v-btn class=" ma-2" variant="text" size="32" icon="mdi-translate"
+          @click="translate(defProps.post.record.text)"></v-btn>
 
         <v-btn v-if="defProps.root" class="ma-2" variant="text" size="32" icon="mdi-file-tree-outline"
           :to="`/thread/${encodeURIComponent(defProps.root.uri)}`"></v-btn>
@@ -162,7 +167,8 @@
             <v-list-item :to="`/reportPost/${encodeURIComponent(defProps.post.uri)}`">
               <v-icon size="24">mdi-alert-circle-outline</v-icon>Report Post
             </v-list-item>
-            <v-list-item v-if="defProps.post.author.handle == store.getters.getHandle" @click="deletePost(defProps.post.uri)">
+            <v-list-item v-if="defProps.post.author.handle == store.getters.getHandle"
+              @click="deletePost(defProps.post.uri)">
               <v-icon size="24">mdi-delete</v-icon>Delete
             </v-list-item>
           </v-list>
@@ -172,7 +178,7 @@
       <v-list>
         <v-list-item v-for="(r, rIndex) in defProps.replies" :key="rIndex">
           <v-row>
-            <v-col class="d-flex justify-center align-center">
+            <v-col class="justify-center align-center">
               <PostView :post="r.post" :root="root" :depth="depth + 1" :replies="r.replies"></PostView>
             </v-col>
           </v-row>
@@ -200,7 +206,7 @@ const defProps = defineProps({
 })
 const store = useStore()
 const request = useRequestPost(store)
-const {convertDate} = useDate()
+const { convertDate } = useDate()
 const translateText = ref(null)
 
 const translate = async (text) => {

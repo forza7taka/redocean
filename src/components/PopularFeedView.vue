@@ -1,11 +1,13 @@
 <template>
-  <FeedView :feeds="timeline.array"></FeedView>
-  <div ref="loading">
-    <v-container class="my-5">
-      <v-row justify="center">
-        <v-progress-circular model-value="20"></v-progress-circular>
-      </v-row>
-    </v-container>
+  <div class="displayArea mx-auto">
+    <FeedView :feeds="timeline.array"></FeedView>
+    <div ref="loading">
+      <v-container class="my-5">
+        <v-row justify="center">
+          <v-progress-circular model-value="20"></v-progress-circular>
+        </v-row>
+      </v-container>
+    </div>
   </div>
 </template>
 

@@ -1,112 +1,114 @@
 <template>
-  <div v-if="profile">
-    <v-card width="380px" class="mx-auto mt-5">
-      <v-card-actions>
-        <v-list-item class="w-100">
-          <template v-slot:prepend>
-            <v-avatar size="150" rounded="0">
-              <v-img v-bind:src=profile.avatar alt="avatar" cover class="rounded-xl"></v-img>
-            </v-avatar>
-          </template>
-          <v-list-item-title>
-            {{ profile.displayName }}
-            <v-btn size=15 v-if="profile && profile.did == store.getters.getDid" icon to="/profileEdit">
-              <v-icon size="15">mdi-pencil</v-icon>
-            </v-btn>
-          </v-list-item-title>
-          <v-list-item-subtitle>
-            @{{ profile.handle }}
-            <v-btn size=12 v-if="profile && profile.did == store.getters.getDid" icon to="handleEdit">
-              <v-icon size="12">mdi-pencil</v-icon>
-            </v-btn>
-          </v-list-item-subtitle>
-          <v-list-item-subtitle>
-            <router-link :to="`/followers/${encodeURIComponent(profile.handle)}`"
-              style="text-decoration: none; color: inherit;">
-              Followers:{{ profile.followersCount }}
-            </router-link>
-          </v-list-item-subtitle>
-          <v-list-item-subtitle>
-            <router-link :to="`/follows/${encodeURIComponent(profile.handle)}`"
-              style="text-decoration: none; color: inherit;">
-              Follows:{{ profile.followsCount }}
-            </router-link>
-          </v-list-item-subtitle>
-          <v-list-item-subtitle>
-            Posts: {{ profile.postsCount }}
-          </v-list-item-subtitle>
-          <v-list-item-subtitle>
-            <router-link v-if="likes" :to="`/likes/${encodeURIComponent(profile.handle)}`"
-              style="text-decoration: none; color: inherit;">
-              Likes: {{ likes.length }}
-            </router-link>
-          </v-list-item-subtitle>
-          <v-list-item-subtitle v-if="profile && profile.did == store.getters.getDid">
-            <router-link v-if="mutes" :to="`/mutes`" style="text-decoration: none; color: inherit;">
-              Mutes: {{ mutes.length }}
-            </router-link>
-          </v-list-item-subtitle>
-          <v-list-item-subtitle v-if="profile && profile.did == store.getters.getDid">
+  <div class="displayArea mx-auto">
+    <div v-if="profile">
+      <v-card class="mx-auto mt-5">
+        <v-card-actions>
+          <v-list-item class="w-100">
+            <template v-slot:prepend>
+              <v-avatar size="150" rounded="0">
+                <v-img v-bind:src=profile.avatar alt="avatar" cover class="rounded-xl"></v-img>
+              </v-avatar>
+            </template>
+            <v-list-item-title>
+              {{ profile.displayName }}
+              <v-btn size=15 v-if="profile && profile.did == store.getters.getDid" icon to="/profileEdit">
+                <v-icon size="15">mdi-pencil</v-icon>
+              </v-btn>
+            </v-list-item-title>
+            <v-list-item-subtitle>
+              @{{ profile.handle }}
+              <v-btn size=12 v-if="profile && profile.did == store.getters.getDid" icon to="handleEdit">
+                <v-icon size="12">mdi-pencil</v-icon>
+              </v-btn>
+            </v-list-item-subtitle>
+            <v-list-item-subtitle>
+              <router-link :to="`/followers/${encodeURIComponent(profile.handle)}`"
+                style="text-decoration: none; color: inherit;">
+                Followers:{{ profile.followersCount }}
+              </router-link>
+            </v-list-item-subtitle>
+            <v-list-item-subtitle>
+              <router-link :to="`/follows/${encodeURIComponent(profile.handle)}`"
+                style="text-decoration: none; color: inherit;">
+                Follows:{{ profile.followsCount }}
+              </router-link>
+            </v-list-item-subtitle>
+            <v-list-item-subtitle>
+              Posts: {{ profile.postsCount }}
+            </v-list-item-subtitle>
+            <v-list-item-subtitle>
+              <router-link v-if="likes" :to="`/likes/${encodeURIComponent(profile.handle)}`"
+                style="text-decoration: none; color: inherit;">
+                Likes: {{ likes.length }}
+              </router-link>
+            </v-list-item-subtitle>
+            <v-list-item-subtitle v-if="profile && profile.did == store.getters.getDid">
+              <router-link v-if="mutes" :to="`/mutes`" style="text-decoration: none; color: inherit;">
+                Mutes: {{ mutes.length }}
+              </router-link>
+            </v-list-item-subtitle>
+            <v-list-item-subtitle v-if="profile && profile.did == store.getters.getDid">
               <router-link v-if="blocks" :to="`/blocks`" style="text-decoration: none; color: inherit;">
                 Blocks: {{ blocks.length }}
               </router-link>
-          </v-list-item-subtitle>
-          <v-list-item-subtitle v-if="inviteCodes && inviteCodes.length !== 0">
-            <router-link v-if="mutes" :to="`/inviteCodes`" style="text-decoration: none; color: inherit;">
-              InviteCode: {{ inviteCodes.length }}
-            </router-link>
-          </v-list-item-subtitle>
-          <v-list-item-subtitle>
-            <v-btn v-if="profile && store.getters.getFollows && store.getters.getFollows.includes(profile.did)"
-              @click.prevent="doUnFollow()" icon><v-icon>mdi-account-remove</v-icon></v-btn>
-            <v-btn v-if="profile && store.getters.getFollows && !store.getters.getFollows.includes(profile.did)"
-              @click.prevent="doFollow()" icon><v-icon>mdi-account-check</v-icon></v-btn>
+            </v-list-item-subtitle>
+            <v-list-item-subtitle v-if="inviteCodes && inviteCodes.length !== 0">
+              <router-link v-if="mutes" :to="`/inviteCodes`" style="text-decoration: none; color: inherit;">
+                InviteCode: {{ inviteCodes.length }}
+              </router-link>
+            </v-list-item-subtitle>
+            <v-list-item-subtitle>
+              <v-btn v-if="profile && store.getters.getFollows && store.getters.getFollows.includes(profile.did)"
+                @click.prevent="doUnFollow()" icon><v-icon>mdi-account-remove</v-icon></v-btn>
+              <v-btn v-if="profile && store.getters.getFollows && !store.getters.getFollows.includes(profile.did)"
+                @click.prevent="doFollow()" icon><v-icon>mdi-account-check</v-icon></v-btn>
 
-            <v-btn v-if="profile && profile.did != store.getters.getDid && profile.viewer && profile.viewer.muted"
-              @click.prevent="unMute(profile.did); profile.viewer.muted = !profile.viewer.muted"
-              icon><v-icon>mdi-volume-high</v-icon></v-btn>
-            <v-btn v-if=" profile && profile.did != store.getters.getDid && !(profile.viewer && profile.viewer.muted) "
-              @click.prevent=" mute(profile.did); profile.viewer.muted = !profile.viewer.muted "
-              icon><v-icon>mdi-volume-mute</v-icon></v-btn>
-          </v-list-item-subtitle>
-          <v-list-item-subtitle>            
-            <v-btn v-if="profile && store.getters.getBlocks && store.getters.getBlocks.includes(profile.did)"
-              @click.prevent="doUnBlock()" icon><svg-icon type="mdi" :path=mdiAccountLockOpen></svg-icon></v-btn>
-            <v-btn v-if="profile && store.getters.getBlocks && !store.getters.getBlocks.includes(profile.did)"
-              @click.prevent="doBlock()" icon><v-icon>mdi-account-cancel</v-icon></v-btn>
+              <v-btn v-if="profile && profile.did != store.getters.getDid && profile.viewer && profile.viewer.muted"
+                @click.prevent="unMute(profile.did); profile.viewer.muted = !profile.viewer.muted"
+                icon><v-icon>mdi-volume-high</v-icon></v-btn>
+              <v-btn v-if=" profile && profile.did != store.getters.getDid && !(profile.viewer && profile.viewer.muted) "
+                @click.prevent=" mute(profile.did); profile.viewer.muted = !profile.viewer.muted "
+                icon><v-icon>mdi-volume-mute</v-icon></v-btn>
+            </v-list-item-subtitle>
+            <v-list-item-subtitle>
+              <v-btn v-if=" profile && store.getters.getBlocks && store.getters.getBlocks.includes(profile.did) "
+                @click.prevent=" doUnBlock() " icon><svg-icon type="mdi" :path= mdiAccountLockOpen ></svg-icon></v-btn>
+              <v-btn v-if=" profile && store.getters.getBlocks && !store.getters.getBlocks.includes(profile.did) "
+                @click.prevent=" doBlock() " icon><v-icon>mdi-account-cancel</v-icon></v-btn>
 
-            <v-btn v-if="profile" :to="`/reportUser/${encodeURIComponent(profile.handle)}`" icon>
-              <v-icon>mdi-alert-circle-outline</v-icon>
-            </v-btn>
+              <v-btn v-if=" profile " :to=" `/reportUser/${encodeURIComponent(profile.handle)}` " icon>
+                <v-icon>mdi-alert-circle-outline</v-icon>
+              </v-btn>
 
-          </v-list-item-subtitle>
-        </v-list-item>
-      </v-card-actions>
+            </v-list-item-subtitle>
+          </v-list-item>
+        </v-card-actions>
       <v-card-text class="text-pre-wrap">
-        <div v-if=" profile && profile.description ">
-          {{ profile.description }}
-        </div>
-      </v-card-text>
-      <v-card-text >
-      <div justify="center"></div>  
-      </v-card-text>
-    </v-card>
-  </div>
-  <div v-if="profile && profile.viewer && (profile.viewer.blocking || profile.viewer.blockedBy)">
-    <v-container class="my-5">
-      <v-row justify="center">
-        Blocked User
-      </v-row>
-    </v-container>
-  </div>
-  <div v-else ref="root">
-    <FeedView :feeds=" timeline.array "></FeedView>
-    <div ref="loading">
+          <div v-if=" profile && profile.description ">
+            {{ profile.description }}
+          </div>
+        </v-card-text>
+        <v-card-text>
+          <div justify="center"></div>
+        </v-card-text>
+      </v-card>
+    </div>
+    <div v-if=" profile && profile.viewer && (profile.viewer.blocking || profile.viewer.blockedBy) ">
       <v-container class="my-5">
         <v-row justify="center">
-          <v-progress-circular model-value="20"></v-progress-circular>
+          Blocked User
         </v-row>
       </v-container>
+    </div>
+    <div v-else ref="root">
+      <FeedView :feeds=" timeline.array "></FeedView>
+      <div ref="loading">
+        <v-container class="my-5">
+          <v-row justify="center">
+            <v-progress-circular model-value="20"></v-progress-circular>
+          </v-row>
+        </v-container>
+      </div>
     </div>
   </div>
 </template>
@@ -207,11 +209,6 @@ const load = async () => {
   handle.value = await getHandle()
   await getProfile(handle)
 
-  completedLikes.value = false
-  while (!completedLikes.value) {
-    await getLikes(handle, likesCursor)
-  }
-
   completedAuthorFeed.value = false
   await getAuthorFeed(handle, cursor)
 
@@ -226,6 +223,11 @@ const load = async () => {
   completedBlocks.value = false
   while (!completedBlocks.value) {
     await getBlocks(blocksCursor)
+  }
+
+  completedLikes.value = false
+  while (!completedLikes.value) {
+    await getLikes(handle, likesCursor)
   }
 };
 

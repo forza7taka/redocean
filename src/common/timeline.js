@@ -16,7 +16,7 @@ export default class Timeline{
     }
     if (this.array.length == 0) {
       this.array.push(feed)
-      this.map.set(key, feed)
+      this.map.set(key, null)
       return
     }
     for (let i = 0; i < this.array.length; i++) {
@@ -27,13 +27,13 @@ export default class Timeline{
       }
       if (indexedAt > elIndexedAt) {
         this.array.splice(i, 0, feed)
-        this.map.set(key, feed)
+        this.map.set(key, null)
         return
       }
     }
     if (!this.map.has(feed.post.uri)) {
       this.array.push(feed)
-      this.map.set(key, feed)
+      this.map.set(key, null)
     }
     return
   }

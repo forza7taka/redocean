@@ -1,12 +1,12 @@
 <template>
-  <div v-if="profile">
-    <v-card width="380px" class="mx-auto mt-5">
+  <div v-if="profile" class="displayArea mx-auto">
+    <v-card class="mx-auto mt-5">
       <template v-slot:prepend>
         <v-avatar color="grey" size="150" rounded="0">
           <v-img cover v-bind:src=profile.avatar alt="avatar"></v-img>
         </v-avatar>
       </template>
-      <v-card-text class="text-pre-wrap">
+      <v-card-text>
         <v-text-field dense v-model="profile.handle" label="handle"></v-text-field>
       </v-card-text>
       <v-card-actions>

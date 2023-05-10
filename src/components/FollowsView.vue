@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <v-card width="380px" class="mx-auto mt-5" v-if="subject">
+  <div class="displayArea mx-auto">
+    <v-card class="mx-auto mt-5" v-if="subject">
       <v-card-title>
         <router-link :to="`/profile/${route.params.handle}`">
           <v-avatar color="surface-variant">
@@ -56,7 +56,7 @@ onBeforeMount(async () => {
   await getFollows(route.params.handle)
 });
 
-onBackupState(() => ({follows:follows, subject: subject}));
+onBackupState(() => ({ follows: follows, subject: subject }));
 
 useIntersectionObserver(
   load,
