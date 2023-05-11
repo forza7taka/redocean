@@ -86,7 +86,7 @@
                 <v-list-item-subtitle>{{ defProps.post.embed.record.record.value.createdAt }}</v-list-item-subtitle>
               </v-list-item>
             </v-card-actions>
-            <v-card-text class="text-pre-wrap">
+            <v-card-text class="text-pre-wrap" :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
               <div
                 v-if="defProps.post.embed && defProps.post.embed.record && defProps.post.embed.record.record && defProps.post.embed.record.record.value">
                 {{ defProps.post.embed.record.record.value.text }}</div>
@@ -114,7 +114,7 @@
                 <v-list-item-subtitle>{{ defProps.post.embed.record.value.createdAt }}</v-list-item-subtitle>
               </v-list-item>
             </v-card-actions>
-            <v-card-text class="text-pre-wrap">
+            <v-card-text class="text-pre-wrap" :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
               <div v-if="defProps.post.embed && defProps.post.embed.record && defProps.post.embed.record.value">{{
                 defProps.post.embed.record.value.text }}</div>
             </v-card-text>
@@ -176,8 +176,9 @@
         </v-menu>
 
       </v-list-item-subtitle>
-      <v-list-item-subtitle>{{ defProps.post.record.via }}</v-list-item-subtitle>
-
+        <v-list-item-subtitle >
+          via:{{ defProps.post.record.via }}
+        </v-list-item-subtitle>
       <v-list>
         <v-list-item v-for="(r, rIndex) in defProps.replies" :key="rIndex">
           <v-row>

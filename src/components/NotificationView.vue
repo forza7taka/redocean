@@ -30,7 +30,7 @@
                 {{ posts.get(n.reasonSubject).value.text }}
               </v-card-text>
             </v-card>
-            <v-card v-if="posts.get(n.uri)" :to="`/thread/(${encodeURIComponent(n.uri)})`">
+            <v-card v-if="posts.get(n.uri)" :to="`/thread/${encodeURIComponent(n.uri)}`">
               <v-card-subtitle>{{ convertDate(posts.get(n.uri).value.createdAt) }}</v-card-subtitle>
               <v-card-text>
                 {{ posts.get(n.uri).value.text }}

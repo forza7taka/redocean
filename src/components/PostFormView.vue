@@ -194,7 +194,7 @@ const post = async () => {
   await requestPost.post("com.atproto.repo.createRecord", {
      collection: "app.bsky.feed.post",
      repo: store.getters.getDid,
-     record: { text: contents.value, createdAt: new Date(), facets: await getRichTexts(contents.value) }
+     record: { text: contents.value, createdAt: new Date(), facets: await getRichTexts(contents.value), via:"redocean" }
   })
 }
 const postWithImage = async () => {
@@ -216,7 +216,8 @@ const postWithImage = async () => {
         embed: {
           $type: "app.bsky.embed.images",
           images: imgs
-        }
+        },
+        via: "redocean"
       }
     })
   }
@@ -234,7 +235,8 @@ const reply = async () => {
         handle: store.getters.getHandle,
         parent: parent.value,
         root: root.value,
-      }
+      },
+      via: "redocean"
     }
   })
 }
@@ -263,7 +265,8 @@ const replyWithImage = async () => {
           handle: store.getters.getHandle,
           parent: parent.value,
           root: root.value,
-        }
+        },
+        via: "redocean"
       }
     })
   }
