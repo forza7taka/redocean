@@ -34,13 +34,14 @@
           {{ translateText }}
         </v-card-text>
       </div>
-      <v-card-actions>
-        <div v-for="(facet, facetIndex) in defProps.post.record.facets" :key="facetIndex">
-          <v-list-item v-for="(feature, featureIndex) in facet.features" :key="featureIndex">
+      <div v-for="(facet, facetIndex) in defProps.post.record.facets" :key="facetIndex">
+        <v-list-item v-for="(feature, featureIndex) in facet.features" :key="featureIndex">
+          <v-card-actions>
             <v-list-item-subtitle><a :href="feature.uri">{{ feature.uri }}</a></v-list-item-subtitle>
-          </v-list-item>
-        </div>
-      </v-card-actions>
+          </v-card-actions>
+        </v-list-item>
+      </div>
+
       <div v-if="defProps.post.embed && defProps.post.embed.images">
         <v-card-text>
           <v-list-item v-for="(i, iIndex) in defProps.post.embed.images" :key="iIndex">
@@ -234,16 +235,28 @@ const deletePost = async (uri) => {
 
 const repost = async (post) => {
   try {
-    const subject = { uri: post.uri, cid: post.cid }
-    await request.post("com.atproto.repo.createRecord", {
-      collection: "app.bsky.feed.repost",
-      repo: store.getters.getDid,
-      record: {
-        createdAt: new Date(),
-        $type: "app.bsky.feed.repost",
-        subject: subject
-      }
-    })
+    if (!store.getters.hasRepost(post.uri)) {
+      const subject = { uri: post.uri, cid: post.cid }
+      const response = await request.post("com.atproto.repo.createRecord", {
+        collection: "app.bsky.feed.repost",
+        repo: store.getters.getDid,
+        record: {
+          createdAt: new Date(),
+          $type: "app.bsky.feed.repost",
+          subject: subject
+        }
+      })
+      post.repostCount = post.repostCount + 1
+      store.dispatch('doAddRepost', { key: post.uri, value: response.res.uri });
+    } else {
+      await request.post("com.atproto.repo.deleteRecord", {
+        collection: "app.bsky.feed.repost",
+        repo: store.getters.getDid,
+        rkey: store.getters.getReposts.get(post.uri).substr(-13)
+      })
+      post.repostCount = post.repostCount - 1
+      store.dispatch('doRemoveRepost', post.uri);
+    }
   } catch (e) {
     const toast = createToaster()
     toast.error(e, { position: "top-right" })
@@ -280,3 +293,8 @@ const like = async (post) => {
 }
 
 </script>
+<style scoped>
+.v-card {
+  margin-right: v-bind('depth === 0 ? "5px" : "0px"');
+}
+</style>

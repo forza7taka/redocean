@@ -36,7 +36,7 @@
             <v-list-item-subtitle>
               Posts: {{ profile.postsCount }}
             </v-list-item-subtitle>
-            <v-list-item-subtitle>
+            <v-list-item-subtitle v-if="profile && profile.did == store.getters.getDid">
               <router-link v-if="likes" :to="`/likes/${encodeURIComponent(profile.handle)}`"
                 style="text-decoration: none; color: inherit;">
                 Likes: {{ likes.length }}
@@ -58,32 +58,71 @@
               </router-link>
             </v-list-item-subtitle>
             <v-list-item-subtitle>
-              <v-btn v-if="profile && store.getters.getFollows && store.getters.getFollows.includes(profile.did)"
-                @click.prevent="doUnFollow()" icon><v-icon>mdi-account-remove</v-icon></v-btn>
-              <v-btn v-if="profile && store.getters.getFollows && !store.getters.getFollows.includes(profile.did)"
-                @click.prevent="doFollow()" icon><v-icon>mdi-account-check</v-icon></v-btn>
-
-              <v-btn v-if="profile && profile.did != store.getters.getDid && profile.viewer && profile.viewer.muted"
-                @click.prevent="unMute(profile.did); profile.viewer.muted = !profile.viewer.muted"
-                icon><v-icon>mdi-volume-high</v-icon></v-btn>
-              <v-btn v-if=" profile && profile.did != store.getters.getDid && !(profile.viewer && profile.viewer.muted) "
-                @click.prevent=" mute(profile.did); profile.viewer.muted = !profile.viewer.muted "
-                icon><v-icon>mdi-volume-mute</v-icon></v-btn>
+              <v-badge v-if="profile && store.getters.getFollows && store.getters.getFollows.includes(profile.did)"
+                offset-x="40" offset-y="40" color="transparent">
+                <template #badge>
+                  <span>following</span>
+                </template>
+                <v-btn @click.prevent="doUnFollow()" icon><v-icon>mdi-account-remove</v-icon>
+                </v-btn>
+              </v-badge>
+              <v-badge v-if="profile && store.getters.getFollows && !store.getters.getFollows.includes(profile.did)"
+                offset-x="40" offset-y="40" color="transparent">
+                <template #badge>
+                  <span>Not Following</span>
+                </template>
+                <v-btn @click.prevent="doFollow()" icon><v-icon>mdi-account-check</v-icon>
+                </v-btn>
+              </v-badge>
+              <v-badge v-if="profile && profile.did != store.getters.getDid && profile.viewer && profile.viewer.muted"
+                offset-x="40" offset-y="40" color="transparent">
+                <template #badge>
+                  <span>Muting</span>
+                </template>
+                <v-btn @click.prevent="unMute(profile.did); profile.viewer.muted = !profile.viewer.muted"
+                  icon><v-icon>mdi-volume-high</v-icon>
+                </v-btn>
+              </v-badge>
+              <v-badge
+                v-if=" profile && profile.did != store.getters.getDid && !(profile.viewer && profile.viewer.muted) "
+                offset-x="40" offset-y="40" color="transparent">
+                <template #badge>
+                  <span>Not Muting</span>
+                </template>
+                <v-btn @click.prevent=" mute(profile.did); profile.viewer.muted = !profile.viewer.muted "
+                  icon><v-icon>mdi-volume-mute</v-icon>
+                </v-btn>
+              </v-badge>
             </v-list-item-subtitle>
             <v-list-item-subtitle>
-              <v-btn v-if=" profile && store.getters.getBlocks && store.getters.getBlocks.includes(profile.did) "
-                @click.prevent=" doUnBlock() " icon><svg-icon type="mdi" :path= mdiAccountLockOpen ></svg-icon></v-btn>
-              <v-btn v-if=" profile && store.getters.getBlocks && !store.getters.getBlocks.includes(profile.did) "
-                @click.prevent=" doBlock() " icon><v-icon>mdi-account-cancel</v-icon></v-btn>
+              <v-badge v-if=" profile && store.getters.getBlocks && store.getters.getBlocks.includes(profile.did) "
+                offset-x="40" offset-y="40" color="transparent">
+                <template #badge>
+                  <span>Blocked</span>
+                </template>
+                <v-btn @click.prevent=" doUnBlock() " icon><svg-icon type="mdi"
+                    :path= mdiAccountLockOpen ></svg-icon></v-btn>
+              </v-badge>
 
-              <v-btn v-if=" profile " :to=" `/reportUser/${encodeURIComponent(profile.handle)}` " icon>
-                <v-icon>mdi-alert-circle-outline</v-icon>
-              </v-btn>
-
+              <v-badge v-if=" profile && store.getters.getBlocks && !store.getters.getBlocks.includes(profile.did) "
+                offset-x="40" offset-y="40" color="transparent">
+                <template #badge>
+                  <span>Not Blocked</span>
+                </template>
+                <v-btn @click.prevent=" doBlock() " icon><v-icon>mdi-account-cancel</v-icon></v-btn>
+              </v-badge>
+              <v-badge v-if=" profile " offset-x="35" offset-y="40" color="transparent">
+                <template #badge>
+                  <span>report</span>
+                </template>
+                <v-btn :to=" `/reportUser/${encodeURIComponent(profile.handle)}` " icon>
+                  <v-icon>mdi-alert-circle-outline</v-icon>
+                </v-btn>
+              </v-badge>
             </v-list-item-subtitle>
           </v-list-item>
         </v-card-actions>
-      <v-card-text class="text-pre-wrap">
+        <v-card-text class="text-pre-wrap">
           <div v-if=" profile && profile.description ">
             {{ profile.description }}
           </div>
@@ -225,7 +264,11 @@ const load = async () => {
     await getBlocks(blocksCursor)
   }
 
-  completedLikes.value = false
+  if (profile.value.did == store.getters.getDid) {
+    completedLikes.value = false
+  } else {
+    completedLikes.value = true
+  }
   while (!completedLikes.value) {
     await getLikes(handle, likesCursor)
   }
@@ -377,3 +420,9 @@ const getHandle = async () => {
   return store.getters.getHandle
 }
 </script>
+
+<style scoped>
+.v-badge {
+  margin-right: 40px;
+}
+</style>

@@ -110,7 +110,7 @@ export default createStore({
     removeBlock(state, index) {
       state.blocks.splice(index, 1);
     },
-    
+
     setHandle(state, session) {
       state.handle = session.handle;
     },
@@ -158,7 +158,7 @@ export default createStore({
     },
 
     removeRepost(state, key) {
-      state.likes.delete(key);
+      state.reposts.delete(key);
     },
 
     removeAllReposts(state) {
@@ -186,10 +186,10 @@ export default createStore({
       commit('setProfile', session)
     },
     doSetCloudTranslationApiKey({ commit }, session) {
-      commit('setCloudTranslationApiKey' ,session)
+      commit('setCloudTranslationApiKey', session)
     },
     doAddFollows({ commit }, session) {
-      commit('addFollows', session )
+      commit('addFollows', session)
     },
     removeFollow({ commit, state }, did) {
       const index = state.follows.indexOf(did);
@@ -198,7 +198,7 @@ export default createStore({
       }
     },
     doAddBlocks({ commit }, session) {
-      commit('addBlocks', session )
+      commit('addBlocks', session)
     },
     removeBlock({ commit, state }, did) {
       const index = state.blocks.indexOf(did);
@@ -206,13 +206,13 @@ export default createStore({
         commit('removeBlock', index);
       }
     },
-    doSetServer({commit}, session) {
+    doSetServer({ commit }, session) {
       commit('setServer', session)
     },
-    doSetHandle({commit}, session) {
+    doSetHandle({ commit }, session) {
       commit('setHandle', session)
     },
-    doAddLikes({commit}, session) {
+    doAddLikes({ commit }, session) {
       commit('addLikes', session)
     },
     doAddLike({ commit }, { key, value }) {
@@ -224,7 +224,7 @@ export default createStore({
     doRemoveAllLikes({ commit }, session) {
       commit('removeAllLikes', session)
     },
-    doAddReposts({commit}, session) {
+    doAddReposts({ commit }, session) {
       commit('addReposts', session)
     },
     doAddRepost({ commit }, { key, value }) {
@@ -237,7 +237,7 @@ export default createStore({
       commit('removeAllReposts', session)
     },
 
-    doAddMutes({commit}, session) {
+    doAddMutes({ commit }, session) {
       commit('addMutes', session)
     },
     removeMute({ commit, state }, did) {
