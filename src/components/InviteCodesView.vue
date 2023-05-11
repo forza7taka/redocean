@@ -12,12 +12,14 @@
               </v-card-subtitle>
               <v-card-subtitle>avaival:{{ c.available }}</v-card-subtitle>
               <v-card-subtitle>uses:{{ c.uses.length }}</v-card-subtitle>
-              <div v-for="(u, uIndex) in  c.uses" :key="uIndex">
-                <v-card-subtitle>used by :<a :href="`https://plc.directory/${u.usedBy}/log`"></a></v-card-subtitle>
-                <v-expansion-panels>
-                  <v-expansion-panel :title=u.usedBy :text=u.handles />
-                </v-expansion-panels>
-              </div>
+                <div v-for="(u, uIndex) in  c.uses" :key="uIndex">
+                  <v-card-text>
+                  {{u.usedBy}}
+                  <div v-for="(h, hIndex) in  u.handles" :key="hIndex">
+                    {{h}}
+                  </div>
+                  </v-card-text>
+                </div>
               <v-text-field label="remark" clearable dense v-model="c.remark" @input="onInputRemark"></v-text-field>
             </v-card>
           </v-col>
@@ -80,11 +82,9 @@ onBeforeMount(async () => {
       for (const d of response.data) {
         handles.push(d.alsoKnownAs);
       }
-      uses.push({ usedBy: u.usedBy, handles: handles.join('\n') });
-      console.log(uses);
+      uses.push({ usedBy: u.usedBy, handles: handles });
     }
     const code = { code: el.code, available: el.available, uses: uses, remark: remark };
-    console.log(code);
     codes.value.push(code);
   }
   inviteCodes.value = codes.value

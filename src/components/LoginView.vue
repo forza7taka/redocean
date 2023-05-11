@@ -9,8 +9,8 @@
               placeholder="https://bsky.social" color="green darken-5" clearable dense></v-combobox>
             <v-text-field label="xxxx.bsky.social" placeholder="xxxx.bsky.social" color="green darken-5" clearable dense
               v-model="l.handle"></v-text-field>
-            <v-text-field label="password" placeholder="password" color="green darken-5" clearable dense type="password"
-              v-model="l.password"></v-text-field>
+            <v-text-field label="app password" placeholder="app password" color="green darken-5" clearable dense type="password"
+              v-model="l.password" :rules="AppPasswordRules"></v-text-field>
             <v-color-picker disabled hide-canvas hide-inputs hide-mode-switch hide-sliders mode="rgba" show-swatches
               swatches-max-height="210" v-model=l.color></v-color-picker>
             <br>
@@ -52,6 +52,20 @@ const logins = ref([{ server: null, handle: null, password: null, color: null }]
 const storageLogins = useStorage('storageLogins', logins)
 const cloudTranslationApiKey = ref(null)
 const storageCloudTranslationApiKey = useStorage('storageCloudTranslationApiKey', cloudTranslationApiKey)
+
+
+const AppPasswordRules = [
+  (value) => {
+    const regex = /^[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}$/;
+    if (!value) {
+      return 'App Password is required';
+    } else if (!regex.test(value)) {
+      return 'App Password must be valid';
+    } else {
+      return true;
+    }
+  },
+];
 
 const del = async (index) => {
   logins.value.splice(index, 1)
