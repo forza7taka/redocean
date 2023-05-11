@@ -10,6 +10,7 @@ import VueGtag from 'vue-gtag-next';
 import infiniteLoading from "v3-infinite-loading";
 import toaster from '@meforma/vue-toaster';
 import HistoryStatePlugin from 'vue-history-state'
+import './registerServiceWorker'
 
 loadFonts()
 
