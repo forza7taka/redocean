@@ -43,7 +43,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted} from 'vue'
+import { ref, watch, onMounted, onBeforeMount} from 'vue'
 import { useStore } from 'vuex'
 import { useRequestGet } from '../common/requestGet.js'
 import { createToaster } from '@meforma/vue-toaster'
@@ -99,6 +99,10 @@ const menuItems = ref([
 ])
 
 watch(() => store.getters.getColor, () => {
+  color.value = store.getters.getColor || 'pink-lighten-2'
+})
+
+onBeforeMount(async () => {
   color.value = store.getters.getColor || 'pink-lighten-2'
 })
 

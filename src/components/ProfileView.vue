@@ -36,7 +36,7 @@
             <v-list-item-subtitle>
               Posts: {{ profile.postsCount }}
             </v-list-item-subtitle>
-            <v-list-item-subtitle>
+            <v-list-item-subtitle v-if="profile && profile.did == store.getters.getDid">
               <router-link v-if="likes" :to="`/likes/${encodeURIComponent(profile.handle)}`"
                 style="text-decoration: none; color: inherit;">
                 Likes: {{ likes.length }}
@@ -264,7 +264,11 @@ const load = async () => {
     await getBlocks(blocksCursor)
   }
 
-  completedLikes.value = false
+  if (profile.value.did == store.getters.getDid) {
+    completedLikes.value = false
+  } else {
+    completedLikes.value = true
+  }
   while (!completedLikes.value) {
     await getLikes(handle, likesCursor)
   }
