@@ -35,11 +35,11 @@
         </v-card-text>
       </div>
       <div v-for="(facet, facetIndex) in defProps.post.record.facets" :key="facetIndex">
-        <v-list-item v-for="(feature, featureIndex) in facet.features" :key="featureIndex">
-          <v-card-actions>
-            <v-list-item-subtitle><a :href="feature.uri">{{ feature.uri }}</a></v-list-item-subtitle>
-          </v-card-actions>
-        </v-list-item>
+        <div v-for="(feature, featureIndex) in facet.features" :key="featureIndex">
+          <v-list-item-subtitle>
+          <a :href="feature.uri">{{ feature.uri }}</a>
+        </v-list-item-subtitle>
+        </div>
       </div>
 
       <div v-if="defProps.post.embed && defProps.post.embed.images">
@@ -69,7 +69,7 @@
       <!--quoteRepostWithImage S-->
       <div v-if="defProps.post.embed && defProps.post.embed.record">
         <div v-if="defProps.post.embed.$type == 'app.bsky.embed.recordWithMedia#view'">
-          <v-card class="mx-auto" variant="outlined">
+          <v-card class="mx-auto" variant="outlined" :to="`/thread/${encodeURIComponent(defProps.post.uri)}`">
             <v-card-actions>
               <v-list-item class="w-100">
                 <template v-slot:prepend>
@@ -86,7 +86,7 @@
                 <v-list-item-subtitle>{{ defProps.post.embed.record.record.value.createdAt }}</v-list-item-subtitle>
               </v-list-item>
             </v-card-actions>
-            <v-card-text>
+            <v-card-text class="text-pre-wrap">
               <div
                 v-if="defProps.post.embed && defProps.post.embed.record && defProps.post.embed.record.record && defProps.post.embed.record.record.value">
                 {{ defProps.post.embed.record.record.value.text }}</div>
@@ -97,7 +97,7 @@
 
         <!--quoteRepost S-->
         <div v-if="defProps.post.embed.$type == 'app.bsky.embed.record#view'">
-          <v-card class="mx-auto mt-5" variant="outlined">
+          <v-card class="mx-auto mt-5" variant="outlined" :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
             <v-card-actions>
               <v-list-item class="w-100">
                 <template v-slot:prepend>
@@ -114,7 +114,7 @@
                 <v-list-item-subtitle>{{ defProps.post.embed.record.value.createdAt }}</v-list-item-subtitle>
               </v-list-item>
             </v-card-actions>
-            <v-card-text>
+            <v-card-text class="text-pre-wrap">
               <div v-if="defProps.post.embed && defProps.post.embed.record && defProps.post.embed.record.value">{{
                 defProps.post.embed.record.value.text }}</div>
             </v-card-text>
@@ -176,6 +176,8 @@
         </v-menu>
 
       </v-list-item-subtitle>
+      <v-list-item-subtitle>{{ defProps.post.record.via }}</v-list-item-subtitle>
+
       <v-list>
         <v-list-item v-for="(r, rIndex) in defProps.replies" :key="rIndex">
           <v-row>
