@@ -1,6 +1,6 @@
 <template>
   <div v-if="defProps.post">
-    <v-card class="mx-auto mt-5">
+    <v-card :class="['mx-auto mt-5', { 'v-card--depth': depth !== 0 }]" variant="flat">
       <div v-if="defProps.reason && defProps.reason.by">
         <v-card-subtitle>Reposted by {{ defProps.reason.by.displayName }}(@{{ defProps.reason.by.handle
         }})</v-card-subtitle>
@@ -10,60 +10,36 @@
         }})</v-card-subtitle>
       </div>
       <v-card-actions>
-        <v-list-item class="w-100">
-          <template v-slot:prepend>
-            <div style="padding-right: 10px">
-              <router-link :to="`/profile/${defProps.post.author.handle}`">
-                <v-avatar color="surface-variant">
-                  <v-img cover v-bind:src=defProps.post.author.avatar alt="avatar"></v-img>
-                </v-avatar>
-              </router-link>
-            </div>
-          </template>
-          <v-list-item-subtitle>{{ defProps.post.author.displayName }}</v-list-item-subtitle>
-          <v-list-item-subtitle>@{{ defProps.post.author.handle }}</v-list-item-subtitle>
-          <v-list-item-subtitle>{{ convertDate(defProps.post.record.createdAt) }}</v-list-item-subtitle>
-        </v-list-item>
+        <PostUserView :author="defProps.post.author" :createdAt="defProps.post.record.createdAt"/>
       </v-card-actions>
       <v-card-text class="text-pre-wrap">
         <div v-if="defProps.post && defProps.post.record && defProps.post.record.text">
           {{ defProps.post.record.text }}</div>
       </v-card-text>
-      <div v-if="translateText">
-        <v-card-text class="text-pre-wrap">
+      <v-card-text v-if="translateText" class="text-pre-wrap">
           {{ translateText }}
-        </v-card-text>
-      </div>
-      <div v-for="(facet, facetIndex) in defProps.post.record.facets" :key="facetIndex">
-        <div v-for="(feature, featureIndex) in facet.features" :key="featureIndex">
-          <v-list-item-subtitle>
-          <a :href="feature.uri">{{ feature.uri }}</a>
-        </v-list-item-subtitle>
+      </v-card-text>
+        <div v-for="(facet, facetIndex) in defProps.post.record.facets" :key="facetIndex">
+          <div v-for="(feature, featureIndex) in facet.features" :key="featureIndex">
+            <v-card-text>
+            <a :href="feature.uri">{{ feature.uri }}</a>
+            </v-card-text>
+          </div>
         </div>
-      </div>
-
+        <v-card-subtitle>
+          <v-list-item-subtitle>
+            <div v-if="defProps.post.record.via">
+              via:{{ defProps.post.record.via }}
+            </div>
+          </v-list-item-subtitle>
+        </v-card-subtitle>
+      
       <div v-if="defProps.post.embed && defProps.post.embed.images">
-        <v-card-text>
-          <v-list-item v-for="(i, iIndex) in defProps.post.embed.images" :key="iIndex">
-            <v-row>
-              <v-col>
-                <v-img v-bind:src=i.fullsize v-bind:lazy-src=i.thumb class="rounded-xl" alt=""></v-img>
-              </v-col>
-            </v-row>
-          </v-list-item>
-        </v-card-text>
+      <PostImageView :images="defProps.post.embed.images"/>       
       </div>
 
       <div v-if="defProps.post.embed && defProps.post.embed.media">
-        <v-card-text>
-          <v-list-item v-for="(i, iIndex) in defProps.post.embed.media.images" :key="iIndex">
-            <v-row>
-              <v-col>
-                <v-img v-bind:src=i.fullsize v-bind:lazy-src=i.thumb class="rounded-xl" alt=""></v-img>
-              </v-col>
-            </v-row>
-          </v-list-item>
-        </v-card-text>
+        <PostImageView :images="defProps.post.embed.media.images"/>
       </div>
 
       <!--quoteRepostWithImage S-->
@@ -71,20 +47,8 @@
         <div v-if="defProps.post.embed.$type == 'app.bsky.embed.recordWithMedia#view'">
           <v-card class="mx-auto" variant="outlined" :to="`/thread/${encodeURIComponent(defProps.post.uri)}`">
             <v-card-actions>
-              <v-list-item class="w-100">
-                <template v-slot:prepend>
-                  <div style="padding-right: 10px">
-                    <router-link :to="`/profile/${defProps.post.embed.record.record.author.handle}`">
-                      <v-avatar color="surface-variant">
-                        <v-img cover v-bind:src=defProps.post.embed.record.record.author.avatar alt="avatar"></v-img>
-                      </v-avatar>
-                    </router-link>
-                  </div>
-                </template>
-                <v-list-item-subtitle>{{ defProps.post.embed.record.record.author.displayName }}</v-list-item-subtitle>
-                <v-list-item-subtitle>@{{ defProps.post.embed.record.record.author.handle }}</v-list-item-subtitle>
-                <v-list-item-subtitle>{{ defProps.post.embed.record.record.value.createdAt }}</v-list-item-subtitle>
-              </v-list-item>
+            <PostUserView :author="defProps.post.embed.record.record.author"
+             :createdAt="defProps.post.embed.record.record.value.createdAt"/>
             </v-card-actions>
             <v-card-text class="text-pre-wrap" :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
               <div
@@ -99,20 +63,8 @@
         <div v-if="defProps.post.embed.$type == 'app.bsky.embed.record#view'">
           <v-card class="mx-auto mt-5" variant="outlined" :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
             <v-card-actions>
-              <v-list-item class="w-100">
-                <template v-slot:prepend>
-                  <div style="padding-right: 10px">
-                    <router-link :to="`/profile/${defProps.post.embed.record.author.handle}`">
-                      <v-avatar color="surface-variant">
-                        <v-img cover v-bind:src=defProps.post.embed.record.author.avatar alt="avatar"></v-img>
-                      </v-avatar>
-                    </router-link>
-                  </div>
-                </template>
-                <v-list-item-subtitle>{{ defProps.post.embed.record.author.displayName }}</v-list-item-subtitle>
-                <v-list-item-subtitle>@{{ defProps.post.embed.record.author.handle }}</v-list-item-subtitle>
-                <v-list-item-subtitle>{{ defProps.post.embed.record.value.createdAt }}</v-list-item-subtitle>
-              </v-list-item>
+              <PostUserView :author="defProps.post.embed.record.author"
+               :createdAt="defProps.post.embed.record.value.createdAt"/>
             </v-card-actions>
             <v-card-text class="text-pre-wrap" :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
               <div v-if="defProps.post.embed && defProps.post.embed.record && defProps.post.embed.record.value">{{
@@ -129,11 +81,9 @@
 
         <v-menu offset-y>
           <template v-slot:activator="{ props }">
-
             <v-btn v-bind="props" v-if="store.getters.hasRepost(defProps.post.uri)" class="ma-2" variant="text" size="32"
               color="red" icon="mdi-repeat" />
             <v-btn v-bind="props" v-else class="ma-2" variant="text" size="32" icon="mdi-repeat" />
-
           </template>
           <v-list>
             <v-list-item @click="repost(defProps.post)">
@@ -174,31 +124,24 @@
             </v-list-item>
           </v-list>
         </v-menu>
-
-      </v-list-item-subtitle>
-        <v-list-item-subtitle >
-          via:{{ defProps.post.record.via }}
-        </v-list-item-subtitle>
-      <v-list>
-        <v-list-item v-for="(r, rIndex) in defProps.replies" :key="rIndex">
-          <v-row>
-            <v-col class="justify-center align-center">
-              <PostView :post="r.post" :root="root" :depth="depth + 1" :replies="r.replies"></PostView>
-            </v-col>
-          </v-row>
-        </v-list-item>
-      </v-list>
+      </v-list-item-subtitle>      
+        <div class="justify-center align-center" v-for="(r, rIndex) in defProps.replies" :key="rIndex">
+        <v-divider/>
+          <PostView :post="r.post" :root="root" :depth="depth + 1" :replies="r.replies"></PostView>
+        </div>
     </v-card>
+    <v-divider v-if="depth==0"/>
   </div>
 </template>
 
 <script setup>
+import PostUserView from './PostUserView.vue'
+import PostImageView from './PostImageView.vue'
 import axios from 'axios'
 import { ref, defineProps } from 'vue'
 import { useStore } from 'vuex'
 import { createToaster } from '@meforma/vue-toaster';
 import { useRequestPost } from "@/common/requestPost";
-import { useDate } from "@/common/date";
 
 const defProps = defineProps({
   post: null,
@@ -210,7 +153,6 @@ const defProps = defineProps({
 })
 const store = useStore()
 const request = useRequestPost(store)
-const { convertDate } = useDate()
 const translateText = ref(null)
 
 const translate = async (text) => {
@@ -297,7 +239,8 @@ const like = async (post) => {
 
 </script>
 <style scoped>
-.v-card {
-  margin-right: v-bind('depth === 0 ? "5px" : "0px"');
+.v-card--depth {
+  margin-left: 5px !important;
+  margin-right: 0px !important;
 }
 </style>
