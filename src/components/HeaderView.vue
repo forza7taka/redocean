@@ -14,13 +14,13 @@
         <template #badge>
           <span>{{ unReadCount }}</span>
         </template>
-        <v-btn to="/notification" icon>
+        <v-btn v-if="store.getters.getAccessJwt" to="/notification" icon>
           <v-icon size="18" color="white">mdi-bell</v-icon>
         </v-btn>
       </v-badge>
     </div>
     <div v-if="unReadCount == 0">
-      <v-btn to="/notification" icon>
+      <v-btn v-if="store.getters.getAccessJwt" to="/notification" icon>
       <v-icon size="18">mdi-bell</v-icon>
     </v-btn>    
   </div>
@@ -28,14 +28,13 @@
   </v-app-bar>
   <v-navigation-drawer v-model="drawer" fixed temporary>
       <v-list nav dense>
-        <v-list-item
-          v-for="menuItem in menuItems"
-          :key="menuItem.name"
-          :prepend-icon="menuItem.icon"          
-          active-class="deep-purple--text text--accent-4">
+        <v-list-item v-for="(menuItem, index) in menuItems" :key="index"
+          active-class="deep-purple--text text--accent-4">    
+          <div v-if="store.getters.getAccessJwt || !menuItem.login">
           <router-link :to= menuItem.link>   
-            {{menuItem.name}}
+            <v-icon>{{menuItem.icon}}</v-icon>{{menuItem.name}}
           </router-link>
+          </div>
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
@@ -60,41 +59,49 @@ const menuItems = ref([
           icon: "mdi-account-plus",
           name: "Account",
           link: "/accountCreate",
+          login: false
         },
         {
           icon: "mdi-home",
           name: "Home",
           link: "/",
+          login: false
         },
         {
          icon: "mdi-view-list",
           name: "Timeline",
           link: "/timeline",
+          login: true
         },
         {
           icon: "mdi-face-profile",
           name: "Profile",
-          link: "/profile"
+          link: "/profile",
+          login: true
         },
         {
           icon: "mdi-fire",
           name: "Popular",
-          link: "/popular"
+          link: "/popular",
+          login: true
         },
         {
           icon: "mdi-star",
           name: "Suggestions",
-          link: "/suggestions"
+          link: "/suggestions",
+          login: true
         },
         {
           icon: "mdi-cog-outline",
           name: "Settings",
-          link: "/settings"
+          link: "/settings",
+          login: true
         },
         {
           icon: "mdi-shield-account",
           name: "PrivacyPolicy",
-          link: "/privacypolicy"
+          link: "/privacypolicy",
+          login: false
         },
 ])
 
@@ -128,6 +135,9 @@ onMounted(async () => {
 
 const getUnreadCount = async () => {
   try {
+    if (!store.getters.getAccessJwt) {
+      return
+    }
     const response = await requestGet.get("app.bsky.notification.getUnreadCount")
     unReadCount.value = response.res.count
   } catch (e) {

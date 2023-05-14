@@ -1,33 +1,47 @@
 <template>
-  <v-card>
-    <v-card-text>
-      <v-row>
-        <v-col v-for="(l, index) in logins" :key="index" cols="12" md="6" lg="4">
-          <v-card width="380px" class="mx-auto pa-4">
-            <v-combobox v-model="l.server"
-              :items="['https://bsky.social', 'https://boobee.blue', 'https://atproto.forza7.org']" label="server"
-              placeholder="https://bsky.social" color="green darken-5" clearable dense></v-combobox>
-            <v-text-field label="xxxx.bsky.social" placeholder="xxxx.bsky.social" color="green darken-5" clearable dense
-              v-model="l.handle"></v-text-field>
-            <v-text-field label="app password" placeholder="app password" color="green darken-5" clearable dense type="password"
-              v-model="l.password" :rules="AppPasswordRules"></v-text-field>
-            <v-color-picker disabled hide-canvas hide-inputs hide-mode-switch hide-sliders mode="rgba" show-swatches
-              swatches-max-height="210" v-model=l.color></v-color-picker>
-            <br>
-            <v-btn @click.prevent="login(l.server, l.handle, l.password, l.color)" icon="mdi-login" size="42"></v-btn>
-            &nbsp;
-            <v-btn v-if="logins.length > 1" @click="del(index)" icon="mdi-minus" size="42"></v-btn>
-            &nbsp;
-            <v-btn v-if="l.server && l.handle && l.password && index == logins.length - 1" @click="add" size="42"
-              icon="mdi-plus"></v-btn>
-          </v-card>
-        </v-col>
-      </v-row>
+  <div class="displayArea">
+    <v-card>
+        <v-card-text>
+
+      <v-tabs v-model="tab">
+        <v-tab v-for="(l, index) in logins" :key="index" :value=index>
+          {{ index }}
+        </v-tab>
+      </v-tabs>
     </v-card-text>
-  </v-card>
+
+      <v-card-text>
+      <v-window v-model="tab">
+        <div v-for="(l, index) in logins" :key="index">
+          <v-window-item :value=index>
+          <v-card class="mx-auto pa-4">
+                <v-combobox v-model="l.server"
+                  :items="['https://bsky.social', 'https://boobee.blue', 'https://atproto.forza7.org']" label="server"
+                  placeholder="https://bsky.social" color="green darken-5" clearable dense variant="outlined"></v-combobox>
+                <v-text-field label="xxxx.bsky.social" placeholder="xxxx.bsky.social" color="green darken-5" clearable dense
+                  v-model="l.handle" variant="outlined"></v-text-field>
+                <v-text-field label="app password" placeholder="app password" color="green darken-5" clearable dense type="password"
+                  v-model="l.password" :rules="AppPasswordRules" variant="outlined"></v-text-field>
+                <v-color-picker disabled hide-canvas hide-inputs hide-mode-switch hide-sliders mode="rgba" show-swatches
+                  swatches-max-height="210" v-model=l.color></v-color-picker>
+                <br>
+                <v-btn @click.prevent="login(l.server, l.handle, l.password, l.color)" icon="mdi-login" size="42"></v-btn>
+                &nbsp;
+                <v-btn v-if="logins.length > 1" @click="del(index)" icon="mdi-minus" size="42"></v-btn>
+                &nbsp;
+                <v-btn v-if="l.server && l.handle && l.password && index == logins.length - 1" @click="add" size="42"
+                  icon="mdi-plus"></v-btn>
+              </v-card>
+              </v-window-item>
+        </div>
+      </v-window>
+      </v-card-text>
+    </v-card>          
+          </div>
 </template>
 
 <script setup>
+
 import { ref, onBeforeMount } from 'vue'
 import { useStore } from 'vuex'
 import { createToaster } from '@meforma/vue-toaster';
@@ -35,6 +49,8 @@ import { useRequestGet } from '../common/requestGet.js'
 import { useRequestPost } from '../common/requestPost.js'
 import { useRouter } from "vue-router"
 import { useStorage } from '@vueuse/core'
+
+const tab = ref(null)
 const failed = ref(false)
 const followsCursor = ref(null)
 const likesCursor = ref(null)
@@ -87,13 +103,13 @@ onBeforeMount(async () => {
     if (failed.value) {
       return
     }
-    if ((store.getters.getDid) && (store.getters.getAccessJwt)) {
-      // axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getRefreshJwt
-      // const response = await requestPost.post("com.atproto.server.refreshSession")
-      // store.dispatch('doCreateSession', response.res)
-      // axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getAccessJwt 
-      // route.push('/timeline')
-    }
+    // if ((store.getters.getDid) && (store.getters.getAccessJwt)) {
+    //   axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getRefreshJwt
+    //   const response = await requestPost.post("com.atproto.server.refreshSession")
+    //   store.dispatch('doCreateSession', response.res)
+    //   axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getAccessJwt 
+    //   route.push('/timeline')
+    // }
   } catch (e) {
     failed.value = true
     console.error(e)
