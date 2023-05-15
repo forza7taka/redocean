@@ -20,7 +20,7 @@ import Post from '@/components/PostFormView.vue'
 import Settings from '@/components/SettingsView.vue'
 import Blocks from '@/components/BlocksView.vue'
 import Moderation from '@/components/ModerationView.vue'
-
+import AccountSetting from '@/components/AccountSettingsView.vue'
 import { trackRouter } from "vue-gtag-next";
 const routes = [
   {
@@ -168,6 +168,11 @@ const routes = [
     path: '/reportUser/:handle',
     name: 'reportUser',
     component: Moderation
+  },
+  {
+    path: '/accountSetting/',
+    name: 'accountSetting',
+    component: AccountSetting
   },
   {
     path: '/',

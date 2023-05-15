@@ -1,60 +1,54 @@
 <template>
   <div class="displayArea mx-auto">
-    <v-card>
-      <v-card-text>
-        <v-card class="mx-auto pa-4">
-          <v-text-field label="Google Cloud Translation API" color="green darken-5" clearable dense
-            v-model="cloudTranslationApiKey"></v-text-field>
-        </v-card>
-
-        <v-card class="mx-auto pa-4">
-          <v-btn-toggle v-model="toggle" color="primary">
-            <v-btn icon="mdi-format-align-left"></v-btn>
-            <v-btn icon="mdi-format-align-center"></v-btn>
-            <v-btn icon="mdi-format-align-right"></v-btn>
-            <v-btn icon="mdi-format-align-justify"></v-btn>
+    <template v-for="(l, index) in labels" :key="index">
+    <v-card class="mx-auto pa-4">
+          <v-card-subtitle>
+            {{ l.name }}:{{ l.discription }}
+          </v-card-subtitle>
+          <v-btn-toggle v-model="value[index]" color="primary">
+            <v-btn icon="mdi-image-off-outline"></v-btn>
+            <v-btn icon="mdi-alert-octagon"></v-btn>
+            <v-btn icon="mdi-image-outline"></v-btn>
           </v-btn-toggle>
         </v-card>
-        <!-- yes_sexual_activity: 'porn',
-    animal_genitalia_and_human: 'porn', // for some reason not included in 'yes_sexual_activity'
-    yes_male_nudity: 'nudity',
-    yes_female_nudity: 'nudity',
-    general_suggestive: 'sexual',
-    very_bloody: 'gore',
-    human_corpse: 'corpse',
-    yes_self_harm: 'self-harm',
-    yes_nazi: 'icon-nazi',
-    yes_kkk: 'icon-kkk',
-    yes_confederate: 'icon-confederate', -->
-
-
-
-
-
-      </v-card-text>
-      <v-card-actions>
-        <v-btn icon @click="update"><v-icon>mdi-content-save</v-icon></v-btn>
-      </v-card-actions>
-    </v-card>
+     </template>
   </div>
 </template>
 
 <script setup>
-import { ref, onBeforeMount } from 'vue'
+import { ref, watchEffect, onBeforeMount } from 'vue'
 import { useStorage } from '@vueuse/core'
-import { useStore } from 'vuex'
 
-const store = useStore();
-const cloudTranslationApiKey = ref(null)
-const storageCloudTranslationApiKey = useStorage('storageCloudTranslationApiKey', cloudTranslationApiKey)
+const logins = ref(null)
+const storageLogins = useStorage('storageLogins', logins)
+
+const labels = ref([{ name: 'porn', value: "porn", discription: "sexual activity/animal genitalia and human" },
+  { name: 'nudity', value: "nudity", discription: "male nudity/female nudity" },
+  { name: 'sexual', value: "sexual", discription: "general suggestive" },
+  { name: 'gore', value: "gore", discription: "very bloody" },
+  { name: 'corpse', value: "corpse", discription: "human corpse" },
+{ name: 'self-harm', value: "self-harm", discription: "self_harm" },
+{ name: 'icon-nazi', value: "icon-nazi", discription: "nazi" },
+{ name: 'icon-kkk', value: "icon-kkk", discription: "kkk" },
+{ name: 'icon-confederate', value: "icon-confederate", discription: "confederate" }
+])
+
+const value = ref([])
 
 onBeforeMount(async () => {
-  cloudTranslationApiKey.value = storageCloudTranslationApiKey.value
-})
+  logins.value[0].labels = Object.values(logins.value[0].labels)
+  if (logins.value[0].labels) {
+    value.value = Object.values(logins.value[0].labels)
+  } else {
+    value.value = new Array()
+    logins.value[0].labels = []
+  }
 
-const update = async () => {
-  storageCloudTranslationApiKey.value = cloudTranslationApiKey.value
-  store.dispatch('doSetCloudTranslationApiKey', cloudTranslationApiKey.value);
+});
 
-}
+watchEffect(() => {
+  logins.value[0].labels = value.value
+  storageLogins.value = logins.value;
+});
+
 </script>

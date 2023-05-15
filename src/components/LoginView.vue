@@ -5,7 +5,14 @@
 
       <v-tabs v-model="tab">
         <v-tab v-for="(l, index) in logins" :key="index" :value=index>
-          {{ index }}
+          <div v-if="l.color">
+          <v-avatar :style="`border: 5px solid ${l.color};`">
+            <v-img cover v-bind:src=l.avatar alt="avatar"></v-img>
+          </v-avatar>
+          </div>
+          <div v-if="!l.color">
+            New Account
+          </div>
         </v-tab>
       </v-tabs>
     </v-card-text>
@@ -27,6 +34,8 @@
                 <br>
                 <v-btn @click.prevent="login(l.server, l.handle, l.password, l.color)" icon="mdi-login" size="42"></v-btn>
                 &nbsp;
+                <v-btn to="/AccountSetting" icon="mdi-cog-outline" size="42"></v-btn>
+                  &nbsp;
                 <v-btn v-if="logins.length > 1" @click="del(index)" icon="mdi-minus" size="42"></v-btn>
                 &nbsp;
                 <v-btn v-if="l.server && l.handle && l.password && index == logins.length - 1" @click="add" size="42"
@@ -131,6 +140,8 @@ const login = async (server, handle, password, color) => {
     const res2 = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
     store.dispatch('doSetProfile', res2.res);
 
+    logins.value[tab.value].avatar = res2.res.avatar
+
     storageLogins.value = logins.value
 
     while (!completed.value) {
@@ -154,7 +165,11 @@ const login = async (server, handle, password, color) => {
     }
     route.push('/timeline')
   } catch (e) {
-    toast.error(e, { position: "top-right" })
+    if (e.response && e.response.data && e.response.data.message) {
+      toast.error(e.response.data.message, { position: "top-right" })
+    } else {
+      toast.error(e, { position: "top-right" })
+    }
   }
 }
 

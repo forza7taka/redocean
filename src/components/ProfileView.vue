@@ -17,9 +17,9 @@
             </v-list-item-title>
             <v-list-item-subtitle>
               @{{ profile.handle }}
-              <v-btn size=12 v-if="profile && profile.did == store.getters.getDid" icon to="handleEdit">
+              <!-- <v-btn size=12 v-if="profile && profile.did == store.getters.getDid" icon to="handleEdit">
                 <v-icon size="12">mdi-pencil</v-icon>
-              </v-btn>
+              </v-btn> -->
             </v-list-item-subtitle>
             <v-list-item-subtitle>
               <router-link :to="`/followers/${encodeURIComponent(profile.handle)}`"

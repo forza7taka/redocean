@@ -28,14 +28,16 @@
   </v-app-bar>
   <v-navigation-drawer v-model="drawer" fixed temporary>
       <v-list nav dense>
-        <v-list-item v-for="(menuItem, index) in menuItems" :key="index"
-          active-class="deep-purple--text text--accent-4">    
-          <div v-if="store.getters.getAccessJwt || !menuItem.login">
-          <router-link :to= menuItem.link>   
-            <v-icon>{{menuItem.icon}}</v-icon>{{menuItem.name}}
-          </router-link>
+        <template v-for="(menuItem, index) in menuItems" :key="index">
+        <v-list-item v-if="store.getters.getAccessJwt || !menuItem.login" active-class="deep-purple--text text--accent-4">
+          <div>
+            <router-link :to="menuItem.link">
+              <v-icon>{{ menuItem.icon }}</v-icon>
+              {{ menuItem.name }}
+            </router-link>
           </div>
         </v-list-item>
+      </template>
       </v-list>
     </v-navigation-drawer>
   </div>
@@ -55,12 +57,6 @@ const unReadCount = ref(0)
 const cursor = ref(null)
 const color = ref("pink-lighten-2")
 const menuItems = ref([
-        {
-          icon: "mdi-account-plus",
-          name: "Account",
-          link: "/accountCreate",
-          login: false
-        },
         {
           icon: "mdi-home",
           name: "Home",
