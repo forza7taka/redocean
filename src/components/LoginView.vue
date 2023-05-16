@@ -5,14 +5,24 @@
 
         <v-tabs v-model="tab">
           <v-tab v-for="(l, index) in logins" :key="index" :value=index>
-            <div v-if="l.avatar">
-              <v-avatar :style="`border: 5px solid ${l.color};`">
-                <v-img cover v-bind:src=l.avatar alt="avatar"></v-img>
-              </v-avatar>
-            </div>
-            <div v-if="!l.avatar">
+            <template v-if="l.avatar">
+              <template v-if="userSettings && userSettings[l.did]">
+                <v-avatar v-if="userSettings" :style="`border: 5px solid color: ${userSettings[l.did].color};`">
+                  <v-img cover v-bind:src=l.avatar alt="avatar"></v-img>
+                </v-avatar>
+              </template>
+              <template v-if="!(userSettings && (userSettings[l.did]))">
+                <v-avatar v-if="userSettings" :style="`border: 5px solid;`">
+                  <v-img cover v-bind:src=l.avatar alt="avatar"></v-img>
+                </v-avatar>
+              </template>
+            </template>
+            <template v-if="!l.avatar && l.handle">
+                {{ l.handle }}
+            </template>
+            <template v-if="!l.avatar && !l.handle">
               New Account
-            </div>
+            </template>
           </v-tab>
         </v-tabs>
       </v-card-text>
@@ -30,17 +40,12 @@
                   dense v-model="l.handle" variant="outlined"></v-text-field>
                 <v-text-field label="app password" placeholder="app password" color="green darken-5" clearable dense
                   type="password" v-model="l.password" :rules="AppPasswordRules" variant="outlined"></v-text-field>
-                <!-- <v-color-picker disabled hide-canvas hide-inputs hide-mode-switch hide-sliders mode="rgba" show-swatches
-                  swatches-max-height="210" v-model=l.color></v-color-picker> -->
                 <br>
-                <template v-if="l.server && l.handle && l.password">
-                  <v-btn @click.prevent="login(l.server, l.handle, l.password)" icon="mdi-login" size="42"></v-btn>
-                </template>
+                <v-btn @click.prevent="login(l.server, l.handle, l.password)" icon="mdi-login" size="42"
+                :disabled="!(l.server && l.handle && l.password)"></v-btn>
                 &nbsp;
-                <template v-if="l.did">
-                  <v-btn :to="`/accountSetting/${l.did}`" icon="mdi-cog-outline" size="42"></v-btn>
-                  &nbsp;
-                </template>
+                <v-btn :to="`/accountSetting/${l.did}`" icon="mdi-cog-outline" size="42" :disabled="!l.did"></v-btn>
+                 &nbsp;
                 <v-btn v-if="logins.length > 1" @click="del(index)" icon="mdi-minus" size="42"></v-btn>
                 &nbsp;
                 <v-btn v-if="l.server && l.handle && l.password && index == logins.length - 1" @click="add" size="42"
@@ -68,7 +73,7 @@ const tab = ref(null)
 const failed = ref(false)
 const followsCursor = ref(null)
 const likesCursor = ref(null)
-const mutesCursor = ref(null)
+const mutesCursor = ref(null) 
 const blocksCursor = ref(null)
 const repostsCursor = ref(null)
 const store = useStore()
@@ -76,11 +81,25 @@ const requestGet = useRequestGet(store)
 const requestPost = useRequestPost(store)
 const route = useRouter()
 const completed = ref(false)
-const logins = ref([{ server: null, handle: null, password: null, did: null }])
+const logins = ref([{ server: null, handle: null, password: null, did: null, avatar: null }])
 
-const storageLogins = useStorage('storageLogins', logins)
+const storageLogins = useStorage('logins', logins, undefined,
+  {
+    serializer: {
+      read: (v) => v ?  JSON.parse(v) : null,
+      write: (v) => JSON.stringify(v),
+    },
+  })
 const cloudTranslationApiKey = ref(null)
-const storageCloudTranslationApiKey = useStorage('storageCloudTranslationApiKey', cloudTranslationApiKey)
+useStorage('cloudTranslationApiKey', cloudTranslationApiKey)
+const userSettings = ref(null)
+useStorage('userSettings', userSettings, undefined,
+  {
+    serializer: {
+      read: (v) => v ? new Map(Object.entries(JSON.parse(v))) : null,
+      write: (v) => JSON.stringify(v),
+    },
+  })
 
 const AppPasswordRules = [
   (value) => {
@@ -104,12 +123,11 @@ const add = async () => {
 }
 
 onBeforeMount(async () => {
-
   try {
-    logins.value = storageLogins.value
-    cloudTranslationApiKey.value = storageCloudTranslationApiKey.value
     store.dispatch('doSetCloudTranslationApiKey', cloudTranslationApiKey.value);
-
+    if (!logins.value) {
+      add()
+    }     
   } catch (e) {
     failed.value = true
     const ce = useCatchError()
@@ -128,11 +146,13 @@ const login = async (server, handle, password) => {
     logins.value[tab.value].did = loginResponse.res.did
     store.dispatch('doCreateSession', loginResponse.res);
 
-    //store.dispatch('doSetColor', color);
+    if (userSettings.value && userSettings.value.get(loginResponse.res.did)) {
+      store.dispatch('doSetColor', userSettings.value.get(loginResponse.res.did).color);
+    }
 
     const profileResponse = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
     store.dispatch('doSetProfile', profileResponse.res);
-
+    console.log(profileResponse.res.avatar)
     logins.value[tab.value].avatar = profileResponse.res.avatar
 
     storageLogins.value = logins.value
@@ -158,6 +178,7 @@ const login = async (server, handle, password) => {
     }
     route.push('/timeline')
   } catch (e) {
+    console.log(e)
     const ce = useCatchError()
     ce.catchError(e)
   }
