@@ -20,7 +20,7 @@
                   </div>
                   </v-card-text>
                 </div>
-              <v-text-field label="remark" clearable dense v-model="c.remark" @input="onInputRemark"></v-text-field>
+              <v-text-field label="remark" clearable dense v-model="c.remark" @input="onInputRemark" variant="outlined"></v-text-field>
             </v-card>
           </v-col>
         </v-row>

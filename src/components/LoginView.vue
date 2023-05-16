@@ -1,58 +1,105 @@
 <template>
-  <v-card>
-    <v-card-text>
-      <v-row>
-        <v-col v-for="(l, index) in logins" :key="index" cols="12" md="6" lg="4">
-          <v-card width="380px" class="mx-auto pa-4">
-            <v-combobox v-model="l.server"
-              :items="['https://bsky.social', 'https://boobee.blue', 'https://atproto.forza7.org']" label="server"
-              placeholder="https://bsky.social" color="green darken-5" clearable dense></v-combobox>
-            <v-text-field label="xxxx.bsky.social" placeholder="xxxx.bsky.social" color="green darken-5" clearable dense
-              v-model="l.handle"></v-text-field>
-            <v-text-field label="app password" placeholder="app password" color="green darken-5" clearable dense type="password"
-              v-model="l.password" :rules="AppPasswordRules"></v-text-field>
-            <v-color-picker disabled hide-canvas hide-inputs hide-mode-switch hide-sliders mode="rgba" show-swatches
-              swatches-max-height="210" v-model=l.color></v-color-picker>
-            <br>
-            <v-btn @click.prevent="login(l.server, l.handle, l.password, l.color)" icon="mdi-login" size="42"></v-btn>
-            &nbsp;
-            <v-btn v-if="logins.length > 1" @click="del(index)" icon="mdi-minus" size="42"></v-btn>
-            &nbsp;
-            <v-btn v-if="l.server && l.handle && l.password && index == logins.length - 1" @click="add" size="42"
-              icon="mdi-plus"></v-btn>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-card-text>
-  </v-card>
+  <div class="displayArea">
+    <v-card>
+      <v-card-text>
+
+        <v-tabs v-model="tab">
+          <v-tab v-for="(l, index) in logins" :key="index" :value=index>
+            <template v-if="l.avatar">
+              <template v-if="userSettings && userSettings[l.did]">
+                <v-avatar v-if="userSettings" :style="`border: 5px solid color: ${userSettings[l.did].color};`">
+                  <v-img cover v-bind:src=l.avatar alt="avatar"></v-img>
+                </v-avatar>
+              </template>
+              <template v-if="!(userSettings && (userSettings[l.did]))">
+                <v-avatar v-if="userSettings" :style="`border: 5px solid;`">
+                  <v-img cover v-bind:src=l.avatar alt="avatar"></v-img>
+                </v-avatar>
+              </template>
+            </template>
+            <template v-if="!l.avatar && l.handle">
+                {{ l.handle }}
+            </template>
+            <template v-if="!l.avatar && !l.handle">
+              New Account
+            </template>
+          </v-tab>
+        </v-tabs>
+      </v-card-text>
+
+      <v-card-text>
+        <v-window v-model="tab">
+          <div v-for="(l, index) in logins" :key="index">
+            <v-window-item :value=index>
+              <v-card class="mx-auto pa-4">
+                <v-combobox v-model="l.server"
+                  :items="['https://bsky.social', 'https://boobee.blue', 'https://atproto.forza7.org']" label="server"
+                  placeholder="https://bsky.social" color="green darken-5" clearable dense
+                  variant="outlined"></v-combobox>
+                <v-text-field label="xxxx.bsky.social" placeholder="xxxx.bsky.social" color="green darken-5" clearable
+                  dense v-model="l.handle" variant="outlined"></v-text-field>
+                <v-text-field label="app password" placeholder="app password" color="green darken-5" clearable dense
+                  type="password" v-model="l.password" :rules="AppPasswordRules" variant="outlined"></v-text-field>
+                <br>
+                <v-btn @click.prevent="login(l.server, l.handle, l.password)" icon="mdi-login" size="42"
+                :disabled="!(l.server && l.handle && l.password)"></v-btn>
+                &nbsp;
+                <v-btn :to="`/accountSetting/${l.did}`" icon="mdi-cog-outline" size="42" :disabled="!l.did"></v-btn>
+                 &nbsp;
+                <v-btn v-if="logins.length > 1" @click="del(index)" icon="mdi-minus" size="42"></v-btn>
+                &nbsp;
+                <v-btn v-if="l.server && l.handle && l.password && index == logins.length - 1" @click="add" size="42"
+                  icon="mdi-plus"></v-btn>
+              </v-card>
+            </v-window-item>
+          </div>
+        </v-window>
+      </v-card-text>
+    </v-card>
+  </div>
 </template>
 
 <script setup>
+
 import { ref, onBeforeMount } from 'vue'
 import { useStore } from 'vuex'
-import { createToaster } from '@meforma/vue-toaster';
 import { useRequestGet } from '../common/requestGet.js'
 import { useRequestPost } from '../common/requestPost.js'
 import { useRouter } from "vue-router"
 import { useStorage } from '@vueuse/core'
+import { useCatchError } from '@/common/catchError';
+
+const tab = ref(null)
 const failed = ref(false)
 const followsCursor = ref(null)
 const likesCursor = ref(null)
-const mutesCursor = ref(null)
+const mutesCursor = ref(null) 
 const blocksCursor = ref(null)
 const repostsCursor = ref(null)
 const store = useStore()
 const requestGet = useRequestGet(store)
 const requestPost = useRequestPost(store)
 const route = useRouter()
-const toast = createToaster()
 const completed = ref(false)
-const logins = ref([{ server: null, handle: null, password: null, color: null }])
+const logins = ref([{ server: null, handle: null, password: null, did: null, avatar: null }])
 
-const storageLogins = useStorage('storageLogins', logins)
+const storageLogins = useStorage('logins', logins, undefined,
+  {
+    serializer: {
+      read: (v) => v ?  JSON.parse(v) : null,
+      write: (v) => JSON.stringify(v),
+    },
+  })
 const cloudTranslationApiKey = ref(null)
-const storageCloudTranslationApiKey = useStorage('storageCloudTranslationApiKey', cloudTranslationApiKey)
-
+useStorage('cloudTranslationApiKey', cloudTranslationApiKey)
+const userSettings = ref(null)
+useStorage('userSettings', userSettings, undefined,
+  {
+    serializer: {
+      read: (v) => v ? new Map(Object.entries(JSON.parse(v))) : null,
+      write: (v) => JSON.stringify(v),
+    },
+  })
 
 const AppPasswordRules = [
   (value) => {
@@ -72,48 +119,41 @@ const del = async (index) => {
 }
 
 const add = async () => {
-  logins.value.push({ server: null, handle: null, password: null, color: null })
+  logins.value.push({ server: null, handle: null, password: null, avatar: null, did: null })
 }
 
 onBeforeMount(async () => {
-
   try {
-
-    logins.value = storageLogins.value
-    cloudTranslationApiKey.value = storageCloudTranslationApiKey.value
     store.dispatch('doSetCloudTranslationApiKey', cloudTranslationApiKey.value);
-
-
-    if (failed.value) {
-      return
-    }
-    if ((store.getters.getDid) && (store.getters.getAccessJwt)) {
-      // axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getRefreshJwt
-      // const response = await requestPost.post("com.atproto.server.refreshSession")
-      // store.dispatch('doCreateSession', response.res)
-      // axios.defaults.headers.common['Authorization'] = `Bearer ` + store.getters.getAccessJwt 
-      // route.push('/timeline')
-    }
+    if (!logins.value) {
+      add()
+    }     
   } catch (e) {
     failed.value = true
-    console.error(e)
+    const ce = useCatchError()
+    ce.catchError(e)
   }
 })
 
-const login = async (server, handle, password, color) => {
+const login = async (server, handle, password) => {
   failed.value = false
   try {
     store.dispatch('doSetServer', server)
-    const res1 = await requestPost.post("com.atproto.server.createSession", {
+    const loginResponse = await requestPost.post("com.atproto.server.createSession", {
       identifier: handle,
       password: password
     })
-    store.dispatch('doCreateSession', res1.res);
+    logins.value[tab.value].did = loginResponse.res.did
+    store.dispatch('doCreateSession', loginResponse.res);
 
-    store.dispatch('doSetColor', color);
+    if (userSettings.value && userSettings.value.get(loginResponse.res.did)) {
+      store.dispatch('doSetColor', userSettings.value.get(loginResponse.res.did).color);
+    }
 
-    const res2 = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
-    store.dispatch('doSetProfile', res2.res);
+    const profileResponse = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
+    store.dispatch('doSetProfile', profileResponse.res);
+    console.log(profileResponse.res.avatar)
+    logins.value[tab.value].avatar = profileResponse.res.avatar
 
     storageLogins.value = logins.value
 
@@ -138,7 +178,9 @@ const login = async (server, handle, password, color) => {
     }
     route.push('/timeline')
   } catch (e) {
-    toast.error(e, { position: "top-right" })
+    console.log(e)
+    const ce = useCatchError()
+    ce.catchError(e)
   }
 }
 
@@ -158,7 +200,8 @@ const getFollows = async (handle, cur) => {
     }
     store.dispatch('doAddFollows', response.res)
   } catch (e) {
-    toast.error(e, { position: "top-right" })
+    const ce = useCatchError()
+    ce.catchError(e)
   }
 }
 
@@ -178,7 +221,8 @@ const getMutes = async (cur) => {
     }
     store.dispatch('doAddMutes', response.res)
   } catch (e) {
-    toast.error(e, { position: "top-right" })
+    const ce = useCatchError()
+    ce.catchError(e)
     completed.value = true
   }
 }
@@ -200,11 +244,11 @@ const getBlocks = async (cur) => {
     console.log(response.res)
     store.dispatch('doAddBlocks', response.res)
   } catch (e) {
-    toast.error(e, { position: "top-right" })
+    const ce = useCatchError()
+    ce.catchError(e)
     completed.value = true
   }
 }
-
 
 const getLikes = async (cur) => {
   try {
@@ -239,7 +283,8 @@ const getLikes = async (cur) => {
     }
     store.dispatch('doAddLikes', response.res)
   } catch (e) {
-    toast.error(e, { position: "top-right" })
+    const ce = useCatchError()
+    ce.catchError(e)
     completed.value = true
   }
 }
@@ -277,7 +322,8 @@ const getReposts = async (cur) => {
     console.log(response.res)
     store.dispatch('doAddReposts', response.res)
   } catch (e) {
-    toast.error(e, { position: "top-right" })
+    const ce = useCatchError()
+    ce.catchError(e)
     completed.value = true
   }
 }

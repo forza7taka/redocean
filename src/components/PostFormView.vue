@@ -5,20 +5,7 @@
       <div v-if="parentPost">
         <v-card class="mx-auto mt-5">
           <v-card-actions>
-            <v-list-item class="w-100">
-              <template v-slot:prepend>
-                <div style="padding-right: 10px">
-                  <router-link :to="`/profile/${parentPost.author.handle}`">
-                    <v-avatar color="surface-variant">
-                      <v-img cover v-bind:src=parentPost.author.avatar alt="avatar"></v-img>
-                    </v-avatar>
-                  </router-link>
-                </div>
-              </template>
-              <v-list-item-subtitle>{{ parentPost.author.displayName }}</v-list-item-subtitle>
-              <v-list-item-subtitle>@{{ parentPost.author.handle }}</v-list-item-subtitle>
-              <v-list-item-subtitle>{{ parentPost.record.createdAt }}</v-list-item-subtitle>
-            </v-list-item>
+            <PostUserView :author="parentPost.author" :createdAt="parentPost.record.createdAt"/>
           </v-card-actions>
           <v-card-text>
             <div v-if="parentPost && parentPost.record && parentPost.record.text">{{ parentPost.record.text }}</div>
@@ -27,43 +14,34 @@
       </div>
 
       <v-card-text>
-        <v-textarea required counter v-model=contents label="contents" maxlength=300></v-textarea>
+        <v-textarea variant="outlined" required counter v-model=contents label="contents" maxlength=300></v-textarea>
       </v-card-text>
       <v-card-text>
         <v-row>
           <div v-for="(image, index) in imageUrls" :key="index">
             <v-col>
-              <v-img width="100" id="image" :src=image>
-              </v-img>
+                  <v-badge color="transparent" offset-x="25" offset-y="5" right top>
+                    <template #badge>
+                      <v-btn size="28" icon @click.prevent="deleteImage(index)">
+                          <v-icon>mdi-window-close</v-icon>
+                      </v-btn>
+                    </template>
+                      <v-img width="100" id="image" :src=image></v-img>
+                  </v-badge>
             </v-col>
           </div>
         </v-row>
       </v-card-text>
-
       <div v-if="quotePost">
         <v-card class="mx-auto mt-5">
           <v-card-actions>
-            <v-list-item class="w-100">
-              <template v-slot:prepend>
-                <div style="padding-right: 10px">
-                  <router-link :to="`/profile/${quotePost.author.handle}`">
-                    <v-avatar color="surface-variant">
-                      <v-img cover v-bind:src=quotePost.author.avatar alt="avatar"></v-img>
-                    </v-avatar>
-                  </router-link>
-                </div>
-              </template>
-              <v-list-item-subtitle>{{ quotePost.author.displayName }}</v-list-item-subtitle>
-              <v-list-item-subtitle>@{{ quotePost.author.handle }}</v-list-item-subtitle>
-              <v-list-item-subtitle>{{ quotePost.record.createdAt }}</v-list-item-subtitle>
-            </v-list-item>
-          </v-card-actions>
+              <PostUserView :author="quotePost.author" :createdAt="quotePost.record.createdAt"/>
+            </v-card-actions>
           <v-card-text>
             <div v-if="quotePost && quotePost.record && quotePost.record.text">{{ quotePost.record.text }}</div>
           </v-card-text>
         </v-card>
       </div>
-
 
       <v-card-actions>
         <v-btn icon type="button" @click="open">
@@ -110,6 +88,10 @@ const parent = ref(null)
 const quotePost = ref(null)
 
 onBeforeMount(async () => {
+
+  files.value = []
+  imageUrls.value = []
+
   if (route.path.startsWith("/post")) {
     mode.value = "post"
   } else if (route.path.startsWith("/reply")) {
@@ -140,9 +122,13 @@ onBeforeMount(async () => {
     } catch (e) {
       toast.error(e, { position: "top-right" })
     }
-
   }
 })
+
+const deleteImage = async (index) => {
+  files.splice(index, 0)
+  imageUrls.value.splice(index, 0)
+}
 
 const getBlob = async (file) => {
   const blob = new Blob([file], { type: file.type });
