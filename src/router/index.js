@@ -170,7 +170,7 @@ const routes = [
     component: Moderation
   },
   {
-    path: '/accountSetting/',
+    path: '/accountSetting/:did',
     name: 'accountSetting',
     component: AccountSetting
   },
