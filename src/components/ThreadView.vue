@@ -11,11 +11,10 @@
 <script setup>
 import PostView from "./PostView.vue"
 import { ref, watch, onBeforeMount } from 'vue'
-import { createToaster } from '@meforma/vue-toaster';
 import { useRequestGet } from '../common/requestGet.js'
 import { useRoute } from "vue-router";
 import { useStore } from 'vuex'
-
+import { useCatchError } from '@/common/catchError';
 const store = useStore()
 const route = useRoute()
 const thread = ref(null)
@@ -35,8 +34,8 @@ const getThread = async () => {
     const response = await req.get("app.bsky.feed.getPostThread", params)
     thread.value = response.res.thread
   } catch (e) {
-    const toast = createToaster()
-    toast.error(e, { position: "top-right" })
+    const ce = useCatchError()
+    ce.catchError(e)
   }
 }
 

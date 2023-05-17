@@ -14,7 +14,7 @@
     <div ref="load">
       <v-container class="my-5">
         <v-row justify="center">
-          <v-progress-circular v-if="!complated" model-value="20"></v-progress-circular>
+          <v-progress-circular indeterminate v-if="!completed" model-value="20"></v-progress-circular>
         </v-row>
       </v-container>
     </div>
@@ -25,20 +25,20 @@
 import UsersView from './UsersView.vue'
 import { useIntersectionObserver } from '@vueuse/core'
 import { ref, onBeforeMount } from 'vue'
-import { createToaster } from '@meforma/vue-toaster';
 import { useHistoryState, onBackupState } from 'vue-history-state';
 import { useRequestGet } from '../common/requestGet.js'
 import { useRoute } from "vue-router";
 import { useStore } from 'vuex'
+import { useCatchError } from '@/common/catchError';
+
 const store = useStore()
 const route = useRoute()
-const complated = ref(false)
+const completed = ref(false)
 const followers = ref([])
 const followersCursor = ref(null)
 const historyState = useHistoryState();
 const load = ref(null)
 const requestGet = useRequestGet(store)
-const toast = createToaster()
 const subject = ref(null)
 const loadingCount = ref(0)
 
@@ -61,7 +61,7 @@ onBackupState(() => ({ followers: followers, subject: subject }));
 useIntersectionObserver(
   load,
   async ([{ isIntersecting }]) => {
-    if (isIntersecting && !complated.value && followersCursor.value && loadingCount.value != 0) {
+    if (isIntersecting && !completed.value && followersCursor.value && loadingCount.value != 0) {
       await getFollowers(route.params.handle, followersCursor)
     }
     loadingCount.value = loadingCount.value + 1
@@ -81,10 +81,12 @@ const getFollowers = async (handle, cursor) => {
     followers.value = followers.value.concat(response.res.followers)
     followersCursor.value = response.res.cursor
     if (response.res.followers.length == 0) {
-      complated.value = true
+      completed.value = true
     }
   } catch (e) {
-    toast.error(e, { position: "top-right" })
+         const ce = useCatchError()
+    ce.catchError(e)
+
   }
 }
 </script>

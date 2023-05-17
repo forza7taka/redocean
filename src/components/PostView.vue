@@ -140,8 +140,8 @@ import PostImageView from './PostImageView.vue'
 import axios from 'axios'
 import { ref, defineProps } from 'vue'
 import { useStore } from 'vuex'
-import { createToaster } from '@meforma/vue-toaster';
 import { useRequestPost } from "@/common/requestPost";
+import { useCatchError } from '@/common/catchError';
 
 const defProps = defineProps({
   post: null,
@@ -156,15 +156,20 @@ const request = useRequestPost(store)
 const translateText = ref(null)
 
 const translate = async (text) => {
-  const params = {
-    q: text,
-    target: 'ja',
-    key: store.getters.getCloudTranslationApiKey
-  }
-  const response = await axios.get('https://translation.googleapis.com/language/translate/v2', { params })
-  translateText.value = response.data.data.translations[0].translatedText
-}
+  try {
+    const params = {
+      q: text,
+      target: 'ja',
+      key: store.getters.getCloudTranslationApiKey
+    }
+    const response = await axios.get('https://translation.googleapis.com/language/translate/v2', { params })
+    translateText.value = response.data.data.translations[0].translatedText
 
+  } catch (e) {
+    const ce = useCatchError()
+    ce.catchError(e)
+  }
+}
 const deletePost = async (uri) => {
   try {
     await request.post("com.atproto.repo.deleteRecord", {
@@ -173,8 +178,8 @@ const deletePost = async (uri) => {
       rkey: String(uri).substr(-13)
     })
   } catch (e) {
-    const toast = createToaster()
-    toast.error(e, { position: "top-right" })
+    const ce = useCatchError()
+    ce.catchError(e)
   }
 }
 
@@ -203,8 +208,8 @@ const repost = async (post) => {
       store.dispatch('doRemoveRepost', post.uri);
     }
   } catch (e) {
-    const toast = createToaster()
-    toast.error(e, { position: "top-right" })
+    const ce = useCatchError()
+    ce.catchError(e)
   }
 }
 
@@ -232,8 +237,8 @@ const like = async (post) => {
       store.dispatch('doRemoveLike', post.uri);
     }
   } catch (e) {
-    const toast = createToaster()
-    toast.error(e, { position: "top-right" })
+    const ce = useCatchError()
+    ce.catchError(e)
   }
 }
 

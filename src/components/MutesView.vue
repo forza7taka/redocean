@@ -14,7 +14,7 @@
     <div ref="loading">
       <v-container class="my-5">
         <v-row justify="center">
-          <v-progress-circular v-if="!complated" model-value="20"></v-progress-circular>
+          <v-progress-circular indeterminate v-if="!completed" model-value="20"></v-progress-circular>
         </v-row>
       </v-container>
     </div>
@@ -27,18 +27,17 @@ import UsersView from './UsersView.vue'
 import { useIntersectionObserver } from '@vueuse/core'
 import { ref, onBeforeMount } from 'vue'
 import { useStore } from 'vuex'
-import { createToaster } from '@meforma/vue-toaster';
 import { useHistoryState, onBackupState } from 'vue-history-state';
 import { useRequestGet } from '../common/requestGet.js'
+import { useCatchError } from '@/common/catchError';
 
-const complated = ref(false)
+const completed = ref(false)
 const mutes = ref([])
 const cursor = ref(null)
 const historyState = useHistoryState();
 const store = useStore()
 const loading = ref(null)
 const requestGet = useRequestGet(store)
-const toast = createToaster()
 const muteActors = ref([])
 const subject = ref(null)
 const loadingCount = ref(0)
@@ -63,7 +62,7 @@ onBackupState(() => ({ mutes: mutes, subject: subject, muteActors: muteActors })
 useIntersectionObserver(
   loading,
   async ([{ isIntersecting }]) => {
-    if (isIntersecting && !complated.value && loadingCount.value != 0) {
+    if (isIntersecting && !completed.value && loadingCount.value != 0) {
       await getProfile(store.getters.getHandle)
       await getMutes(cursor)
     }
@@ -76,17 +75,15 @@ const getProfile = async (handle) => {
     const response = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
     subject.value = response.res
   } catch (e) {
-    toast.error(e, { position: "top-right" })
+    const ce = useCatchError()
+    ce.catchError(e)
   }
 }
 
 const getMutesProfile = async (handle) => {
-  try {
     const response = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
     muteActors.value = muteActors.value.concat(response.res)
-  } catch (e) {
-    toast.error(e, { position: "top-right" })
-  }
+  
 }
 
 const getMutes = async (cursor) => {
@@ -100,7 +97,7 @@ const getMutes = async (cursor) => {
     let response = await requestGet.get("app.bsky.graph.getMutes", params)
     cursor.value = response.res.cursor
     if (response.res.mutes.length == 0) {
-      complated.value = true
+      completed.value = true
       return
     }
     for (let i = 0; i < response.res.mutes.length - 1; i++) {
@@ -108,7 +105,8 @@ const getMutes = async (cursor) => {
     }
     mutes.value = mutes.value.concat(response.res.mutes)
   } catch (e) {
-    toast.error(e, { position: "top-right" })
+      const ce = useCatchError()
+    ce.catchError(e)
   }
 }
 </script>

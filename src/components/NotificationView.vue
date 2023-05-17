@@ -1,13 +1,13 @@
 <template>
   <div class="displayArea mx-auto">
-    <v-card class="mx-auto mt-5">
+    <v-card class="mx-auto mt-5" variant="flat">
       <v-card-title>
         Notifications
       </v-card-title>
     </v-card>
     <v-list v-if="notifications">
       <v-list-item v-for="(n, nIndex) in notifications.array" :key="nIndex">
-        <v-card v-if="!store.getters.getMutes.includes(n.author.did)" class="mx-auto mt-5">
+        <v-card v-if="!store.getters.getMutes.includes(n.author.did)" class="mx-auto mt-5" variant="flat">
           <v-card-text>
             <v-icon v-if="!n.isRead" color="red">mdi-circle</v-icon>
             <v-icon v-if="n.reason == 'follow'">mdi-account-check</v-icon>
@@ -24,13 +24,13 @@
             {{ n.author.displayName }}
           </v-card-text>
 
-            <v-card v-if="posts.get(n.reasonSubject)" :to="`/thread/${encodeURIComponent(n.reasonSubject)}`">
+            <v-card v-if="posts.get(n.reasonSubject)" :to="`/thread/${encodeURIComponent(n.reasonSubject)}`" variant="flat">
               <v-card-subtitle>{{ convertDate(posts.get(n.reasonSubject).value.createdAt) }}</v-card-subtitle>
               <v-card-text>
                 {{ posts.get(n.reasonSubject).value.text }}
               </v-card-text>
             </v-card>
-            <v-card v-if="posts.get(n.uri)" :to="`/thread/${encodeURIComponent(n.uri)}`">
+            <v-card v-if="posts.get(n.uri)" :to="`/thread/${encodeURIComponent(n.uri)}`" variant="flat">
               <v-card-subtitle>{{ convertDate(posts.get(n.uri).value.createdAt) }}</v-card-subtitle>
               <v-card-text>
                 {{ posts.get(n.uri).value.text }}
@@ -38,13 +38,14 @@
             </v-card>
           
         </v-card>
+  <v-divider/>
       </v-list-item>
     </v-list>
 
     <div ref="loading">
       <v-container class="my-5">
         <v-row justify="center">
-          <v-progress-circular model-value="20"></v-progress-circular>
+          <v-progress-circular indeterminate v-if="!completed" model-value="20"></v-progress-circular>
         </v-row>
       </v-container>
     </div>
@@ -56,11 +57,11 @@
 import { useIntersectionObserver } from '@vueuse/core'
 import { ref, onBeforeMount } from 'vue'
 import { useStore } from 'vuex'
-import { createToaster } from '@meforma/vue-toaster';
 import { useHistoryState, onBackupState } from 'vue-history-state';
 import { useRequestGet } from '@/common/requestGet.js'
 import { useRequestPost } from '@/common/requestPost.js'
 import { useDate } from '@/common/date.js'
+import { useCatchError } from '@/common/catchError';
 
 class Notirfications {
   constructor() {
@@ -100,14 +101,13 @@ class Notirfications {
 }
 
 const { convertDate } = useDate()
-const complated = ref(false)
+const completed = ref(false)
 const cursor = ref(null)
 const historyState = useHistoryState();
 const notifications = ref(new Notirfications())
 const loading = ref(null)
 const loadingCount = ref(0)
 const posts = ref(new Map())
-const toast = createToaster()
 const store = useStore()
 const requestGet = useRequestGet(store)
 const requestPost = useRequestPost(store)
@@ -135,7 +135,7 @@ onBackupState(() => ({ notifications: notifications.value.array }));
 useIntersectionObserver(
   loading,
   async ([{ isIntersecting }]) => {
-    if (isIntersecting && !complated.value && loadingCount.value != 0) {
+    if (isIntersecting && !completed.value && loadingCount.value != 0) {
       await getNotifications(cursor)
       await getPosts(notifications.value.array)
     }
@@ -147,7 +147,8 @@ const updateSeen = async () => {
   try {
     await requestPost.post("app.bsky.notification.updateSeen", { seenAt: new Date })
   } catch (e) {
-    toast.error(e, { position: "top-right" })
+    const ce = useCatchError()
+    ce.catchError(e)
   }
 }
 
@@ -158,16 +159,16 @@ const getNotifications = async (cur) => {
   } else {
     params = { cursor: cur.value }
   }
-  console.log(params)
   try {
     const response = await requestGet.get("app.bsky.notification.listNotifications", params)
     cursor.value = response.res.cursor
     if (response.res.notifications.length == 0) {
-      complated.value = true
+      completed.value = true
     }
     notifications.value.setArray(response.res.notifications)
   } catch (e) {
-    toast.error(e, { position: "top-right" })
+    const ce = useCatchError()
+    ce.catchError(e)
   }
 }
 
@@ -208,7 +209,8 @@ const getPosts = async (notifications) => {
       }
     }
   } catch (e) {
-    toast.error(e, { position: "top-right" })
+    const ce = useCatchError()
+    ce.catchError(e)
   }
 }
 </script>

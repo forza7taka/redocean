@@ -9,7 +9,7 @@
     <div ref="loading">
       <v-container class="my-5">
         <v-row justify="center">
-          <v-progress-circular model-value="20"></v-progress-circular>
+          <v-progress-circular indeterminate v-if="!completed" model-value="20"></v-progress-circular>
         </v-row>
       </v-container>
     </div>
@@ -18,16 +18,16 @@
 <script setup>
 import UsersView from './UsersView.vue'
 import { ref, onBeforeMount } from 'vue'
-import { createToaster } from '@meforma/vue-toaster';
 import { useHistoryState, onBackupState } from 'vue-history-state';
 import { useRequestGet } from '../common/requestGet.js'
 import { useIntersectionObserver } from '@vueuse/core'
+import { useCatchError } from '@/common/catchError';
 
 import { useStore } from 'vuex'
 
 const store = useStore()
 
-const complated = ref(false)
+const completed = ref(false)
 const cursor = ref(null)
 const historyState = useHistoryState();
 const actors = ref([])
@@ -47,7 +47,7 @@ onBackupState(() => actors);
 useIntersectionObserver(
   loading,
   async ([{ isIntersecting }]) => {
-    if (isIntersecting && !complated.value) {
+    if (isIntersecting && !completed.value) {
       await getSuggestions(cursor)
     }
   },
@@ -66,11 +66,11 @@ const getSuggestions = async (cursor) => {
     actors.value = actors.value.concat(response.res.actors)
     cursor = response.res.cursor
     if (response.res.actors.length == 0) {
-      complated.value = true
+      completed.value = true
     }
   } catch (e) {
-    const toast = createToaster()
-    toast.error(e, { position: "top-right" })
+    const ce = useCatchError()
+    ce.catchError(e)
   }
 }
 </script>

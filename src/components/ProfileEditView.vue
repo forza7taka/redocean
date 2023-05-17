@@ -29,12 +29,11 @@ import { ref, onBeforeMount } from 'vue'
 import { useStore } from 'vuex'
 import { useRequestPost } from '../common/requestPost.js'
 import { useRequestGet } from '../common/requestGet.js'
-import { createToaster } from '@meforma/vue-toaster';
+import { useCatchError } from '@/common/catchError';
 
 const store = useStore()
 const requestPost = useRequestPost(store)
 const requestGet = useRequestGet(store)
-const toast = createToaster()
 
 
 const profile = ref(null)
@@ -66,7 +65,8 @@ const getProfile = async (handle) => {
     const response = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
     profile.value = response.res
   } catch (e) {
-    toast.error(e, { position: "top-right" })
+    const ce = useCatchError()
+    ce.catchError(e)
   }
 }
 
@@ -114,20 +114,11 @@ const updateProfile = async () => {
     }
     await requestPost.post("com.atproto.repo.putRecord", params)
   } catch (e) {
-    toast.error(e, { position: "top-right" })
+    const ce = useCatchError()
+    ce.catchError(e)
   }
 
-  // const createInviteCode = async () => {
-  //   try {
-  //     let response = await requestPost.post("com.atproto.server.createInviteCod", {
-  //       params: {
-  //         useCount: 5
-  //       }
-  //     })
-  //   } catch (e) {
-  //     toast.error(e, { position: "top-right" })
-  //   }
-  // }
+  
 }
 
 </script>
