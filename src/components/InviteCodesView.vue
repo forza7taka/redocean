@@ -1,10 +1,10 @@
 <template>
   <div class="displayArea mx-auto">
-    <v-card>
+    <v-card  variant="flat">
       <v-card-text>
         <v-row>
           <v-col v-for="(c, index) in inviteCodes" :key="index" cols="12" md="6" lg="4">
-            <v-card class="mx-auto pa-4 py-5">
+            <v-card class="mx-auto pa-4 py-5"  variant="flat">
               <v-card-subtitle class="py-2" @click='copyToClipboard(c.code)'>
                 <v-label v-if="c.available === c.uses.length" class="strike-through">{{ c.code
                 }}</v-label>
@@ -22,6 +22,7 @@
                 </div>
               <v-text-field label="remark" clearable dense v-model="c.remark" @input="onInputRemark" variant="outlined"></v-text-field>
             </v-card>
+                    <v-divider/>
           </v-col>
         </v-row>
       </v-card-text>
@@ -36,6 +37,8 @@ import { useRequestGet } from '../common/requestGet.js'
 import { createToaster } from '@meforma/vue-toaster'
 import { useStorage } from '@vueuse/core'
 import { useClipboard } from '@vueuse/core'
+import { useCatchError } from '@/common/catchError';
+
 const { copy } = useClipboard()
 
 const store = useStore()
@@ -45,14 +48,15 @@ const requestGet = useRequestGet(store)
 const inviteCodes = ref(new Array())
 
 const remarkMap = ref(new Map())
-const strageRemark = useStorage('strageRemarkMap', [])
+const strageRemark = useStorage('inviteRemarks', [])
 
 const copyToClipboard = async (value) => {
   try {
     await copy(value)
     toast.success('copied', { position: "top-right" })
   } catch (e) {
-    toast.error(e, { position: "top-right" })
+    const ce = useCatchError()
+    ce.catchError(e)
   }
 }
 
@@ -95,7 +99,9 @@ const getInviteCodes = async () => {
     const response = await requestGet.get("com.atproto.server.getAccountInviteCodes", {})
     inviteCodes.value = response.res.codes
   } catch (e) {
-    toast.error(e, { position: "top-right" })
+         const ce = useCatchError()
+    ce.catchError(e)
+
   }
 }
 

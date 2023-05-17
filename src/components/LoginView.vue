@@ -2,20 +2,12 @@
   <div class="displayArea">
     <v-card>
       <v-card-text>
-
         <v-tabs v-model="tab">
           <v-tab v-for="(l, index) in logins" :key="index" :value=index>
             <template v-if="l.avatar">
-              <template v-if="userSettings && userSettings[l.did]">
-                <v-avatar v-if="userSettings" :style="`border: 5px solid color: ${userSettings[l.did].color};`">
+                <v-avatar v-if="userSettings" :style="`border: 5px solid ${getColor(l.did)};`">
                   <v-img cover v-bind:src=l.avatar alt="avatar"></v-img>
                 </v-avatar>
-              </template>
-              <template v-if="!(userSettings && (userSettings[l.did]))">
-                <v-avatar v-if="userSettings" :style="`border: 5px solid;`">
-                  <v-img cover v-bind:src=l.avatar alt="avatar"></v-img>
-                </v-avatar>
-              </template>
             </template>
             <template v-if="!l.avatar && l.handle">
                 {{ l.handle }}
@@ -26,7 +18,6 @@
           </v-tab>
         </v-tabs>
       </v-card-text>
-
       <v-card-text>
         <v-window v-model="tab">
           <div v-for="(l, index) in logins" :key="index">
@@ -58,10 +49,9 @@
     </v-card>
   </div>
 </template>
-
 <script setup>
 
-import { ref, onBeforeMount } from 'vue'
+import { ref, computed, onBeforeMount } from 'vue'
 import { useStore } from 'vuex'
 import { useRequestGet } from '../common/requestGet.js'
 import { useRequestPost } from '../common/requestPost.js'
@@ -72,10 +62,8 @@ import { useCatchError } from '@/common/catchError';
 const tab = ref(null)
 const failed = ref(false)
 const followsCursor = ref(null)
-const likesCursor = ref(null)
 const mutesCursor = ref(null) 
 const blocksCursor = ref(null)
-const repostsCursor = ref(null)
 const store = useStore()
 const requestGet = useRequestGet(store)
 const requestPost = useRequestPost(store)
@@ -96,10 +84,12 @@ const userSettings = ref(null)
 useStorage('userSettings', userSettings, undefined,
   {
     serializer: {
-      read: (v) => v ? new Map(Object.entries(JSON.parse(v))) : null,
-      write: (v) => JSON.stringify(v),
+       read: (v) => new Map(JSON.parse(v)),
+      write: (v) => v instanceof Map ? JSON.stringify([...v]) : JSON.stringify(v)
     },
   })
+
+const getColor = computed(() => (key) => userSettings.value.has(key) ? userSettings.value.get(key).color : null);
 
 const AppPasswordRules = [
   (value) => {
@@ -152,21 +142,12 @@ const login = async (server, handle, password) => {
 
     const profileResponse = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
     store.dispatch('doSetProfile', profileResponse.res);
-    console.log(profileResponse.res.avatar)
-    logins.value[tab.value].avatar = profileResponse.res.avatar
+    logins.value[tab.value].avatar = profileResponse.res.avatar 
 
     storageLogins.value = logins.value
 
     while (!completed.value) {
       await getFollows(handle, followsCursor)
-    }
-    completed.value = false
-    while (!completed.value) {
-      await getLikes(likesCursor)
-    }
-    completed.value = false
-    while (!completed.value) {
-      await getReposts(repostsCursor)
     }
     completed.value = false
     while (!completed.value) {
@@ -191,7 +172,6 @@ const getFollows = async (handle, cur) => {
   } else {
     params = { actor: handle, cursor: cur.value, limit: 100 }
   }
-  try {
     const response = await requestGet.get("app.bsky.graph.getFollows", params)
     followsCursor.value = response.res.cursor
     if (response.res.follows.length == 0) {
@@ -199,10 +179,6 @@ const getFollows = async (handle, cur) => {
       return
     }
     store.dispatch('doAddFollows', response.res)
-  } catch (e) {
-    const ce = useCatchError()
-    ce.catchError(e)
-  }
 }
 
 const getMutes = async (cur) => {
@@ -212,7 +188,6 @@ const getMutes = async (cur) => {
   } else {
     params = { cursor: cur.value }
   }
-  try {
     const response = await requestGet.get("app.bsky.graph.getMutes", params)
     mutesCursor.value = response.res.cursor
     if (response.res.mutes.length == 0) {
@@ -220,11 +195,6 @@ const getMutes = async (cur) => {
       return
     }
     store.dispatch('doAddMutes', response.res)
-  } catch (e) {
-    const ce = useCatchError()
-    ce.catchError(e)
-    completed.value = true
-  }
 }
 
 const getBlocks = async (cur) => {
@@ -234,7 +204,6 @@ const getBlocks = async (cur) => {
   } else {
     params = { cursor: cur.value }
   }
-  try {
     const response = await requestGet.get("app.bsky.graph.getBlocks", params)
     blocksCursor.value = response.res.cursor
     if (response.res.blocks.length == 0) {
@@ -243,88 +212,5 @@ const getBlocks = async (cur) => {
     }
     console.log(response.res)
     store.dispatch('doAddBlocks', response.res)
-  } catch (e) {
-    const ce = useCatchError()
-    ce.catchError(e)
-    completed.value = true
-  }
-}
-
-const getLikes = async (cur) => {
-  try {
-    let params = {}
-    if (!cur) {
-      params = {
-        repo: store.getters.getDid,
-        collection: "app.bsky.feed.like",
-        limit: 100
-      }
-    } else {
-      params = {
-        repo: store.getters.getDid,
-        collection: "app.bsky.feed.like",
-        cursor: cur.value,
-        limit: 100
-      }
-    }
-    let response = null
-    try {
-      response = await requestGet.get("com.atproto.repo.listRecords", params)
-    } catch (e) {
-      if (!(e.response && e.response.status === 400)) {
-        completed.value = true
-        throw e
-      }
-    }
-    likesCursor.value = response.res.cursor
-    if (response.res.records.length == 0) {
-      completed.value = true
-      return
-    }
-    store.dispatch('doAddLikes', response.res)
-  } catch (e) {
-    const ce = useCatchError()
-    ce.catchError(e)
-    completed.value = true
-  }
-}
-
-const getReposts = async (cur) => {
-  try {
-    let params = {}
-    if (!cur) {
-      params = {
-        repo: store.getters.getDid,
-        collection: "app.bsky.feed.repost",
-        limit: 100
-      }
-    } else {
-      params = {
-        repo: store.getters.getDid,
-        collection: "app.bsky.feed.repost",
-        cursor: cur.value,
-      }
-    }
-    let response = null
-    try {
-      response = await requestGet.get("com.atproto.repo.listRecords", params)
-    } catch (e) {
-      if (!(e.response && e.response.status === 400)) {
-        completed.value = true
-        throw e
-      }
-    }
-    repostsCursor.value = response.res.cursor
-    if (response.res.records.length == 0) {
-      completed.value = true
-      return
-    }
-    console.log(response.res)
-    store.dispatch('doAddReposts', response.res)
-  } catch (e) {
-    const ce = useCatchError()
-    ce.catchError(e)
-    completed.value = true
-  }
 }
 </script>

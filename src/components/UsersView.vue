@@ -2,7 +2,7 @@
   <div>
     <v-list v-if="props.users">
       <v-list-item v-for="(f, fIndex) in   props.users  " :key="fIndex">
-        <v-card class="mx-auto mt-5">
+        <v-card class="mx-auto mt-5" variant="flat">
           <v-card-actions>
             <v-list-item class="w-100">
 
@@ -30,6 +30,7 @@
             </v-list-item>
           </v-card-actions>
         </v-card>
+        <v-divider/>
       </v-list-item>
     </v-list>
   </div>

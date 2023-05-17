@@ -54,8 +54,11 @@ const toast = createToaster()
 const requestGet = useRequestGet(store)
 const drawer = ref(false) 
 const unReadCount = ref(0)
-const cursor = ref(null)
 const color = ref("pink-lighten-2")
+const likesCursor = ref(null)
+const repostsCursor = ref(null)
+const completedReposts = ref(false)
+const completedLikes = ref(false)
 const menuItems = ref([
         {
           icon: "mdi-home",
@@ -119,8 +122,11 @@ onMounted(async () => {
       if (!(store.getters.getDid) && !(store.getters.getAccessJwt)) {
         return
       }
-      if (!completed.value) {
-        await getLikes(cursor)        
+      if (!completedLikes.value) {
+        await getLikes(likesCursor)        
+      }
+      if (!completedReposts.value) {
+        await getReposts(repostsCursor)
       }
     } catch (e) {
       toast.error(e, { position: "top-right" })
@@ -159,9 +165,9 @@ const getLikes = async (cursor) => {
     }
 
     const response = await requestGet.get("com.atproto.repo.listRecords", params)
-    cursor.value = response.res.cursor
+    likesCursor.value = response.res.cursor
     if (response.res.records.length == 0) {
-      completed.value = true
+      completedLikes.value = true
       return
     }
     store.dispatch('doAddLikes', response.res)
@@ -170,4 +176,50 @@ const getLikes = async (cursor) => {
     throw e
   }
 }
+
+ const getReposts = async (cursor) => {
+     let params = {}
+     if (!cursor) {
+       params = {
+         repo: store.getters.getDid,
+         collection: "app.bsky.feed.repost",
+        limit: 100
+       }
+     } else {
+       params = {
+         repo: store.getters.getDid,
+         collection: "app.bsky.feed.repost",
+         cursor: cursor.value,
+       }
+     }
+     let response = null
+     try {
+       response = await requestGet.get("com.atproto.repo.listRecords", params)
+    } catch (e) {
+       if (!(e.response && e.response.status === 400)) {
+        completedReposts.value = true
+        throw e
+       }
+     }
+    repostsCursor.value = response.res.cursor
+    if (response.res.records.length == 0) {
+       completedReposts.value = true
+       return
+     }
+     store.dispatch('doAddReposts', response.res)
+ }
+
+
+watch(
+  () => store.getters.getDid,
+  async () => {
+    likesCursor.value = null
+    completedLikes.value = false
+    repostsCursor.value = null
+    completedReposts.value = false
+    store.dispatch('doRemoveAllReposts')
+    store.dispatch('doRemoveAllLikes')
+
+    }
+)
 </script>

@@ -17,7 +17,7 @@
     <div ref="loading">
       <v-container class="my-5">
         <v-row justify="center">
-          <v-progress-circular model-value="20"></v-progress-circular>
+          <v-progress-circular indeterminate v-if="!completed" model-value="20"></v-progress-circular>
         </v-row>
       </v-container>
     </div>
@@ -29,13 +29,12 @@ import PostView from "./PostView.vue"
 import { ref, reactive, watch, onBeforeMount, onUnmounted } from 'vue'
 import { useStore } from 'vuex'
 import { useRequestGet } from '../common/requestGet.js'
-import { createToaster } from '@meforma/vue-toaster'
 import { useHistoryState, onBackupState } from 'vue-history-state';
 import { useRoute } from "vue-router"
 import { useIntersectionObserver } from '@vueuse/core'
+import { useCatchError } from '@/common/catchError';
 
 const store = useStore()
-const toast = createToaster()
 const requestGet = useRequestGet(store)
 const route = useRoute()
 const historyState = useHistoryState();
@@ -112,12 +111,12 @@ const getLikes = async (handle, cursor) => {
     }
     await getPosts(response.res.records)
   } catch (e) {
-    toast.error(e, { position: "top-right" })
+    const ce = useCatchError()
+    ce.catchError(e)
   }
 }
 
 const getPosts = async (likes) => {
-  try {
     let uris = []
     likes.forEach(el => {
       uris.push(el.value.subject.uri)
@@ -126,9 +125,6 @@ const getPosts = async (likes) => {
     response.res.posts.forEach(el => {
       timeline.feed.push({ post: el })
     })
-  } catch (e) {
-    toast.error(e, { position: "top-right" })
-  }
 }
 
 const stopRouteWatch = watch(

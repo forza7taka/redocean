@@ -144,7 +144,7 @@
       <div ref="loading">
         <v-container class="my-5">
           <v-row justify="center">
-            <v-progress-circular model-value="20"></v-progress-circular>
+            <v-progress-circular indeterminate v-if="!completedAuthorFeed" model-value="20"></v-progress-circular>
           </v-row>
         </v-container>
       </div>
@@ -165,8 +165,8 @@ import { useIntersectionObserver } from '@vueuse/core'
 import { useRequestGet } from '../common/requestGet.js'
 import { useHistoryState, onBackupState } from 'vue-history-state'
 import { useRoute } from "vue-router"
-import { createToaster } from '@meforma/vue-toaster'
 import Timeline from '@/common/timeline.js'
+import { useCatchError } from '@/common/catchError';
 
 const route = useRoute()
 const store = useStore()
@@ -196,7 +196,6 @@ const inviteCodes = ref([])
 const root = ref(null)
 const loading = ref(null)
 const requestGet = useRequestGet(store)
-const toast = createToaster()
 const loadingCount = ref(0)
 
 useIntersectionObserver(
@@ -245,32 +244,37 @@ onBackupState(() => ({
 }));
 
 const load = async () => {
-  handle.value = await getHandle()
-  await getProfile(handle)
+  try {
+    handle.value = await getHandle()
+    await getProfile(handle)
 
-  completedAuthorFeed.value = false
-  await getAuthorFeed(handle, cursor)
+    completedAuthorFeed.value = false
+    await getAuthorFeed(handle, cursor)
 
-  if (handle.value == store.getters.getHandle) {
-    await getInviteCodes()
-  }
+    if (handle.value == store.getters.getHandle) {
+      await getInviteCodes()
+    }
 
-  completedMutes.value = false
-  while (!completedMutes.value) {
-    await getMutes(mutesCursor)
-  }
-  completedBlocks.value = false
-  while (!completedBlocks.value) {
-    await getBlocks(blocksCursor)
-  }
+    completedMutes.value = false
+    while (!completedMutes.value) {
+      await getMutes(mutesCursor)
+    }
+    completedBlocks.value = false
+    while (!completedBlocks.value) {
+      await getBlocks(blocksCursor)
+    }
 
-  if (profile.value.did == store.getters.getDid) {
-    completedLikes.value = false
-  } else {
-    completedLikes.value = true
-  }
-  while (!completedLikes.value) {
-    await getLikes(handle, likesCursor)
+    if (profile.value.did == store.getters.getDid) {
+      completedLikes.value = false
+    } else {
+      completedLikes.value = true
+    }
+    while (!completedLikes.value) {
+      await getLikes(handle, likesCursor)
+    }
+  } catch (e) {
+    const ce = useCatchError()
+    ce.catchError(e)
   }
 };
 
@@ -285,33 +289,25 @@ const getAuthorFeed = async (handle, cur) => {
   } else {
     params = { actor: handle.value, cursor: cur.value }
   }
-  try {
     const response = await requestGet.get("app.bsky.feed.getAuthorFeed", params)
     timeline.value.setArray(response.res.feed)
     cursor.value = response.res.cursor
     if (response.res.feed.length == 0) {
       completedAuthorFeed.value = true
     }
-  } catch (e) {
-    toast.error(e.toString(), { position: "top-right" })
-  }
 }
 
 const getProfile = async (handle) => {
-  try {
     const response = await requestGet.get("app.bsky.actor.getProfile", { actor: handle.value })
     profile.value = response.res
-  } catch (e) {
-    toast.error(e, { position: "top-right" })
-  }
 }
 
 const stopWatch = watch(
-  () => route.currentRoute,
+  () => route.params.handle,
   async () => {
     handle.value = await getHandle()
-    await getProfile(handle.value)
-    await getAuthorFeed(handle.value, null)
+    await getProfile(handle)
+    await getAuthorFeed(handle, null)
   }
 )
 
@@ -324,16 +320,12 @@ const getMutes = async (cursor) => {
   } else {
     params = { cursor: cursor.value }
   }
-  try {
     const response = await requestGet.get("app.bsky.graph.getMutes", params)
     mutesCursor.value = response.res.cursor
     if (response.res.mutes.length == 0) {
       completedMutes.value = true
     }
     mutes.value = mutes.value.concat(response.res.mutes)
-  } catch (e) {
-    toast.error(e, { position: "top-right" })
-  }
 }
 
 const getBlocks = async (cursor) => {
@@ -343,20 +335,15 @@ const getBlocks = async (cursor) => {
   } else {
     params = { cursor: cursor.value }
   }
-  try {
     const response = await requestGet.get("app.bsky.graph.getBlocks", params)
     blocksCursor.value = response.res.cursor
     if (response.res.blocks.length == 0) {
       completedBlocks.value = true
     }
     blocks.value = blocks.value.concat(response.res.blocks)
-  } catch (e) {
-    toast.error(e, { position: "top-right" })
-  }
 }
 
 const getLikes = async (handle, cursor) => {
-  try {
     let params = {}
     if (!cursor) {
       params = {
@@ -379,18 +366,11 @@ const getLikes = async (handle, cursor) => {
       completedLikes.value = true
       return
     }
-  } catch (e) {
-    toast.error(e, { position: "top-right" })
-  }
 }
 
 const getInviteCodes = async () => {
-  try {
     const response = await requestGet.get("com.atproto.server.getAccountInviteCodes", {})
     inviteCodes.value = response.res.codes
-  } catch (e) {
-    toast.error(e, { position: "top-right" })
-  }
 }
 
 const doFollow = async () => {

@@ -61,6 +61,7 @@ import { useRequestGet } from '../common/requestGet.js'
 import { useRoute, useRouter } from "vue-router"
 import { useToast } from 'vue-toastification'
 import { useStore } from 'vuex'
+import { useCatchError } from '@/common/catchError';
 
 const { files, open, onChange } = useFileDialog()
 onChange((files) => {
@@ -88,15 +89,15 @@ const parent = ref(null)
 const quotePost = ref(null)
 
 onBeforeMount(async () => {
-
+  try {
   files.value = []
   imageUrls.value = []
 
-  if (route.path.startsWith("/post")) {
-    mode.value = "post"
-  } else if (route.path.startsWith("/reply")) {
-    mode.value = "reply"
-    try {
+    if (route.path.startsWith("/post")) {
+      mode.value = "post"
+    } else if (route.path.startsWith("/reply")) {
+      mode.value = "reply"
+
       const response = await requestGet.get("app.bsky.feed.getPosts", { uris: [route.params.uri] })
       if (response.res.posts.length == 0) {
         return
@@ -108,20 +109,17 @@ onBeforeMount(async () => {
       } else {
         root.value = { uri: parentPost.value.uri, cid: parentPost.value.cid }
       }
-    } catch (e) {
-      toast.error(e, { position: "top-right" })
-    }
-  } else if (route.path.startsWith("/quoteRepost")) {
-    mode.value = "quoteRepost"
-    try {
+    } else if (route.path.startsWith("/quoteRepost")) {
+      mode.value = "quoteRepost"
       const response = await requestGet.get("app.bsky.feed.getPosts", { uris: [route.params.uri] })
       if (response.res.posts.length == 0) {
         return
       }
       quotePost.value = response.res.posts[0]
-    } catch (e) {
-      toast.error(e, { position: "top-right" })
     }
+  } catch (e) {
+    const ce = useCatchError()
+    ce.catchError(e)
   }
 })
 
@@ -168,7 +166,7 @@ const getRichTexts = async (text) => {
       did = response.res.did
     } catch (e) {
       toast.error(e, { position: "top-right" })
-      continue;
+      break;
     }
     const features = [{ $type: "app.bsky.richtext.facet#mention", did: did }]
     facets.push({ index: index, features: features });
@@ -336,7 +334,8 @@ const send = async () => {
     }
     router.go(-1)
   } catch (e) {
-    toast.error(e, { position: "top-right" })
+    const ce = useCatchError()
+    ce.catchError(e)
   }
 }
 </script>
