@@ -4,7 +4,7 @@
     <div ref="loading">
       <v-container class="my-5">
         <v-row justify="center">
-          <v-progress-circular model-value="20"></v-progress-circular>
+          <v-progress-circular indeterminate v-if="!completed" model-value="20"></v-progress-circular>
         </v-row>
       </v-container>
     </div>
@@ -16,12 +16,12 @@ import FeedView from "./FeedView.vue"
 import { useIntersectionObserver } from '@vueuse/core'
 import { ref, onBeforeMount } from 'vue'
 import { useStore } from 'vuex'
-import { createToaster } from '@meforma/vue-toaster';
 import { useHistoryState, onBackupState } from 'vue-history-state';
 import { useRequestGet } from '../common/requestGet.js'
 import Timeline from '../common/timeline.js'
+import { useCatchError } from '@/common/catchError';
 
-const complated = ref(false)
+const completed = ref(false)
 const cursor = ref(null)
 const historyState = useHistoryState();
 const timeline = ref(new Timeline())
@@ -47,7 +47,7 @@ onBackupState(() => (timeline.value.array));
 useIntersectionObserver(
   loading,
   async ([{ isIntersecting }]) => {
-    if (isIntersecting && !complated.value && loadingCount.value != 0) {
+    if (isIntersecting && !completed.value && loadingCount.value != 0) {
       await getPopular(cursor)
     }
     loadingCount.value = loadingCount.value + 1
@@ -66,11 +66,11 @@ const getPopular = async (cur) => {
     timeline.value.setArray(response.res.feed)
     cursor.value = response.res.cursor
     if (response.res.feed.length == 0) {
-      complated.value = true
+      completed.value = true
     }
   } catch (e) {
-    const toast = createToaster()
-    toast.error(e, { position: "top-right" })
+    const ce = useCatchError()
+    ce.catchError(e)
   }
 }
 </script>

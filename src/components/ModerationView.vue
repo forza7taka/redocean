@@ -77,13 +77,12 @@ import { ref, onBeforeMount } from 'vue'
 import { useRequestPost } from '../common/requestPost.js'
 import { useRequestGet } from '../common/requestGet.js'
 import { useRoute, useRouter } from "vue-router"
-import { useToast } from 'vue-toastification'
 import { useStore } from 'vuex'
 import { useDate } from "@/common/date";
+import { useCatchError } from '@/common/catchError';
 
 const { convertDate } = useDate()
 
-const toast = useToast()
 const store = useStore()
 const route = useRoute()
 const router = useRouter()
@@ -106,26 +105,24 @@ const post = ref(null)
 const profile = ref(null)
 
 onBeforeMount(async () => {
-  if (route.path.startsWith("/reportPost")) {
-    mode.value = "post"
-    try {
+  try {
+    if (route.path.startsWith("/reportPost")) {
+      mode.value = "post"
       const response = await requestGet.get("app.bsky.feed.getPosts", { uris: [route.params.uri] })
       if (response.res.posts.length == 0) {
         return
       }
       post.value = response.res.posts[0]
-    } catch (e) {
-      toast.error(e, { position: "top-right" })
-    }
-  } else if (route.path.startsWith("/reportUser")) {
-    mode.value = "user"
-    try {
+    } else if (route.path.startsWith("/reportUser")) {
+      mode.value = "user"
       const response = await requestGet.get("app.bsky.actor.getProfile", { actor: [route.params.handle] })
       profile.value = response.res
       console.log(profile.value)
-    } catch (e) {
-      toast.error(e, { position: "top-right" })
+
     }
+  } catch (e) {
+     const ce = useCatchError()
+      ce.catchError(e)
   }
 })
 
@@ -153,7 +150,8 @@ const report = async () => {
     await requestPost.post("com.atproto.moderation.createReport", params)
     router.go(-1)
   } catch (e) {
-    toast.error(e, { position: "top-right" })
+    const ce = useCatchError()
+    ce.catchError(e)
   }
 }
 </script>

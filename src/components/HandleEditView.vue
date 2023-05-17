@@ -19,12 +19,11 @@
 <script setup>
 import { ref, onBeforeMount } from 'vue'
 import { useStore } from 'vuex'
-import { createToaster } from '@meforma/vue-toaster';
 import { useRequestGet } from '../common/requestGet.js'
 import { useRequestPost } from '../common/requestPost.js'
+import { useCatchError } from '@/common/catchError';
 
 const profile = ref(null)
-const toast = createToaster()
 const store = useStore()
 
 const requestGet = useRequestGet(store)
@@ -39,7 +38,9 @@ const getProfile = async (handle) => {
     const response = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
     profile.value = response.res
   } catch (e) {
-    toast.error(e, { position: "top-right" })
+         const ce = useCatchError()
+    ce.catchError(e)
+
   }
 }
 
@@ -49,7 +50,8 @@ const updateHandle = async () => {
     const store = useStore()
     store.dispatch('setHandle', response.req.handle);
   } catch (e) {
-    toast.error(e, { position: "top-right" })
+    const ce = useCatchError()
+    ce.catchError(e)
   }
 }
 
