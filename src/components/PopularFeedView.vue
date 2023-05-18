@@ -56,9 +56,9 @@ useIntersectionObserver(
 const getPopular = async (cur) => {
   let params = {}
   if (!cur) {
-    params = {}
+    params = { limit: 25 }
   } else {
-    params = { cursor: cur.value }
+    params = { limit: 25, cursor: cur.value }
   }
   try {
     const req = useRequestGet(store)

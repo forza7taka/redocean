@@ -5,12 +5,12 @@
         <v-tabs v-model="tab">
           <v-tab v-for="(l, index) in logins" :key="index" :value=index>
             <template v-if="l.avatar">
-                <v-avatar v-if="userSettings" :style="`border: 5px solid ${getColor(l.did)};`">
-                  <v-img cover v-bind:src=l.avatar alt="avatar"></v-img>
-                </v-avatar>
+              <v-avatar v-if="userSettings" :style="`border: 5px solid ${getColor(l.did)};`">
+                <v-img cover v-bind:src=l.avatar alt="avatar"></v-img>
+              </v-avatar>
             </template>
             <template v-if="!l.avatar && l.handle">
-                {{ l.handle }}
+              {{ l.handle }}
             </template>
             <template v-if="!l.avatar && !l.handle">
               New Account
@@ -33,10 +33,10 @@
                   type="password" v-model="l.password" :rules="AppPasswordRules" variant="outlined"></v-text-field>
                 <br>
                 <v-btn @click.prevent="login(l.server, l.handle, l.password)" icon="mdi-login" size="42"
-                :disabled="!(l.server && l.handle && l.password)"></v-btn>
+                  :disabled="!(l.server && l.handle && l.password)"></v-btn>
                 &nbsp;
                 <v-btn :to="`/accountSetting/${l.did}`" icon="mdi-cog-outline" size="42" :disabled="!l.did"></v-btn>
-                 &nbsp;
+                &nbsp;
                 <v-btn v-if="logins.length > 1" @click="del(index)" icon="mdi-minus" size="42"></v-btn>
                 &nbsp;
                 <v-btn v-if="l.server && l.handle && l.password && index == logins.length - 1" @click="add" size="42"
@@ -62,7 +62,7 @@ import { useCatchError } from '@/common/catchError';
 const tab = ref(null)
 const failed = ref(false)
 const followsCursor = ref(null)
-const mutesCursor = ref(null) 
+const mutesCursor = ref(null)
 const blocksCursor = ref(null)
 const store = useStore()
 const requestGet = useRequestGet(store)
@@ -74,7 +74,7 @@ const logins = ref([{ server: null, handle: null, password: null, did: null, ava
 const storageLogins = useStorage('logins', logins, undefined,
   {
     serializer: {
-      read: (v) => v ?  JSON.parse(v) : null,
+      read: (v) => v ? JSON.parse(v) : null,
       write: (v) => JSON.stringify(v),
     },
   })
@@ -84,7 +84,7 @@ const userSettings = ref(null)
 useStorage('userSettings', userSettings, undefined,
   {
     serializer: {
-       read: (v) => new Map(JSON.parse(v)),
+      read: (v) => new Map(JSON.parse(v)),
       write: (v) => v instanceof Map ? JSON.stringify([...v]) : JSON.stringify(v)
     },
   })
@@ -117,7 +117,7 @@ onBeforeMount(async () => {
     store.dispatch('doSetCloudTranslationApiKey', cloudTranslationApiKey.value);
     if (!logins.value) {
       add()
-    }     
+    }
   } catch (e) {
     failed.value = true
     const ce = useCatchError()
@@ -136,13 +136,13 @@ const login = async (server, handle, password) => {
     logins.value[tab.value].did = loginResponse.res.did
     store.dispatch('doCreateSession', loginResponse.res);
 
-    if (userSettings.value && userSettings.value.get(loginResponse.res.did)) {
+    if (userSettings.value && userSettings.value.has(loginResponse.res.did)) {
       store.dispatch('doSetColor', userSettings.value.get(loginResponse.res.did).color);
     }
 
     const profileResponse = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
     store.dispatch('doSetProfile', profileResponse.res);
-    logins.value[tab.value].avatar = profileResponse.res.avatar 
+    logins.value[tab.value].avatar = profileResponse.res.avatar
 
     storageLogins.value = logins.value
 
@@ -172,13 +172,13 @@ const getFollows = async (handle, cur) => {
   } else {
     params = { actor: handle, cursor: cur.value, limit: 100 }
   }
-    const response = await requestGet.get("app.bsky.graph.getFollows", params)
-    followsCursor.value = response.res.cursor
-    if (response.res.follows.length == 0) {
-      completed.value = true
-      return
-    }
-    store.dispatch('doAddFollows', response.res)
+  const response = await requestGet.get("app.bsky.graph.getFollows", params)
+  followsCursor.value = response.res.cursor
+  if (response.res.follows.length == 0) {
+    completed.value = true
+    return
+  }
+  store.dispatch('doAddFollows', response.res)
 }
 
 const getMutes = async (cur) => {
@@ -188,13 +188,13 @@ const getMutes = async (cur) => {
   } else {
     params = { cursor: cur.value }
   }
-    const response = await requestGet.get("app.bsky.graph.getMutes", params)
-    mutesCursor.value = response.res.cursor
-    if (response.res.mutes.length == 0) {
-      completed.value = true
-      return
-    }
-    store.dispatch('doAddMutes', response.res)
+  const response = await requestGet.get("app.bsky.graph.getMutes", params)
+  mutesCursor.value = response.res.cursor
+  if (response.res.mutes.length == 0) {
+    completed.value = true
+    return
+  }
+  store.dispatch('doAddMutes', response.res)
 }
 
 const getBlocks = async (cur) => {
@@ -204,13 +204,13 @@ const getBlocks = async (cur) => {
   } else {
     params = { cursor: cur.value }
   }
-    const response = await requestGet.get("app.bsky.graph.getBlocks", params)
-    blocksCursor.value = response.res.cursor
-    if (response.res.blocks.length == 0) {
-      completed.value = true
-      return
-    }
-    console.log(response.res)
-    store.dispatch('doAddBlocks', response.res)
+  const response = await requestGet.get("app.bsky.graph.getBlocks", params)
+  blocksCursor.value = response.res.cursor
+  if (response.res.blocks.length == 0) {
+    completed.value = true
+    return
+  }
+  console.log(response.res)
+  store.dispatch('doAddBlocks', response.res)
 }
 </script>

@@ -6,6 +6,7 @@
           <PostView v-if="f.reply" :post="f.post" :reason="f.reason" :parent="f.reply.parent" :root="f.reply.root"
             :depth="0"></PostView>
           <PostView v-if="!f.reply" :post="f.post" :reason="f.reason" :depth="0"></PostView>
+          <div ref="loading" v-if="fIndex % 10 == 0"></div>
         </v-col>
       </v-row>
     </v-list-item>
