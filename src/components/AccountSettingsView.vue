@@ -2,32 +2,32 @@
   <div class="displayArea mx-auto">
     <v-card class="mx-auto pa-4" variant="flat">
       <template v-if="settings">
-      <v-card-title> 
-      TitleBar Color
-      </v-card-title>
-      <v-color-picker disabled hide-canvas hide-inputs hide-mode-switch hide-sliders mode="rgba" show-swatches
-      swatches-max-height="210" v-model=settings.color></v-color-picker>
-    </template>
+        <v-card-title>
+          TitleBar Color
+        </v-card-title>
+        <v-color-picker disabled hide-canvas hide-inputs hide-mode-switch hide-sliders mode="rgba" show-swatches
+          swatches-max-height="210" v-model=settings.color></v-color-picker>
+      </template>
     </v-card>
     <template v-for="(l, index) in labelItems" :key="index">
       <v-card class="mx-auto pa-4" variant="flat">
         <v-card-title>
           {{ l.name }}
         </v-card-title>
-          <v-card-subtitle>
-            {{ l.discription }}
-          </v-card-subtitle>
-          <v-card-text>
-        <template v-if="settings && settings.labels">
-          <v-btn-toggle justify="center" v-model="settings.labels[index]" color="primary">
-            <v-btn icon="mdi-image-off-outline"></v-btn>
-            <v-btn icon="mdi-alert-octagon"></v-btn>
-            <v-btn icon="mdi-image-outline"></v-btn>
-          </v-btn-toggle>
-        </template>
+        <v-card-subtitle>
+          {{ l.discription }}
+        </v-card-subtitle>
+        <v-card-text>
+          <template v-if="settings && settings.labels">
+            <v-btn-toggle justify="center" v-model="settings.labels[index]" color="primary">
+              <v-btn icon="mdi-image-off-outline"></v-btn>
+              <v-btn icon="mdi-alert-octagon"></v-btn>
+              <v-btn icon="mdi-image-outline"></v-btn>
+            </v-btn-toggle>
+          </template>
         </v-card-text>
       </v-card>
-      <v-divider/>
+      <v-divider />
     </template>
   </div>
 </template>
@@ -35,7 +35,7 @@
 <script setup>
 import { ref, watch, onBeforeMount } from 'vue'
 import { useRoute } from "vue-router"
-import { useStorage  } from '@vueuse/core'
+import { useStorage } from '@vueuse/core'
 
 const route = useRoute()
 const userSettings = ref(new Map())
@@ -70,13 +70,12 @@ onBeforeMount(async () => {
     labelItems.value.forEach(() => {
       settings.value.labels.push(0)
     })
-    userSettings.value = new Map()
   }
 });
 
 watch(() => settings, () => {
   userSettings.value.set(route.params.did, settings.value)
   storageUserSettings.value = userSettings.value
-  }, {deep: true}
+}, { deep: true }
 );
 </script>

@@ -58,15 +58,14 @@ useIntersectionObserver(
 const getTimeline = async (cur) => {
   let params = {}
   if (!cur) {
-    params = {}
+    params = { limit: 25 }
   } else {
-    params = { cursor: cur.value }
+    params = { limit: 25, cursor: cur.value }
   }
   try {
     const req = useRequestGet(store)
     const response = await req.get("app.bsky.feed.getTimeline", params)
     timeline.value.setArray(response.res.feed)
-    console.log(timeline.value)
     cursor.value = response.res.cursor
     if (response.res.feed.length == 0) {
       completed.value = true

@@ -144,7 +144,7 @@
       <div ref="loading">
         <v-container class="my-5">
           <v-row justify="center">
-            <v-progress-circular indeterminate v-if="!completedAuthorFeed" model-value="20"></v-progress-circular>
+            <v-progress-circular indeterminate v-if=" !completedAuthorFeed " model-value="20"></v-progress-circular>
           </v-row>
         </v-container>
       </div>
@@ -285,21 +285,21 @@ const getAuthorFeed = async (handle, cur) => {
 
   let params = {}
   if (!cur) {
-    params = { actor: handle.value }
+    params = { limit: 25, actor: handle.value }
   } else {
-    params = { actor: handle.value, cursor: cur.value }
+    params = { limit: 25, actor: handle.value, cursor: cur.value }
   }
-    const response = await requestGet.get("app.bsky.feed.getAuthorFeed", params)
-    timeline.value.setArray(response.res.feed)
-    cursor.value = response.res.cursor
-    if (response.res.feed.length == 0) {
-      completedAuthorFeed.value = true
-    }
+  const response = await requestGet.get("app.bsky.feed.getAuthorFeed", params)
+  timeline.value.setArray(response.res.feed)
+  cursor.value = response.res.cursor
+  if (response.res.feed.length == 0) {
+    completedAuthorFeed.value = true
+  }
 }
 
 const getProfile = async (handle) => {
-    const response = await requestGet.get("app.bsky.actor.getProfile", { actor: handle.value })
-    profile.value = response.res
+  const response = await requestGet.get("app.bsky.actor.getProfile", { actor: handle.value })
+  profile.value = response.res
 }
 
 const stopWatch = watch(
@@ -320,12 +320,12 @@ const getMutes = async (cursor) => {
   } else {
     params = { cursor: cursor.value }
   }
-    const response = await requestGet.get("app.bsky.graph.getMutes", params)
-    mutesCursor.value = response.res.cursor
-    if (response.res.mutes.length == 0) {
-      completedMutes.value = true
-    }
-    mutes.value = mutes.value.concat(response.res.mutes)
+  const response = await requestGet.get("app.bsky.graph.getMutes", params)
+  mutesCursor.value = response.res.cursor
+  if (response.res.mutes.length == 0) {
+    completedMutes.value = true
+  }
+  mutes.value = mutes.value.concat(response.res.mutes)
 }
 
 const getBlocks = async (cursor) => {
@@ -335,42 +335,42 @@ const getBlocks = async (cursor) => {
   } else {
     params = { cursor: cursor.value }
   }
-    const response = await requestGet.get("app.bsky.graph.getBlocks", params)
-    blocksCursor.value = response.res.cursor
-    if (response.res.blocks.length == 0) {
-      completedBlocks.value = true
-    }
-    blocks.value = blocks.value.concat(response.res.blocks)
+  const response = await requestGet.get("app.bsky.graph.getBlocks", params)
+  blocksCursor.value = response.res.cursor
+  if (response.res.blocks.length == 0) {
+    completedBlocks.value = true
+  }
+  blocks.value = blocks.value.concat(response.res.blocks)
 }
 
 const getLikes = async (handle, cursor) => {
-    let params = {}
-    if (!cursor) {
-      params = {
-        repo: handle.value,
-        collection: "app.bsky.feed.like",
-        limit: 100
-      }
-    } else {
-      params = {
-        repo: handle.value,
-        collection: "app.bsky.feed.like",
-        cursor: cursor.value,
-        limit: 100
-      }
+  let params = {}
+  if (!cursor) {
+    params = {
+      repo: handle.value,
+      collection: "app.bsky.feed.like",
+      limit: 100
     }
-    const response = await requestGet.get("com.atproto.repo.listRecords", params)
-    likes.value = likes.value.concat(response.res.records)
-    likesCursor.value = response.res.cursor
-    if (response.res.records.length == 0) {
-      completedLikes.value = true
-      return
+  } else {
+    params = {
+      repo: handle.value,
+      collection: "app.bsky.feed.like",
+      cursor: cursor.value,
+      limit: 100
     }
+  }
+  const response = await requestGet.get("com.atproto.repo.listRecords", params)
+  likes.value = likes.value.concat(response.res.records)
+  likesCursor.value = response.res.cursor
+  if (response.res.records.length == 0) {
+    completedLikes.value = true
+    return
+  }
 }
 
 const getInviteCodes = async () => {
-    const response = await requestGet.get("com.atproto.server.getAccountInviteCodes", {})
-    inviteCodes.value = response.res.codes
+  const response = await requestGet.get("com.atproto.server.getAccountInviteCodes", {})
+  inviteCodes.value = response.res.codes
 }
 
 const doFollow = async () => {
