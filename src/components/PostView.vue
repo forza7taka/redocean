@@ -10,36 +10,36 @@
         }})</v-card-subtitle>
       </div>
       <v-card-actions>
-        <PostUserView :author="defProps.post.author" :createdAt="defProps.post.record.createdAt"/>
+        <PostUserView :author="defProps.post.author" :createdAt="defProps.post.record.createdAt" />
       </v-card-actions>
       <v-card-text class="text-pre-wrap">
         <div v-if="defProps.post && defProps.post.record && defProps.post.record.text">
           {{ defProps.post.record.text }}</div>
       </v-card-text>
       <v-card-text v-if="translateText" class="text-pre-wrap">
-          {{ translateText }}
+        {{ translateText }}
       </v-card-text>
-        <div v-for="(facet, facetIndex) in defProps.post.record.facets" :key="facetIndex">
-          <div v-for="(feature, featureIndex) in facet.features" :key="featureIndex">
-            <v-card-text>
+      <div v-for="(facet, facetIndex) in defProps.post.record.facets" :key="facetIndex">
+        <div v-for="(feature, featureIndex) in facet.features" :key="featureIndex">
+          <v-card-text>
             <a :href="feature.uri">{{ feature.uri }}</a>
-            </v-card-text>
-          </div>
+          </v-card-text>
         </div>
-        <v-card-subtitle>
-          <v-list-item-subtitle>
-            <div v-if="defProps.post.record.via">
-              via:{{ defProps.post.record.via }}
-            </div>
-          </v-list-item-subtitle>
-        </v-card-subtitle>
-      
+      </div>
+      <v-card-subtitle>
+        <v-list-item-subtitle>
+          <div v-if="defProps.post.record.via">
+            via:{{ defProps.post.record.via }}
+          </div>
+        </v-list-item-subtitle>
+      </v-card-subtitle>
+
       <div v-if="defProps.post.embed && defProps.post.embed.images">
-      <PostImageView :images="defProps.post.embed.images"/>       
+        <PostImageView :images="defProps.post.embed.images" />
       </div>
 
       <div v-if="defProps.post.embed && defProps.post.embed.media">
-        <PostImageView :images="defProps.post.embed.media.images"/>
+        <PostImageView :images="defProps.post.embed.media.images" />
       </div>
 
       <!--quoteRepostWithImage S-->
@@ -47,8 +47,8 @@
         <div v-if="defProps.post.embed.$type == 'app.bsky.embed.recordWithMedia#view'">
           <v-card class="mx-auto" variant="outlined" :to="`/thread/${encodeURIComponent(defProps.post.uri)}`">
             <v-card-actions>
-            <PostUserView :author="defProps.post.embed.record.record.author"
-             :createdAt="defProps.post.embed.record.record.value.createdAt"/>
+              <PostUserView :author="defProps.post.embed.record.record.author"
+                :createdAt="defProps.post.embed.record.record.value.createdAt" />
             </v-card-actions>
             <v-card-text class="text-pre-wrap" :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
               <div
@@ -61,10 +61,11 @@
 
         <!--quoteRepost S-->
         <div v-if="defProps.post.embed.$type == 'app.bsky.embed.record#view'">
-          <v-card class="mx-auto mt-5" variant="outlined" :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
+          <v-card class="mx-auto mt-5" variant="outlined"
+            :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
             <v-card-actions>
               <PostUserView :author="defProps.post.embed.record.author"
-               :createdAt="defProps.post.embed.record.value.createdAt"/>
+                :createdAt="defProps.post.embed.record.value.createdAt" />
             </v-card-actions>
             <v-card-text class="text-pre-wrap" :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
               <div v-if="defProps.post.embed && defProps.post.embed.record && defProps.post.embed.record.value">{{
@@ -124,13 +125,13 @@
             </v-list-item>
           </v-list>
         </v-menu>
-      </v-list-item-subtitle>      
-        <div class="justify-center align-center" v-for="(r, rIndex) in defProps.replies" :key="rIndex">
-        <v-divider/>
-          <PostView :post="r.post" :root="root" :depth="depth + 1" :replies="r.replies"></PostView>
-        </div>
+      </v-list-item-subtitle>
+      <div class="justify-center align-center" v-for="(r, rIndex) in defProps.replies" :key="rIndex">
+        <v-divider />
+        <PostView :post="r.post" :root="root" :depth="depth + 1" :replies="r.replies"></PostView>
+      </div>
     </v-card>
-    <v-divider v-if="depth==0"/>
+    <v-divider v-if="depth == 0" />
   </div>
 </template>
 
@@ -138,7 +139,7 @@
 import PostUserView from './PostUserView.vue'
 import PostImageView from './PostImageView.vue'
 import axios from 'axios'
-import { ref, defineProps } from 'vue'
+import { ref, defineProps, defineEmits } from 'vue'
 import { useStore } from 'vuex'
 import { useRequestPost } from "@/common/requestPost";
 import { useCatchError } from '@/common/catchError';
@@ -151,6 +152,10 @@ const defProps = defineProps({
   depth: null,
   replies: null
 })
+
+const emit = defineEmits(
+  ['deletePost']
+)
 const store = useStore()
 const request = useRequestPost(store)
 const translateText = ref(null)
@@ -164,7 +169,6 @@ const translate = async (text) => {
     }
     const response = await axios.get('https://translation.googleapis.com/language/translate/v2', { params })
     translateText.value = response.data.data.translations[0].translatedText
-
   } catch (e) {
     const ce = useCatchError()
     ce.catchError(e)
@@ -177,6 +181,7 @@ const deletePost = async (uri) => {
       repo: store.getters.getDid,
       rkey: String(uri).substr(-13)
     })
+    emit('deletePost', uri)
   } catch (e) {
     const ce = useCatchError()
     ce.catchError(e)

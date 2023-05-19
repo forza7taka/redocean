@@ -1,4 +1,4 @@
-export default class Timeline{
+export default class Timeline {
   constructor() {
     this.array = new Array()
     this.map = new Map()
@@ -42,5 +42,15 @@ export default class Timeline{
     array.forEach(el => {
       this.add(el)
     });
+  }
+
+  async delete(uri) {
+    for (let i = 0; i < this.array.length; i++) {
+      const el = this.array[i]
+      if (el.post.uri == uri) {
+        this.array.splice(i, 1)
+        this.map.delete(uri)
+      }
+    }
   }
 }

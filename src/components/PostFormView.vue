@@ -5,7 +5,7 @@
       <div v-if="parentPost">
         <v-card class="mx-auto mt-5">
           <v-card-actions>
-            <PostUserView :author="parentPost.author" :createdAt="parentPost.record.createdAt"/>
+            <PostUserView :author="parentPost.author" :createdAt="parentPost.record.createdAt" />
           </v-card-actions>
           <v-card-text>
             <div v-if="parentPost && parentPost.record && parentPost.record.text">{{ parentPost.record.text }}</div>
@@ -20,14 +20,14 @@
         <v-row>
           <div v-for="(image, index) in imageUrls" :key="index">
             <v-col>
-                  <v-badge color="transparent" offset-x="25" offset-y="5" right top>
-                    <template #badge>
-                      <v-btn size="28" icon @click.prevent="deleteImage(index)">
-                          <v-icon>mdi-window-close</v-icon>
-                      </v-btn>
-                    </template>
-                      <v-img width="100" id="image" :src=image></v-img>
-                  </v-badge>
+              <v-badge color="transparent" offset-x="25" offset-y="5" right top>
+                <template #badge>
+                  <v-btn size="28" icon @click.prevent="deleteImage(index)">
+                    <v-icon>mdi-window-close</v-icon>
+                  </v-btn>
+                </template>
+                <v-img width="100" id="image" :src=image></v-img>
+              </v-badge>
             </v-col>
           </div>
         </v-row>
@@ -35,8 +35,8 @@
       <div v-if="quotePost">
         <v-card class="mx-auto mt-5">
           <v-card-actions>
-              <PostUserView :author="quotePost.author" :createdAt="quotePost.record.createdAt"/>
-            </v-card-actions>
+            <PostUserView :author="quotePost.author" :createdAt="quotePost.record.createdAt" />
+          </v-card-actions>
           <v-card-text>
             <div v-if="quotePost && quotePost.record && quotePost.record.text">{{ quotePost.record.text }}</div>
           </v-card-text>
@@ -54,6 +54,7 @@
 </template>
 
 <script setup>
+import PostUserView from './PostUserView.vue'
 import { ref, onBeforeMount } from 'vue'
 import { useFileDialog } from '@vueuse/core'
 import { useRequestPost } from '../common/requestPost.js'
@@ -64,6 +65,7 @@ import { useStore } from 'vuex'
 import { useCatchError } from '@/common/catchError';
 
 const { files, open, onChange } = useFileDialog()
+
 onChange((files) => {
   for (let i = 0; i < files.length; i++) {
     const element = files[i]
@@ -90,8 +92,7 @@ const quotePost = ref(null)
 
 onBeforeMount(async () => {
   try {
-  files.value = []
-  imageUrls.value = []
+    imageUrls.value = []
 
     if (route.path.startsWith("/post")) {
       mode.value = "post"
@@ -176,9 +177,9 @@ const getRichTexts = async (text) => {
 
 const post = async () => {
   await requestPost.post("com.atproto.repo.createRecord", {
-     collection: "app.bsky.feed.post",
-     repo: store.getters.getDid,
-     record: { text: contents.value, createdAt: new Date(), facets: await getRichTexts(contents.value), via:"redocean" }
+    collection: "app.bsky.feed.post",
+    repo: store.getters.getDid,
+    record: { text: contents.value, createdAt: new Date(), facets: await getRichTexts(contents.value), via: "redocean" }
   })
 }
 const postWithImage = async () => {

@@ -81,9 +81,9 @@ const getProfile = async (handle) => {
 }
 
 const getMutesProfile = async (handle) => {
-    const response = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
-    muteActors.value = muteActors.value.concat(response.res)
-  
+  const response = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
+  muteActors.value = muteActors.value.concat(response.res)
+
 }
 
 const getMutes = async (cursor) => {
@@ -105,7 +105,7 @@ const getMutes = async (cursor) => {
     }
     mutes.value = mutes.value.concat(response.res.mutes)
   } catch (e) {
-      const ce = useCatchError()
+    const ce = useCatchError()
     ce.catchError(e)
   }
 }

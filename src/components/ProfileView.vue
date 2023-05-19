@@ -83,39 +83,38 @@
                   icon><v-icon>mdi-volume-high</v-icon>
                 </v-btn>
               </v-badge>
-              <v-badge
-                v-if=" profile && profile.did != store.getters.getDid && !(profile.viewer && profile.viewer.muted) "
+              <v-badge v-if="profile && profile.did != store.getters.getDid && !(profile.viewer && profile.viewer.muted)"
                 offset-x="40" offset-y="40" color="transparent">
                 <template #badge>
                   <span>Not Muting</span>
                 </template>
-                <v-btn @click.prevent=" mute(profile.did); profile.viewer.muted = !profile.viewer.muted "
+                <v-btn @click.prevent=" mute(profile.did); profile.viewer.muted = !profile.viewer.muted"
                   icon><v-icon>mdi-volume-mute</v-icon>
                 </v-btn>
               </v-badge>
             </v-list-item-subtitle>
             <v-list-item-subtitle>
-              <v-badge v-if=" profile && store.getters.getBlocks && store.getters.getBlocks.includes(profile.did) "
+              <v-badge v-if="profile && store.getters.getBlocks && store.getters.getBlocks.includes(profile.did)"
                 offset-x="40" offset-y="40" color="transparent">
                 <template #badge>
                   <span>Blocked</span>
                 </template>
-                <v-btn @click.prevent=" doUnBlock() " icon><svg-icon type="mdi"
-                    :path= mdiAccountLockOpen ></svg-icon></v-btn>
+                <v-btn @click.prevent=" doUnBlock()" icon><svg-icon type="mdi"
+                    :path=mdiAccountLockOpen></svg-icon></v-btn>
               </v-badge>
 
-              <v-badge v-if=" profile && store.getters.getBlocks && !store.getters.getBlocks.includes(profile.did) "
+              <v-badge v-if="profile && store.getters.getBlocks && !store.getters.getBlocks.includes(profile.did)"
                 offset-x="40" offset-y="40" color="transparent">
                 <template #badge>
                   <span>Not Blocked</span>
                 </template>
-                <v-btn @click.prevent=" doBlock() " icon><v-icon>mdi-account-cancel</v-icon></v-btn>
+                <v-btn @click.prevent=" doBlock()" icon><v-icon>mdi-account-cancel</v-icon></v-btn>
               </v-badge>
-              <v-badge v-if=" profile " offset-x="35" offset-y="40" color="transparent">
+              <v-badge v-if="profile" offset-x="35" offset-y="40" color="transparent">
                 <template #badge>
                   <span>report</span>
                 </template>
-                <v-btn :to=" `/reportUser/${encodeURIComponent(profile.handle)}` " icon>
+                <v-btn :to="`/reportUser/${encodeURIComponent(profile.handle)}`" icon>
                   <v-icon>mdi-alert-circle-outline</v-icon>
                 </v-btn>
               </v-badge>
@@ -123,7 +122,7 @@
           </v-list-item>
         </v-card-actions>
         <v-card-text class="text-pre-wrap">
-          <div v-if=" profile && profile.description ">
+          <div v-if="profile && profile.description">
             {{ profile.description }}
           </div>
         </v-card-text>
@@ -132,7 +131,7 @@
         </v-card-text>
       </v-card>
     </div>
-    <div v-if=" profile && profile.viewer && (profile.viewer.blocking || profile.viewer.blockedBy) ">
+    <div v-if="profile && profile.viewer && (profile.viewer.blocking || profile.viewer.blockedBy)">
       <v-container class="my-5">
         <v-row justify="center">
           Blocked User
@@ -140,11 +139,11 @@
       </v-container>
     </div>
     <div v-else ref="root">
-      <FeedView :feeds=" timeline.array "></FeedView>
+      <FeedView :feeds="timeline.array" @deletePost="deletePost"></FeedView>
       <div ref="loading">
         <v-container class="my-5">
           <v-row justify="center">
-            <v-progress-circular indeterminate v-if=" !completedAuthorFeed " model-value="20"></v-progress-circular>
+            <v-progress-circular indeterminate v-if="!completedAuthorFeed" model-value="20"></v-progress-circular>
           </v-row>
         </v-container>
       </div>
@@ -198,6 +197,10 @@ const loading = ref(null)
 const requestGet = useRequestGet(store)
 const loadingCount = ref(0)
 
+const deletePost = async (uri) => {
+  timeline.value.delete(uri)
+}
+
 useIntersectionObserver(
   loading,
   async ([{ isIntersecting }]) => {
@@ -227,6 +230,7 @@ onBeforeMount(async () => {
     mutes.value = Object.values(historyState.data.mutes)
     blocks.value = Object.values(historyState.data.blocks)
     inviteCodes.value = Object.values(historyState.data.inviteCodes)
+    await getAuthorFeed(handle)
     timeline.value.setArray(Object.values(historyState.data.timeline))
     return
   }
@@ -295,6 +299,7 @@ const getAuthorFeed = async (handle, cur) => {
   if (response.res.feed.length == 0) {
     completedAuthorFeed.value = true
   }
+  console.log(response.res.feed)
 }
 
 const getProfile = async (handle) => {

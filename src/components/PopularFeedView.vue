@@ -1,6 +1,6 @@
 <template>
   <div class="displayArea mx-auto">
-    <FeedView :feeds="timeline.array"></FeedView>
+    <FeedView :feeds="timeline.array" @deletePost="deletePost"></FeedView>
     <div ref="loading">
       <v-container class="my-5">
         <v-row justify="center">
@@ -28,6 +28,10 @@ const timeline = ref(new Timeline())
 const store = useStore()
 const loading = ref(null)
 const loadingCount = ref(0)
+
+const deletePost = async (uri) => {
+  timeline.value.delete(uri)
+}
 
 onBeforeMount(async () => {
   if (historyState.action === 'reload') {

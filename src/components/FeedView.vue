@@ -4,8 +4,8 @@
       <v-row>
         <v-col class="justify-center align-center">
           <PostView v-if="f.reply" :post="f.post" :reason="f.reason" :parent="f.reply.parent" :root="f.reply.root"
-            :depth="0"></PostView>
-          <PostView v-if="!f.reply" :post="f.post" :reason="f.reason" :depth="0"></PostView>
+            :depth="0" @deletePost="deletePost"></PostView>
+          <PostView v-if="!f.reply" :post="f.post" :reason="f.reason" :depth="0" @deletePost="deletePost"></PostView>
           <div ref="loading" v-if="fIndex % 10 == 0"></div>
         </v-col>
       </v-row>
@@ -15,9 +15,17 @@
 
 <script setup>
 import PostView from "./PostView.vue"
-import { defineProps } from 'vue'
+import { defineProps, defineEmits } from 'vue'
 
 const props = defineProps({
   feeds: null,
 })
+
+const emit = defineEmits(
+  ['deletePost']
+)
+
+const deletePost = async (uri) => {
+  emit('deletePost', uri)
+}
 </script>

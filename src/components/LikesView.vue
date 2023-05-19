@@ -5,12 +5,12 @@
         Likes
       </v-card-title>
     </v-card>
-    <v-list-item v-for="(f, fIndex) in timeline.feed" :key="fIndex">
+    <v-list-item v-for="(f, fIndex) in timeline.array" :key="fIndex">
       <v-row>
         <v-col class="d-flex justify-center align-center">
           <PostView v-if="f.reply" :post="f.post" :reason="f.reason" :parent="f.reply.parent" :root="f.reply.root"
-            :depth="0"></PostView>
-          <PostView v-if="!f.reply" :post="f.post" :reason="f.reason" :depth="0"></PostView>
+            :depth="0" @deletePost="deletePost"></PostView>
+          <PostView v-if="!f.reply" :post="f.post" :reason="f.reason" :depth="0" @deletePost="deletePost"></PostView>
         </v-col>
       </v-row>
     </v-list-item>
@@ -26,13 +26,14 @@
 
 <script setup>
 import PostView from "./PostView.vue"
-import { ref, reactive, watch, onBeforeMount, onUnmounted } from 'vue'
+import { ref, watch, onBeforeMount, onUnmounted } from 'vue'
 import { useStore } from 'vuex'
 import { useRequestGet } from '../common/requestGet.js'
 import { useHistoryState, onBackupState } from 'vue-history-state';
 import { useRoute } from "vue-router"
 import { useIntersectionObserver } from '@vueuse/core'
 import { useCatchError } from '@/common/catchError';
+import Timeline from '@/common/timeline.js'
 
 const store = useStore()
 const requestGet = useRequestGet(store)
@@ -40,16 +41,20 @@ const route = useRoute()
 const historyState = useHistoryState();
 
 const completed = ref(false)
-const timeline = reactive({ feed: [] })
+const timeline = ref(new Timeline())
 const cursor = ref(null)
 const likes = ref(new Array())
 const handle = ref(null)
 const loading = ref(null)
 const loadingCount = ref(0)
 
+const deletePost = async (uri) => {
+  timeline.value.delete(uri)
+}
+
 onBeforeMount(async () => {
   if (historyState.action === 'reload') {
-    timeline.feed = []
+    timeline.value = new Timeline()
     likes.value = []
     handle.value = await getHandle()
     await getLikes(handle, cursor)
@@ -58,14 +63,14 @@ onBeforeMount(async () => {
   if (historyState.action === 'back' || historyState.action === 'forward') {
     handle.value = historyState.data.handle
     likes.value = historyState.data.likes
-    timeline.feed = historyState.data.feed
+    timeline.value = historyState.data.timeline
     return
   }
   handle.value = await getHandle()
   await getLikes(handle, cursor)
 });
 
-onBackupState(() => ({ feed: timeline.feed, likes: likes, handle: handle }));
+onBackupState(() => ({ timeline: timeline, likes: likes, handle: handle }));
 
 useIntersectionObserver(
   loading,
@@ -117,14 +122,14 @@ const getLikes = async (handle, cursor) => {
 }
 
 const getPosts = async (likes) => {
-    let uris = []
-    likes.forEach(el => {
-      uris.push(el.value.subject.uri)
-    })
-    const response = await requestGet.get("app.bsky.feed.getPosts", { uris: uris })
-    response.res.posts.forEach(el => {
-      timeline.feed.push({ post: el })
-    })
+  let uris = []
+  likes.forEach(el => {
+    uris.push(el.value.subject.uri)
+  })
+  const response = await requestGet.get("app.bsky.feed.getPosts", { uris: uris })
+  response.res.posts.forEach(el => {
+    timeline.value.add({ post: el })
+  })
 }
 
 const stopRouteWatch = watch(
