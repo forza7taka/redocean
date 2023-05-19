@@ -1,6 +1,6 @@
 <template>
   <div class="displayArea mx-auto">
-    <FeedView :feeds="timeline.array"></FeedView>
+    <FeedView :feeds="timeline.array" @deletePost="deletePost"></FeedView>
     <div ref="loading">
       <v-container class="my-5">
         <v-row justify="center">
@@ -30,6 +30,9 @@ const store = useStore()
 const loading = ref(null)
 const loadingCount = ref(0)
 
+const deletePost = async (uri) => {
+  timeline.value.delete(uri)
+}
 onBeforeMount(async () => {
   if (historyState.action === 'reload') {
     timeline.value = new Timeline()
@@ -37,6 +40,7 @@ onBeforeMount(async () => {
     return
   }
   if (historyState.action === 'back' || historyState.action === 'forward') {
+    await getTimeline()
     timeline.value.setArray(Object.values(historyState.data))
     return
   }
@@ -70,6 +74,7 @@ const getTimeline = async (cur) => {
     if (response.res.feed.length == 0) {
       completed.value = true
     }
+    console.log(response.res.feed)
   } catch (e) {
     const ce = useCatchError()
     ce.catchError(e)
