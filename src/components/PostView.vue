@@ -162,10 +162,12 @@ const translateText = ref(null)
 
 const translate = async (text) => {
   try {
+    console.log(store.getters.getTranslationLang)
+    console.log(store.getters.getTranslationApiKey)
     const params = {
       q: text,
-      target: 'ja',
-      key: store.getters.getCloudTranslationApiKey
+      target: store.getters.getTranslationLang,
+      key: store.getters.getTranslationApiKey
     }
     const response = await axios.get('https://translation.googleapis.com/language/translate/v2', { params })
     translateText.value = response.data.data.translations[0].translatedText

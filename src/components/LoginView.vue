@@ -78,8 +78,14 @@ const storageLogins = useStorage('logins', logins, undefined,
       write: (v) => JSON.stringify(v),
     },
   })
-const cloudTranslationApiKey = ref(null)
-useStorage('cloudTranslationApiKey', cloudTranslationApiKey)
+const settings = ref(null)
+useStorage('settings', settings, undefined,
+  {
+    serializer: {
+      read: (v) => v ? JSON.parse(v) : null,
+      write: (v) => JSON.stringify(v),
+    },
+  })
 const userSettings = ref(null)
 useStorage('userSettings', userSettings, undefined,
   {
@@ -114,7 +120,8 @@ const add = async () => {
 
 onBeforeMount(async () => {
   try {
-    store.dispatch('doSetCloudTranslationApiKey', cloudTranslationApiKey.value);
+    store.dispatch('doSetTranslationLang', settings.value.translationLang);
+    store.dispatch('doSetTranslationApiKey', settings.value.translationApiKey);
     if (!logins.value) {
       add()
     }

@@ -15,7 +15,8 @@ export default createStore({
     mutes: [],
     color: null,
     profile: null,
-    cloudTranslationApiKey: null
+    translationApiKey: null,
+    translationLang: null
   },
   getters: {
     getServer(state) {
@@ -39,8 +40,11 @@ export default createStore({
     getProfile(state) {
       return state.profile;
     },
-    getCloudTranslationApiKey(state) {
-      return state.cloudTranslationApiKey;
+    getTranslationLang(state) {
+      return state.translationLang;
+    },
+    getTranslationApiKey(state) {
+      return state.translationApiKey;
     },
     getFollows(state) {
       return state.follows;
@@ -91,8 +95,11 @@ export default createStore({
     setProfile(state, session) {
       state.profile = session
     },
-    setCloudTranslationApiKey(state, session) {
-      state.cloudTranslationApiKey = session
+    setTranslationLang(state, session) {
+      state.translationLang = session
+    },
+    setTranslationApiKey(state, session) {
+      state.translationApiKey = session
     },
     addFollows(state, session) {
       session.follows.forEach(element => {
@@ -185,8 +192,11 @@ export default createStore({
     doSetProfile({ commit }, session) {
       commit('setProfile', session)
     },
-    doSetCloudTranslationApiKey({ commit }, session) {
-      commit('setCloudTranslationApiKey', session)
+    doSetTranslationLang({ commit }, session) {
+      commit('setTranslationLang', session)
+    },
+    doSetTranslationApiKey({ commit }, session) {
+      commit('setTranslationApiKey', session)
     },
     doAddFollows({ commit }, session) {
       commit('addFollows', session)
