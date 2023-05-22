@@ -54,7 +54,7 @@ const labelItems = ref([{ name: 'porn', value: "porn", discription: "sexual acti
 { name: 'sexual', value: "sexual", discription: "general suggestive" },
 { name: 'gore', value: "gore", discription: "very bloody" },
 { name: 'corpse', value: "corpse", discription: "human corpse" },
-{ name: 'self-harm', value: "self-harm", discription: "self_harm" },
+{ name: 'self-harm', value: "self-harm", discription: "self harm" },
 { name: 'icon-nazi', value: "icon-nazi", discription: "nazi" },
 { name: 'icon-kkk', value: "icon-kkk", discription: "kkk" },
 { name: 'icon-confederate', value: "icon-confederate", discription: "confederate" }

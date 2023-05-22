@@ -78,7 +78,7 @@ const storageLogins = useStorage('logins', logins, undefined,
       write: (v) => JSON.stringify(v),
     },
   })
-const settings = ref(null)
+const settings = ref({ translationApiKey: null, translationLang: null })
 useStorage('settings', settings, undefined,
   {
     serializer: {

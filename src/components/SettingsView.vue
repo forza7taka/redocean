@@ -29,6 +29,6 @@ watch(
     storageSettings.value = settings.value
     store.dispatch('doSetTranslationLang', storageSettings.value.translationLang);
     store.dispatch('doSetTranslationApiKey', storageSettings.value.translationApiKey);
-  }
+  }, { deep: true }
 )
 </script>
