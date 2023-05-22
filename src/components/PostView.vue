@@ -10,6 +10,7 @@
         }})</v-card-subtitle>
       </div>
       <v-card-actions>
+        <div v-if="defProps.post.lables">{{ defProps.post.lables }}</div>
         <PostUserView :author="defProps.post.author" :createdAt="defProps.post.record.createdAt" />
       </v-card-actions>
       <v-card-text class="text-pre-wrap">
