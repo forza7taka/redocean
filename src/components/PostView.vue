@@ -10,6 +10,7 @@
         }})</v-card-subtitle>
       </div>
       <v-card-actions>
+        <div v-if="defProps.post.lables">{{ defProps.post.lables }}</div>
         <PostUserView :author="defProps.post.author" :createdAt="defProps.post.record.createdAt" />
       </v-card-actions>
       <v-card-text class="text-pre-wrap">
@@ -162,10 +163,12 @@ const translateText = ref(null)
 
 const translate = async (text) => {
   try {
+    console.log(store.getters.getTranslationLang)
+    console.log(store.getters.getTranslationApiKey)
     const params = {
       q: text,
-      target: 'ja',
-      key: store.getters.getCloudTranslationApiKey
+      target: store.getters.getTranslationLang,
+      key: store.getters.getTranslationApiKey
     }
     const response = await axios.get('https://translation.googleapis.com/language/translate/v2', { params })
     translateText.value = response.data.data.translations[0].translatedText
