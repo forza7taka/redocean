@@ -9,20 +9,17 @@
           swatches-max-height="210" v-model=settings.color></v-color-picker>
       </template>
     </v-card>
-    <template v-for="(l, index) in labelItems" :key="index">
+    <template v-for="[key] in labelItems" :key="key">
       <v-card class="mx-auto pa-4" variant="flat">
         <v-card-title>
-          {{ l.name }}
+          {{ key }}
         </v-card-title>
-        <v-card-subtitle>
-          {{ l.discription }}
-        </v-card-subtitle>
         <v-card-text>
           <template v-if="settings && settings.labels">
-            <v-btn-toggle justify="center" v-model="settings.labels[index]" color="primary">
-              <v-btn icon="mdi-image-off-outline"></v-btn>
-              <v-btn icon="mdi-alert-octagon"></v-btn>
-              <v-btn icon="mdi-image-outline"></v-btn>
+            <v-btn-toggle justify="center" color="primary">
+              <v-btn :value="filter" @click="click(key, 'filter')" icon="mdi-image-off-outline"></v-btn>
+              <v-btn :value="warn" @click="click(key, 'warn')" icon="mdi-alert-octagon"></v-btn>
+              <v-btn :value="show" @click="click(key, 'show')" icon="mdi-image-outline"></v-btn>
             </v-btn-toggle>
           </template>
         </v-card-text>
@@ -43,33 +40,45 @@ const storageUserSettings = useStorage("userSettings", userSettings, undefined,
   {
     serializer: {
       read: (v) => new Map(JSON.parse(v)),
-      write: (v) => v instanceof Map ? JSON.stringify([...v]) : JSON.stringify(v)
+      write: (v) => v instanceof Map ? JSON.stringify([...{ labels: JSON.stringify([...v.labels]), color: v.color }]) : JSON.stringify(v)
     }
   }
 )
 const settings = ref(null)
+const labelItems = ref(new Map([['csam', 'filter'],
+['dmca-violation', 'filter'],
+['nudity-nonconsensual', 'filter'],
+['!filter', 'filter'],
+['!warn', 'filter'],
+['account-security', 'filter'],
+['porn', 'filter'],
+['nsfl', 'filter'],
+['nudity', 'filter'],
+['sexual', 'filter'],
+['gore', 'filter'],
+['self-harm', 'filter'],
+['torture', 'filter'],
+['nsfl', 'filter'],
+['icon-kkk', 'filter'],
+['icon-nazi', 'filter'],
+['icon-intolerant', 'filter'],
+['behavior-intolerant', 'filter'],
+['spam', 'filter'],
+['impersonation', 'filter'],]))
 
-const labelItems = ref([{ name: 'porn', value: "porn", discription: "sexual activity/animal genitalia and human" },
-{ name: 'nudity', value: "nudity", discription: "male nudity/female nudity" },
-{ name: 'sexual', value: "sexual", discription: "general suggestive" },
-{ name: 'gore', value: "gore", discription: "very bloody" },
-{ name: 'corpse', value: "corpse", discription: "human corpse" },
-{ name: 'self-harm', value: "self-harm", discription: "self harm" },
-{ name: 'icon-nazi', value: "icon-nazi", discription: "nazi" },
-{ name: 'icon-kkk', value: "icon-kkk", discription: "kkk" },
-{ name: 'icon-confederate', value: "icon-confederate", discription: "confederate" }
-])
+const click = async (key, value) => {
+  settings.value.labels.set(key, value)
+}
 
 onBeforeMount(async () => {
   console.log(userSettings.value)
   if (userSettings.value.has(route.params.did)) {
     settings.value = userSettings.value.get(route.params.did)
+    if (!(settings.value.labels instanceof Map)) {
+      settings.value.labels = labelItems
+    }
   } else {
-    settings.value = { labels: [], color: null }
-    settings.value.labels = new Array()
-    labelItems.value.forEach(() => {
-      settings.value.labels.push(0)
-    })
+    settings.value = { labels: labelItems, color: null }
   }
 });
 
