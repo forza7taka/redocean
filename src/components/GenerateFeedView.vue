@@ -77,11 +77,11 @@ const getTimeline = async (cur) => {
   }
   try {
     const response = await axios.get("https://atproto.forza7.org/feed/bsky/xrpc/app.bsky.feed.getFeedSkeleton", { params })
-    await getPosts(response.data.feed)
-    cursor.value = response.data.cursor
     if (response.data.feed.length == 0) {
       completed.value = true
     }
+    await getPosts(response.data.feed)
+    cursor.value = response.data.cursor
   } catch (e) {
     const ce = useCatchError()
     ce.catchError(e)
