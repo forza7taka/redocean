@@ -65,20 +65,21 @@ const getTimeline = async (cur) => {
   let params = {}
   if (!cur) {
     params = {
-      feed: "at://did:web:atproto.forza7.org:feed:bsky:xrpc:app:bsky:feed:getFeedSkeleton",
+      feed: "at://did:web:bskyfeed.forza7.org/app.bsky.feed.generator/animal",
       limit: 20
     }
   } else {
     params = {
-      feed: "at://did:web:atproto.forza7.org:feed:bsky:xrpc:app:bsky:feed:getFeedSkeleton",
+      feed: "at://did:web:bskyfeed.forza7.org/app.bsky.feed.generator/animal",
       limit: 20,
       cursor: cur.value
     }
   }
   try {
-    const response = await axios.get("https://atproto.forza7.org/feed/bsky/xrpc/app.bsky.feed.getFeedSkeleton", { params })
+    const response = await axios.get("https://bskyfeed.forza7.org/xrpc/app.bsky.feed.getFeedSkeleton", { params })
     if (response.data.feed.length == 0) {
       completed.value = true
+      return
     }
     await getPosts(response.data.feed)
     cursor.value = response.data.cursor
