@@ -35,12 +35,13 @@ import { useRoute } from "vue-router"
 import { useStorage } from '@vueuse/core'
 
 const route = useRoute()
+const userSettingsArray = ref(null)
 const userSettings = ref(new Map())
-const storageUserSettings = useStorage("userSettings", userSettings, undefined,
+const storageUserSettings = useStorage("userSettings", userSettingsArray, undefined,
   {
     serializer: {
-      read: (v) => new Map(JSON.parse(v)),
-      write: (v) => v instanceof Map ? JSON.stringify([...{ labels: JSON.stringify([...v.labels]), color: v.color }]) : JSON.stringify(v)
+      read: (v) => JSON.parse(v),
+      write: (v) => JSON.stringify(v)
     }
   }
 )
@@ -71,6 +72,16 @@ const click = async (key, value) => {
 }
 
 onBeforeMount(async () => {
+
+  const map = deserializeMap(userSettingsArray.value)
+  if (map == null) {
+    userSettings.value = new Map()
+  } else {
+    userSettings.value = map
+  }
+
+
+
   console.log(userSettings.value)
   if (userSettings.value.has(route.params.did)) {
     settings.value = userSettings.value.get(route.params.did)
@@ -82,9 +93,36 @@ onBeforeMount(async () => {
   }
 });
 
+const deserializeMap = async (obj) => {
+  if (obj == null) {
+    return null;
+  }
+  const map = new Map();
+  for (const key in obj) {
+    const value = obj[key];
+    if (typeof value === 'object' && value !== null) {
+      map.set(key, deserializeMap(value));
+    } else {
+      map.set(key, value);
+    }
+  }
+  return map;
+}
+const serializeMap = async (map) => {
+  const obj = {};
+  for (const [key, value] of map) {
+    if (value instanceof Map) {
+      obj[key] = serializeMap(value);
+    } else {
+      obj[key] = value;
+    }
+  }
+  return obj;
+}
 watch(() => settings, () => {
   userSettings.value.set(route.params.did, settings.value)
-  storageUserSettings.value = userSettings.value
+  const serialized = serializeMap(userSettings.value)
+  storageUserSettings.value = serialized
 }, { deep: true }
 );
 </script>
