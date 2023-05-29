@@ -94,7 +94,7 @@ const menuItems = ref([
   {
     icon: "mdi-dog",
     name: "AnimalFeed",
-    link: "/generateFeed",
+    link: "/customFeed/" + encodeURIComponent("at://did:web:bskyfeed.forza7.org:animals"),
     login: true
   },
   {

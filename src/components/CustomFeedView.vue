@@ -17,7 +17,6 @@ import { useIntersectionObserver } from '@vueuse/core'
 import { ref, onBeforeMount } from 'vue'
 import { useStore } from 'vuex'
 import { useHistoryState, onBackupState } from 'vue-history-state';
-//import { useRequestGet } from '@/common/requestGet.js'
 import Timeline from '@/common/timeline.js'
 import { useCatchError } from '@/common/catchError';
 import axios from "axios";
@@ -62,21 +61,12 @@ useIntersectionObserver(
 )
 
 const getTimeline = async (cur) => {
-  let params = {}
-  if (!cur) {
-    params = {
-      feed: "at://did:web:bskyfeed.forza7.org/app.bsky.feed.generator/animal",
-      limit: 20
-    }
-  } else {
-    params = {
-      feed: "at://did:web:bskyfeed.forza7.org/app.bsky.feed.generator/animal",
-      limit: 20,
-      cursor: cur.value
-    }
-  }
   try {
-    const response = await axios.get("https://bskyfeed.forza7.org/xrpc/app.bsky.feed.getFeedSkeleton", { params })
+    let url = 'https://bskyfeed.forza7.org/xrpc/app.bsky.feed.getFeedSkeleton?limit=20&feed=' + encodeURIComponent("at://did:web:bskyfeed.forza7.org:animals")
+    if (cur) {
+      url = url + "&cursor=" + cur.value
+    }
+    const response = await axios.get(url)
     if (response.data.feed.length == 0) {
       completed.value = true
       return
