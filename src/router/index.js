@@ -21,7 +21,7 @@ import Settings from '@/components/SettingsView.vue'
 import Blocks from '@/components/BlocksView.vue'
 import Moderation from '@/components/ModerationView.vue'
 import AccountSetting from '@/components/AccountSettingsView.vue'
-import GenerateFeed from '@/components/GenerateFeedView.vue'
+import CustomFeed from '@/components/CustomFeedView.vue'
 import { trackRouter } from "vue-gtag-next";
 const routes = [
   {
@@ -176,9 +176,9 @@ const routes = [
     component: AccountSetting
   },
   {
-    path: '/generateFeed/',
-    name: 'generateFeed',
-    component: GenerateFeed
+    path: '/customFeed/:did',
+    name: 'customFeed',
+    component: CustomFeed
   },
   {
     path: '/',
