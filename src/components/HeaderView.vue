@@ -7,7 +7,7 @@
           <v-img cover v-bind:src=store.getters.getProfile.avatar alt="avatar"></v-img>
         </v-avatar>
       </div>
-      <v-toolbar-title>redocean</v-toolbar-title>
+      <v-toolbar-title>redocean ~always β~</v-toolbar-title>
       <v-spacer></v-spacer>
       <div v-if="unReadCount != 0">
         <v-badge right top overlap color="blue">
@@ -94,7 +94,7 @@ const menuItems = ref([
   {
     icon: "mdi-dog",
     name: "AnimalFeed",
-    link: "/customFeed/" + encodeURIComponent("at://did:web:bskyfeed.forza7.org:animals"),
+    link: "/customFeed",
     login: true
   },
   {

@@ -61,12 +61,28 @@ useIntersectionObserver(
 )
 
 const getTimeline = async (cur) => {
-  try {
-    let url = 'https://bskyfeed.forza7.org/xrpc/app.bsky.feed.getFeedSkeleton?limit=20&feed=' + encodeURIComponent("at://did:web:bskyfeed.forza7.org:animals")
-    if (cur) {
-      url = url + "&cursor=" + cur.value
+  let params = {}
+  if (!cur) {
+    params = {
+      feed: "at://did:web:animals.bskyfeed.forza7.org",
+      limit: 20
     }
-    const response = await axios.get(url)
+  } else {
+    params = {
+      feed: "at://did:web:animals.bskyfeed.forza7.org",
+      limit: 20,
+      cursor: cur.value
+    }
+  }
+
+  try {
+    let uri = "https://animals.bskyfeed.forza7.org/xrpc/app.bsky.feed.getFeedSkeleton?"
+    uri = uri + "feed=" + encodeURIComponent(params.feed) + "&"
+    uri = uri + "limit=20&"
+    if (params.cursor) {
+      uri = uri + "cursor=" + encodeURIComponent(params.cursor)
+    }
+    const response = await axios.get(uri)
     if (response.data.feed.length == 0) {
       completed.value = true
       return

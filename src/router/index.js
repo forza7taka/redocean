@@ -176,7 +176,7 @@ const routes = [
     component: AccountSetting
   },
   {
-    path: '/customFeed/:did',
+    path: '/customFeed/',
     name: 'customFeed',
     component: CustomFeed
   },
