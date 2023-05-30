@@ -5,9 +5,16 @@
         <v-tabs v-model="tab">
           <v-tab v-for="(l, index) in logins" :key="index" :value=index>
             <template v-if="l.avatar">
-              <v-avatar v-if="userSettings" :style="`border: 5px solid ${getColor(l.did)};`">
-                <v-img cover v-bind:src=l.avatar alt="avatar"></v-img>
-              </v-avatar>
+              <template v-if="getColor(l.did)">
+                <v-avatar v-if="userSettings" :style="`border: 5px solid ${getColor(l.did)};`">
+                  <v-img cover v-bind:src=l.avatar alt="avatar"></v-img>
+                </v-avatar>
+              </template>
+              <template v-else>
+                <v-avatar>
+                  <v-img cover v-bind:src=l.avatar alt="avatar"></v-img>
+                </v-avatar>
+              </template>
             </template>
             <template v-if="!l.avatar && l.handle">
               {{ l.handle }}
@@ -24,7 +31,7 @@
             <v-window-item :value=index>
               <v-card class="mx-auto pa-4">
                 <v-combobox v-model="l.server"
-                  :items="['https://bsky.social', 'https://boobee.blue', 'https://atproto.forza7.org']" label="server"
+                  :items="['https://bsky.social', 'https://boobee.blue', 'https://redocean.one']" label="server"
                   placeholder="https://bsky.social" color="green darken-5" clearable dense
                   variant="outlined"></v-combobox>
                 <v-text-field label="xxxx.bsky.social" placeholder="xxxx.bsky.social" color="green darken-5" clearable
@@ -95,7 +102,7 @@ useStorage('userSettings', userSettings, undefined,
     },
   })
 
-const getColor = computed(() => (key) => userSettings.value.has(key) ? userSettings.value.get(key).color : null);
+const getColor = computed(() => (key) => userSettings.value ? (userSettings.value.has(key) ? userSettings.value.get(key).color : null) : null);
 
 const AppPasswordRules = [
   (value) => {
