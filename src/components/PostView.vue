@@ -13,6 +13,9 @@
         <div v-if="defProps.post.lables">{{ defProps.post.lables }}</div>
         <PostUserView :author="defProps.post.author" :createdAt="defProps.post.record.createdAt" />
       </v-card-actions>
+
+
+
       <v-card-text class="text-pre-wrap">
         <div v-if="defProps.post && defProps.post.record && defProps.post.record.text">
           {{ defProps.post.record.text }}</div>
@@ -42,6 +45,8 @@
       <div v-if="defProps.post.embed && defProps.post.embed.media">
         <PostImageView :images="defProps.post.embed.media.images" />
       </div>
+
+
 
       <!--quoteRepostWithImage S-->
       <div v-if="defProps.post.embed && defProps.post.embed.record">
@@ -144,6 +149,7 @@ import { ref, defineProps, defineEmits } from 'vue'
 import { useStore } from 'vuex'
 import { useRequestPost } from "@/common/requestPost";
 import { useCatchError } from '@/common/catchError';
+import { useStorage } from '@vueuse/core'
 
 const defProps = defineProps({
   post: null,
@@ -153,6 +159,15 @@ const defProps = defineProps({
   depth: null,
   replies: null
 })
+
+const userSettings = ref(null)
+useStorage('userSettings', userSettings, undefined,
+  {
+    serializer: {
+      read: (v) => new Map(JSON.parse(v)),
+      write: (v) => v instanceof Map ? JSON.stringify([...v]) : JSON.stringify(v)
+    },
+  })
 
 const emit = defineEmits(
   ['deletePost']

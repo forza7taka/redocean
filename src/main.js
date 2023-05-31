@@ -26,11 +26,6 @@ createApp(App)
   .component("infinite-loading", infiniteLoading)
   .mount('#app')
 
-// function paramsSerializer(params) {
-//   return qs.stringify(params);
-//   //return qs.stringify(params, { format: 'RFC1738' });
-// }
-
 axios.interceptors.request.use(
   (config) => {
     const url = config.url
@@ -40,9 +35,6 @@ axios.interceptors.request.use(
         config.headers.Authorization = `Bearer ${accessJwt}`
       }
     }
-    // if (config.params) {
-    //   //config.params = qs.stringify(config.params);
-    // }
     return config
   },
   (error) => {

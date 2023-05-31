@@ -40,7 +40,9 @@ onBeforeMount(async () => {
     return
   }
   if (historyState.action === 'back' || historyState.action === 'forward') {
-    await getTimeline()
+    if (historyState.action === 'back' && (historyState.getItems(historyState.page + 1)[2].name == 'post')) {
+      await getTimeline()
+    }
     timeline.value.setArray(Object.values(historyState.data))
     return
   }
