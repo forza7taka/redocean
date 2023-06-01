@@ -7,7 +7,8 @@
           <v-img cover v-bind:src=store.getters.getProfile.avatar alt="avatar"></v-img>
         </v-avatar>
       </div>
-      <v-toolbar-title>redocean ~always β~</v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-toolbar-subtitle class="text-md-h6">redocean ~always β~</v-toolbar-subtitle>
       <v-spacer></v-spacer>
       <div v-if="unReadCount != 0">
         <v-badge right top overlap color="blue">
@@ -24,7 +25,9 @@
           <v-icon size="18">mdi-bell</v-icon>
         </v-btn>
       </div>
-      <v-btn v-if="store.getters.getAccessJwt" to="/post"><v-icon>mdi-plus</v-icon></v-btn>
+      <v-btn v-if="store.getters.getAccessJwt" to="/post" icon>
+        <v-icon>mdi-plus</v-icon>
+      </v-btn>
     </v-app-bar>
     <v-navigation-drawer v-model="drawer" fixed temporary>
       <v-list nav dense>

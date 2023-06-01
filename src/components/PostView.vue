@@ -1,5 +1,5 @@
 <template>
-  <div v-if="defProps.post">
+  <div v-if="defProps.post && !isFilter">
     <v-card :class="['mx-auto mt-5', { 'v-card--depth': depth !== 0 }]" variant="flat">
       <div v-if="defProps.reason && defProps.reason.by">
         <v-card-subtitle>Reposted by {{ defProps.reason.by.displayName }}(@{{ defProps.reason.by.handle
@@ -10,72 +10,80 @@
         }})</v-card-subtitle>
       </div>
       <v-card-actions>
-        <div v-if="defProps.post.lables">{{ defProps.post.lables }}</div>
         <PostUserView :author="defProps.post.author" :createdAt="defProps.post.record.createdAt" />
       </v-card-actions>
-      <v-card-text class="text-pre-wrap">
-        <div v-if="defProps.post && defProps.post.record && defProps.post.record.text">
-          {{ defProps.post.record.text }}</div>
-      </v-card-text>
-      <v-card-text v-if="translateText" class="text-pre-wrap">
-        {{ translateText }}
-      </v-card-text>
-      <div v-for="(facet, facetIndex) in defProps.post.record.facets" :key="facetIndex">
-        <div v-for="(feature, featureIndex) in facet.features" :key="featureIndex">
-          <v-card-text>
-            <a :href="feature.uri">{{ feature.uri }}</a>
-          </v-card-text>
-        </div>
-      </div>
-      <v-card-subtitle>
-        <v-list-item-subtitle>
-          <div v-if="defProps.post.record.via">
-            via:{{ defProps.post.record.via }}
+      <template v-if="warnLabels">
+        <v-card-subtitle @click="isWarn = !isWarn">
+          [Warning] {{ warnLabels }}
+          <template></template>
+        </v-card-subtitle>
+      </template>
+      <template v-if="!isWarn">
+        <v-card-text class="text-pre-wrap">
+          <div v-if="defProps.post && defProps.post.record && defProps.post.record.text">
+            {{ defProps.post.record.text }}</div>
+        </v-card-text>
+        <v-card-text v-if="translateText" class="text-pre-wrap">
+          {{ translateText }}
+        </v-card-text>
+        <div v-for="(facet, facetIndex) in defProps.post.record.facets" :key="facetIndex">
+          <div v-for="(feature, featureIndex) in facet.features" :key="featureIndex">
+            <v-card-text>
+              <a :href="feature.uri">{{ feature.uri }}</a>
+            </v-card-text>
           </div>
-        </v-list-item-subtitle>
-      </v-card-subtitle>
-
-      <div v-if="defProps.post.embed && defProps.post.embed.images">
-        <PostImageView :images="defProps.post.embed.images" />
-      </div>
-
-      <div v-if="defProps.post.embed && defProps.post.embed.media">
-        <PostImageView :images="defProps.post.embed.media.images" />
-      </div>
-
-      <!--quoteRepostWithImage S-->
-      <div v-if="defProps.post.embed && defProps.post.embed.record">
-        <div v-if="defProps.post.embed.$type == 'app.bsky.embed.recordWithMedia#view'">
-          <v-card class="mx-auto" variant="outlined" :to="`/thread/${encodeURIComponent(defProps.post.uri)}`">
-            <v-card-actions>
-              <PostUserView :author="defProps.post.embed.record.record.author"
-                :createdAt="defProps.post.embed.record.record.value.createdAt" />
-            </v-card-actions>
-            <v-card-text class="text-pre-wrap" :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
-              <div
-                v-if="defProps.post.embed && defProps.post.embed.record && defProps.post.embed.record.record && defProps.post.embed.record.record.value">
-                {{ defProps.post.embed.record.record.value.text }}</div>
-            </v-card-text>
-          </v-card>
         </div>
-        <!--quoteRepostWithImage E-->
+        <v-card-subtitle>
+          <v-list-item-subtitle>
+            <div v-if="defProps.post.record.via">
+              via:{{ defProps.post.record.via }}
+            </div>
+          </v-list-item-subtitle>
+        </v-card-subtitle>
 
-        <!--quoteRepost S-->
-        <div v-if="defProps.post.embed.$type == 'app.bsky.embed.record#view'">
-          <v-card class="mx-auto mt-5" variant="outlined"
-            :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
-            <v-card-actions>
-              <PostUserView :author="defProps.post.embed.record.author"
-                :createdAt="defProps.post.embed.record.value.createdAt" />
-            </v-card-actions>
-            <v-card-text class="text-pre-wrap" :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
-              <div v-if="defProps.post.embed && defProps.post.embed.record && defProps.post.embed.record.value">{{
-                defProps.post.embed.record.value.text }}</div>
-            </v-card-text>
-          </v-card>
+        <div v-if="defProps.post.embed && defProps.post.embed.images">
+          <PostImageView :images="defProps.post.embed.images" />
         </div>
-      </div>
-      <!--quoteRepost E-->
+
+        <div v-if="defProps.post.embed && defProps.post.embed.media">
+          <PostImageView :images="defProps.post.embed.media.images" />
+        </div>
+
+        <!--quoteRepostWithImage S-->
+        <div v-if="defProps.post.embed && defProps.post.embed.record">
+          <div v-if="defProps.post.embed.$type == 'app.bsky.embed.recordWithMedia#view'">
+            <v-card class="mx-auto" variant="outlined" :to="`/thread/${encodeURIComponent(defProps.post.uri)}`">
+              <v-card-actions>
+                <PostUserView :author="defProps.post.embed.record.record.author"
+                  :createdAt="defProps.post.embed.record.record.value.createdAt" />
+              </v-card-actions>
+              <v-card-text class="text-pre-wrap" :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
+                <div
+                  v-if="defProps.post.embed && defProps.post.embed.record && defProps.post.embed.record.record && defProps.post.embed.record.record.value">
+                  {{ defProps.post.embed.record.record.value.text }}</div>
+              </v-card-text>
+            </v-card>
+          </div>
+          <!--quoteRepostWithImage E-->
+
+          <!--quoteRepost S-->
+          <div v-if="defProps.post.embed.$type == 'app.bsky.embed.record#view'">
+            <v-card class="mx-auto mt-5" variant="outlined"
+              :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
+              <v-card-actions>
+                <PostUserView :author="defProps.post.embed.record.author"
+                  :createdAt="defProps.post.embed.record.value.createdAt" />
+              </v-card-actions>
+              <v-card-text class="text-pre-wrap" :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
+                <div v-if="defProps.post.embed && defProps.post.embed.record && defProps.post.embed.record.value">{{
+                  defProps.post.embed.record.value.text }}</div>
+              </v-card-text>
+            </v-card>
+          </div>
+        </div>
+        <!--quoteRepost E-->
+      </template>
+
       <v-list-item-subtitle>
         <v-btn class="ma-2" variant="text" size="32" icon="mdi-comment-outline"
           :to="`/reply/${encodeURIComponent(defProps.post.uri)}`">
@@ -140,10 +148,11 @@
 import PostUserView from './PostUserView.vue'
 import PostImageView from './PostImageView.vue'
 import axios from 'axios'
-import { ref, defineProps, defineEmits } from 'vue'
+import { ref, defineProps, defineEmits, onBeforeMount } from 'vue'
 import { useStore } from 'vuex'
 import { useRequestPost } from "@/common/requestPost";
 import { useCatchError } from '@/common/catchError';
+import { useStorage } from '@vueuse/core'
 
 const defProps = defineProps({
   post: null,
@@ -154,12 +163,97 @@ const defProps = defineProps({
   replies: null
 })
 
+const userSettings = ref(null)
+useStorage('userSettings', userSettings, undefined,
+  {
+    serializer: {
+      read: (v) => new Map(JSON.parse(v)),
+      write: (v) => v instanceof Map ? JSON.stringify([...v]) : JSON.stringify(v)
+    },
+  })
+
 const emit = defineEmits(
   ['deletePost']
 )
 const store = useStore()
 const request = useRequestPost(store)
 const translateText = ref(null)
+const settings = ref(null)
+const isWarn = ref(false)
+const isFilter = ref(false)
+const warnLabels = ref(null)
+onBeforeMount(async () => {
+  if (userSettings.value == null) {
+    settings.value = null
+  }
+  if (userSettings.value.has(store.getters.getDid)) {
+    settings.value = userSettings.value.get(store.getters.getDid)
+  }
+  isWarn.value = await contains("warn")
+  console.log(isWarn.value)
+  isFilter.value = await contains("filter")
+  console.log(isFilter.value)
+  warnLabels.value = (await getWarnLabels()).join(' ')
+});
+
+const contains = async (value) => {
+  if (!defProps.post) {
+    return false
+  }
+  if (!defProps.post.labels) {
+    return false
+  }
+  if (!settings.value) {
+    return false
+  }
+  if (!settings.value.labels) {
+    return false
+  }
+  const labels = new Array()
+  for (const index in settings.value.labels) {
+    if (settings.value.labels[index].value != value) {
+      continue
+    }
+    labels.push(settings.value.labels[index].id)
+  }
+  for (const index in defProps.post.labels) {
+    const includes = labels.includes(defProps.post.labels[index].val)
+    if (includes) {
+      return true
+    }
+  }
+  return false
+}
+
+const getWarnLabels = async () => {
+  if (!defProps.post) {
+    return null
+  }
+  if (!defProps.post.labels) {
+    return null
+  }
+  if (!settings.value) {
+    return null
+  }
+  if (!settings.value.labels) {
+    return null
+  }
+  let labels = new Array()
+  for (const index in settings.value.labels) {
+    if (settings.value.labels[index].value != 'warn') {
+      continue
+    }
+    labels.push(settings.value.labels[index].id)
+  }
+  let warnLabels = new Array()
+  for (const index in defProps.post.labels) {
+    const includes = labels.includes(defProps.post.labels[index].val)
+    if (includes) {
+      warnLabels.push(defProps.post.labels[index].val)
+    }
+  }
+  return warnLabels
+}
 
 const translate = async (text) => {
   try {

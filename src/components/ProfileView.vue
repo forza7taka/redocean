@@ -224,13 +224,16 @@ onBeforeMount(async () => {
     return
   }
   if (historyState.action === 'back' || historyState.action === 'forward') {
+
     handle.value = historyState.data.handle
     profile.value = historyState.data.profile
     likes.value = Object.values(historyState.data.likes)
     mutes.value = Object.values(historyState.data.mutes)
     blocks.value = Object.values(historyState.data.blocks)
     inviteCodes.value = Object.values(historyState.data.inviteCodes)
-    await getAuthorFeed(handle)
+    if (historyState.action === 'back' && (historyState.getItems(historyState.page + 1)[2].name == 'post')) {
+      await getAuthorFeed(handle)
+    }
     timeline.value.setArray(Object.values(historyState.data.timeline))
     return
   }

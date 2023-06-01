@@ -10,7 +10,9 @@
         <v-text-field dense v-model="profile.handle" label="handle" variant="outlined"></v-text-field>
       </v-card-text>
       <v-card-actions>
-        <v-btn icon @click="updateHandle"><v-icon>mdi-content-save</v-icon></v-btn>
+        <v-btn @click="updateHandle()" icon>
+          <v-icon>mdi-content-save</v-icon>
+        </v-btn>
       </v-card-actions>
     </v-card>
   </div>
@@ -38,7 +40,7 @@ const getProfile = async (handle) => {
     const response = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
     profile.value = response.res
   } catch (e) {
-         const ce = useCatchError()
+    const ce = useCatchError()
     ce.catchError(e)
 
   }
