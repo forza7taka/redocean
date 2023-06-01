@@ -10,13 +10,12 @@
         }})</v-card-subtitle>
       </div>
       <v-card-actions>
-        <div v-if="defProps.post.lables">{{ defProps.post.lables }}</div>
         <PostUserView :author="defProps.post.author" :createdAt="defProps.post.record.createdAt" />
       </v-card-actions>
-
-      <template v-if="isWarn">
+      <template v-if="warnLabels">
         <v-card-subtitle @click="isWarn = !isWarn">
-          Warning
+          [Warning] {{ warnLabels }}
+          <template></template>
         </v-card-subtitle>
       </template>
       <template v-if="!isWarn">
@@ -179,9 +178,10 @@ const emit = defineEmits(
 const store = useStore()
 const request = useRequestPost(store)
 const translateText = ref(null)
-const isFilter = ref(false)
-const isWarn = ref(true)
 const settings = ref(null)
+const isWarn = ref(false)
+const isFilter = ref(false)
+const warnLabels = ref(null)
 onBeforeMount(async () => {
   if (userSettings.value == null) {
     settings.value = null
@@ -189,22 +189,71 @@ onBeforeMount(async () => {
   if (userSettings.value.has(store.getters.getDid)) {
     settings.value = userSettings.value.get(store.getters.getDid)
   }
-  isFilter.value = false
-  isWarn.value = false
+  isWarn.value = await contains("warn")
+  console.log(isWarn.value)
+  isFilter.value = await contains("filter")
+  console.log(isFilter.value)
+  warnLabels.value = (await getWarnLabels()).join(' ')
 });
 
-// const getWarnLabels = async () => {
-//   let labels = new Array()
-//   defProps.post.lables.foreach(label => {
-//     settings.value.lables.foreach(settingLabel => {
-//       if (label.value == settingLabel.id) {
-//         if (settingLabel.value == 'warn') {
-//           labels.push(label.value)
-//         }
-//       }
-//     })
-//   })
-// }
+const contains = async (value) => {
+  if (!defProps.post) {
+    return false
+  }
+  if (!defProps.post.labels) {
+    return false
+  }
+  if (!settings.value) {
+    return false
+  }
+  if (!settings.value.labels) {
+    return false
+  }
+  const labels = new Array()
+  for (const index in settings.value.labels) {
+    if (settings.value.labels[index].value != value) {
+      continue
+    }
+    labels.push(settings.value.labels[index].id)
+  }
+  for (const index in defProps.post.labels) {
+    const includes = labels.includes(defProps.post.labels[index].val)
+    if (includes) {
+      return true
+    }
+  }
+  return false
+}
+
+const getWarnLabels = async () => {
+  if (!defProps.post) {
+    return null
+  }
+  if (!defProps.post.labels) {
+    return null
+  }
+  if (!settings.value) {
+    return null
+  }
+  if (!settings.value.labels) {
+    return null
+  }
+  let labels = new Array()
+  for (const index in settings.value.labels) {
+    if (settings.value.labels[index].value != 'warn') {
+      continue
+    }
+    labels.push(settings.value.labels[index].id)
+  }
+  let warnLabels = new Array()
+  for (const index in defProps.post.labels) {
+    const includes = labels.includes(defProps.post.labels[index].val)
+    if (includes) {
+      warnLabels.push(defProps.post.labels[index].val)
+    }
+  }
+  return warnLabels
+}
 
 const translate = async (text) => {
   try {
