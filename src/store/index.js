@@ -106,8 +106,10 @@ export default createStore({
       state.translationApiKey = session
     },
     setHanded(state, session) {
+      if (!session) {
+        state.handed = true
+      }
       state.handed = session
-      console.log("handed:" + state.handed)
     },
     addFollows(state, session) {
       session.follows.forEach(element => {
