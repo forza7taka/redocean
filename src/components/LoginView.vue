@@ -85,7 +85,7 @@ const storageLogins = useStorage('logins', logins, undefined,
       write: (v) => JSON.stringify(v),
     },
   })
-const settings = ref({ translationApiKey: null, translationLang: null })
+const settings = ref({ translationApiKey: null, translationLang: null, handed: true })
 useStorage('settings', settings, undefined,
   {
     serializer: {
@@ -129,6 +129,7 @@ onBeforeMount(async () => {
   try {
     store.dispatch('doSetTranslationLang', settings.value.translationLang);
     store.dispatch('doSetTranslationApiKey', settings.value.translationApiKey);
+    store.dispatch('doSethanded', settings.value.handed);
     if (!logins.value) {
       add()
     }
@@ -224,7 +225,6 @@ const getBlocks = async (cur) => {
     completed.value = true
     return
   }
-  console.log(response.res)
   store.dispatch('doAddBlocks', response.res)
 }
 </script>

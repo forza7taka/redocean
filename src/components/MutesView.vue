@@ -1,5 +1,6 @@
 <template>
   <div class="displayArea mx-auto">
+    <v-toolbar title="Mutes"></v-toolbar>
     <v-card class="mx-auto mt-5" v-if="subject">
       <v-card-title>
         <router-link :to="`/profile/${store.getters.getHandle}`">

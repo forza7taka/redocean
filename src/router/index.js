@@ -1,16 +1,16 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Login from '@/components/LoginView.vue';
 import TimeLine from '@/components/TimeLineView.vue';
-import Search from '@/components/SearchView.vue';
+//import Search from '@/components/SearchView.vue';
 import Profile from '@/components/ProfileView.vue';
 import Followers from '@/components/FollowersView.vue';
 import Follows from '@/components/FollowsView.vue';
 import Popular from '@/components/PopularFeedView.vue';
 import Suggestions from '@/components/SuggestionsView.vue';
 import PrivacyPolicy from '@/components/PrivacyPolicyView.vue';
-import AccountCreate from '@/components/AccountCreateView.vue';
+//import AccountCreate from '@/components/AccountCreateView.vue';
 import ProfileEdit from '@/components/ProfileEditView.vue';
-import HandleEdit from '@/components/HandleEditView.vue';
+//import HandleEdit from '@/components/HandleEditView.vue';
 import Notification from '@/components/NotificationView.vue'
 import Likes from '@/components/LikesView.vue'
 import Thread from '@/components/ThreadView.vue'
@@ -23,6 +23,7 @@ import Moderation from '@/components/ModerationView.vue'
 import AccountSetting from '@/components/AccountSettingsView.vue'
 import CustomFeed from '@/components/CustomFeedView.vue'
 import { trackRouter } from "vue-gtag-next";
+// import Link from "@/components/LinkView.vue"
 const routes = [
   {
     path: '/login',
@@ -70,11 +71,11 @@ const routes = [
     name: 'profileEdit',
     component: ProfileEdit
   },
-  {
-    path: '/handleEdit',
-    name: 'handleEdit',
-    component: HandleEdit
-  },
+  // {
+  //   path: '/handleEdit',
+  //   name: 'handleEdit',
+  //   component: HandleEdit
+  // },
   {
     path: '/logout',
     name: 'logout',
@@ -95,11 +96,11 @@ const routes = [
     name: 'follows',
     component: Follows
   },
-  {
-    path: '/search',
-    name: 'search',
-    component: Search
-  },
+  // {
+  //   path: '/search',
+  //   name: 'search',
+  //   component: Search
+  // },
   {
     path: '/privacypolicy',
     name: 'privacypolicy',
@@ -110,11 +111,11 @@ const routes = [
     name: 'suggestions',
     component: Suggestions
   },
-  {
-    path: '/accountCreate',
-    name: 'accountCreate',
-    component: AccountCreate
-  },
+  // {
+  //   path: '/accountCreate',
+  //   name: 'accountCreate',
+  //   component: AccountCreate
+  // },
   {
     path: '/notification',
     name: 'notification',
@@ -180,6 +181,11 @@ const routes = [
     name: 'customFeed',
     component: CustomFeed
   },
+  // {
+  //   path: '/link',
+  //   name: 'link',
+  //   component: Link
+  // },
   {
     path: '/',
     name: 'login',

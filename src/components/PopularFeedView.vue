@@ -1,5 +1,6 @@
 <template>
   <div class="displayArea mx-auto">
+    <v-toolbar title="Popular"></v-toolbar>
     <FeedView :feeds="timeline.array" @deletePost="deletePost"></FeedView>
     <div ref="loading">
       <v-container class="my-5">

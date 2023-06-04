@@ -160,7 +160,7 @@ const defProps = defineProps({
   root: null,
   parent: null,
   depth: null,
-  replies: null
+  replies: null,
 })
 
 const userSettings = ref(null)
@@ -190,9 +190,7 @@ onBeforeMount(async () => {
     settings.value = userSettings.value.get(store.getters.getDid)
   }
   isWarn.value = await contains("warn")
-  console.log(isWarn.value)
   isFilter.value = await contains("filter")
-  console.log(isFilter.value)
   warnLabels.value = (await getWarnLabels()).join(' ')
 });
 

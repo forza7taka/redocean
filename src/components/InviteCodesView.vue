@@ -1,5 +1,6 @@
 <template>
   <div class="displayArea mx-auto">
+    <v-toolbar title="InviteCodes"></v-toolbar>
     <v-card variant="flat">
       <v-card-text>
         <v-row>
