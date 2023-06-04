@@ -118,7 +118,7 @@ const updateProfile = async () => {
     ce.catchError(e)
   }
 
-  
+
 }
 
 </script>

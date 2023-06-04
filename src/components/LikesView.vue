@@ -1,10 +1,6 @@
 <template>
   <div class="displayArea mx-auto">
-    <v-card class="mx-auto mt-5">
-      <v-card-title>
-        Likes
-      </v-card-title>
-    </v-card>
+    <v-toolbar title="Likes"></v-toolbar>
     <v-list-item v-for="(f, fIndex) in timeline.array" :key="fIndex">
       <v-row>
         <v-col class="d-flex justify-center align-center">

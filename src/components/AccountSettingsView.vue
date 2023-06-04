@@ -1,31 +1,44 @@
 <template>
   <div class="displayArea mx-auto">
-    <v-card class="mx-auto pa-4" variant="flat">
-      <template v-if="settings">
-        <v-card-title>
-          TitleBar Color
-        </v-card-title>
-        <v-color-picker disabled hide-canvas hide-inputs hide-mode-switch hide-sliders mode="rgba" show-swatches
-          swatches-max-height="210" v-model=settings.color></v-color-picker>
-      </template>
-    </v-card>
-    <template v-for="(label, index) in settings.labels" :key="index">
+    <v-toolbar title="Account Settings"></v-toolbar>
+    <div v-if="isShowTitleBarColor" @click="isShowTitleBarColor = !isShowTitleBarColor">
+      <v-toolbar title="TitleBarColor">hide</v-toolbar>
+    </div>
+    <div v-if="!isShowTitleBarColor" @click="isShowTitleBarColor = !isShowTitleBarColor">
+      <v-toolbar title="TitleBarColor">show</v-toolbar>
+    </div>
+    <div v-show="isShowTitleBarColor">
+
       <v-card class="mx-auto pa-4" variant="flat">
-        <v-card-title>
-          {{ label.id }}
-        </v-card-title>
-        <v-card-text>
-          <template v-if="settings && settings.labels">
-            <v-btn-toggle v-model="label.value" justify="center" color="primary">
-              <v-btn value="filter" icon="mdi-image-off-outline"></v-btn>
-              <v-btn value="warn" icon="mdi-alert-octagon"></v-btn>
-              <v-btn value="show" icon="mdi-image-outline"></v-btn>
-            </v-btn-toggle>
-          </template>
-        </v-card-text>
+        <template v-if="settings">
+          <v-color-picker disabled hide-canvas hide-inputs hide-mode-switch hide-sliders mode="rgba" show-swatches
+            swatches-max-height="210" v-model=settings.color></v-color-picker>
+        </template>
       </v-card>
-      <v-divider />
-    </template>
+    </div>
+    <div v-if="isShowfilter" @click="isShowfilter = !isShowfilter">
+      <v-toolbar title="Filter">hide</v-toolbar>
+    </div>
+    <div v-if="!isShowfilter" @click="isShowfilter = !isShowfilter">
+      <v-toolbar title="Filter">show</v-toolbar>
+    </div>
+    <div v-show="isShowfilter">
+      <template v-for="(label, index) in settings.labels" :key="index">
+        <v-card class="mx-auto pa-4" variant="flat">
+          <v-toolbar :title="label.id"></v-toolbar>
+          <v-card-text>
+            <template v-if="settings && settings.labels">
+              <v-btn-toggle v-model="label.value" justify="center" color="primary">
+                <v-btn value="filter" icon="mdi-image-off-outline"></v-btn>
+                <v-btn value="warn" icon="mdi-alert-octagon"></v-btn>
+                <v-btn value="show" icon="mdi-image-outline"></v-btn>
+              </v-btn-toggle>
+            </template>
+          </v-card-text>
+        </v-card>
+        <v-divider />
+      </template>
+    </div>
   </div>
 </template>
 
@@ -33,7 +46,8 @@
 import { ref, watch, onBeforeMount } from 'vue'
 import { useRoute } from "vue-router"
 import { useStorage } from '@vueuse/core'
-
+const isShowTitleBarColor = ref(true)
+const isShowfilter = ref(true)
 const labelItems = [
   { id: "csam", value: 'filter' },
   { id: 'dmca-violation', value: 'filter' },

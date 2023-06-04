@@ -1,6 +1,17 @@
 <template>
   <div class="displayArea mx-auto">
-    <FeedView :feeds="timeline.array" @deletePost="deletePost"></FeedView>
+    <!-- <v-bottom-navigation :elevation="0">
+      <v-row justify="center" rowa="auto">
+        <v-col cols="auto">
+          <v-switch v-model="isShowRepost" label="Repost"></v-switch>
+        </v-col>
+        <v-col cols="auto">
+          <v-switch v-model="isShowReply" label="Reply"></v-switch>
+        </v-col>
+      </v-row>
+    </v-bottom-navigation> -->
+    <FeedView :feeds="timeline.array" :isShowReply="isShowReply" :isShowRepost="isShowRepost" @deletePost="deletePost">
+    </FeedView>
     <div ref="loading">
       <v-container class="my-5">
         <v-row justify="center">
@@ -8,6 +19,7 @@
         </v-row>
       </v-container>
     </div>
+
   </div>
 </template>
 
@@ -21,7 +33,6 @@ import { useRequestGet } from '@/common/requestGet.js'
 import Timeline from '@/common/timeline.js'
 import { useCatchError } from '@/common/catchError';
 
-
 const completed = ref(false)
 const cursor = ref(null)
 const historyState = useHistoryState();
@@ -29,10 +40,12 @@ const timeline = ref(new Timeline())
 const store = useStore()
 const loading = ref(null)
 const loadingCount = ref(0)
-
+const isShowReply = ref(true)
+const isShowRepost = ref(true)
 const deletePost = async (uri) => {
   timeline.value.delete(uri)
 }
+
 onBeforeMount(async () => {
   if (historyState.action === 'reload') {
     timeline.value = new Timeline()
@@ -83,3 +96,4 @@ const getTimeline = async (cur) => {
   }
 }
 </script>
+<style scoped></style>

@@ -1,15 +1,17 @@
 <template>
   <div class="displayArea mx-auto">
-    <v-card class="mx-auto mt-5" v-if="subject">
-      <v-card-title>
+    <v-toolbar>
+      <div style="padding-left: 10px">
         <router-link :to="`/profile/${route.params.handle}`">
           <v-avatar color="surface-variant">
             <v-img cover v-bind:src=subject.avatar alt="avatar"></v-img>
           </v-avatar>
         </router-link>
+      </div>
+      <div style="padding-left: 10px">
         @{{ subject.handle }} follows
-      </v-card-title>
-    </v-card>
+      </div>
+    </v-toolbar>
     <UsersView :users="follows"></UsersView>
     <div ref="load">
       <v-container class="my-5">
@@ -84,7 +86,7 @@ const getFollows = async (handle, cursor) => {
       completed.value = true
     }
   } catch (e) {
-         const ce = useCatchError()
+    const ce = useCatchError()
     ce.catchError(e)
 
   }

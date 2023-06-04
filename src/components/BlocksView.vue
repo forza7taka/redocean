@@ -1,15 +1,17 @@
 <template>
   <div class="displayArea mx-auto">
-    <v-card class="mx-auto mt-5" v-if="subject">
-      <v-card-title>
+    <v-toolbar>
+      <div style="padding-left: 10px">
         <router-link :to="`/profile/${store.getters.getHandle}`">
           <v-avatar color="surface-variant">
             <v-img v-if="subject" cover v-bind:src=subject.avatar alt="avatar"></v-img>
           </v-avatar>
         </router-link>
+      </div>
+      <div style="padding-left: 10px">
         @{{ store.getters.getHandle }} blocks
-      </v-card-title>
-    </v-card>
+      </div>
+    </v-toolbar>
     <UsersView :users="blocks"></UsersView>
     <div ref="loading">
       <v-container class="my-5">
@@ -82,8 +84,8 @@ const getProfile = async (handle) => {
 }
 
 const getBlocksProfile = async (handle) => {
-    const response = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
-    blockActors.value = blockActors.value.concat(response.res)
+  const response = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
+  blockActors.value = blockActors.value.concat(response.res)
 }
 
 const getBlocks = async (cursor) => {

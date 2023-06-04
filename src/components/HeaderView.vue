@@ -1,57 +1,119 @@
 <template>
   <div>
     <v-app-bar fixed :color="color">
-      <v-app-bar-nav-icon @click="drawer = true"></v-app-bar-nav-icon>
-      <div v-if="store.getters.getProfile">
-        <v-avatar color="surface-variant">
-          <v-img cover v-bind:src=store.getters.getProfile.avatar alt="avatar"></v-img>
-        </v-avatar>
-      </div>
-      <v-spacer></v-spacer>
-      <v-toolbar-subtitle class="text-md-h6">redocean ~always β~</v-toolbar-subtitle>
-      <v-spacer></v-spacer>
-      <div v-if="unReadCount != 0">
-        <v-badge right top overlap color="blue">
-          <template #badge>
-            <span>{{ unReadCount }}</span>
-          </template>
-          <v-btn v-if="store.getters.getAccessJwt" to="/notification" icon>
-            <v-icon size="18" color="white">mdi-bell</v-icon>
-          </v-btn>
-        </v-badge>
-      </div>
-      <div v-if="unReadCount == 0">
-        <v-btn v-if="store.getters.getAccessJwt" to="/notification" icon>
-          <v-icon size="18">mdi-bell</v-icon>
+      <template v-if="settings.handed">
+        <v-app-bar-nav-icon @click="drawer = true"></v-app-bar-nav-icon>
+        <!-- <template v-if="store.getters.getProfile">
+          <v-avatar color="surface-variant">
+            <v-img cover v-bind:src=store.getters.getProfile.avatar alt="avatar"></v-img>
+          </v-avatar>
+        </template> -->
+        <v-app-bar-title class="text-subtitle-2">redocean ~always β~</v-app-bar-title>
+
+
+        <v-btn to="/settings" icon>
+          <v-icon>mdi-cog-outline</v-icon>
         </v-btn>
-      </div>
-      <v-btn v-if="store.getters.getAccessJwt" to="/post" icon>
-        <v-icon>mdi-plus</v-icon>
-      </v-btn>
-    </v-app-bar>
-    <v-navigation-drawer v-model="drawer" fixed temporary>
-      <v-list nav dense>
-        <template v-for="(menuItem, index) in menuItems" :key="index">
-          <v-list-item v-if="store.getters.getAccessJwt || !menuItem.login"
-            active-class="deep-purple--text text--accent-4">
-            <div>
-              <router-link :to="menuItem.link">
-                <v-icon>{{ menuItem.icon }}</v-icon>
-                {{ menuItem.name }}
-              </router-link>
-            </div>
-          </v-list-item>
+        <!-- <v-btn to="/link" icon>
+          <v-icon>mdi-link-variant-plus</v-icon>
+        </v-btn> -->
+        <template v-if="unReadCount != 0">
+          <v-badge right top overlap color="blue">
+            <template #badge>
+              <span>{{ unReadCount }}</span>
+            </template>
+            <v-btn v-if="store.getters.getAccessJwt" to="/notification" icon>
+              <v-icon size="18" color="white">mdi-bell</v-icon>
+            </v-btn>
+          </v-badge>
         </template>
-      </v-list>
-    </v-navigation-drawer>
+        <template v-if="unReadCount == 0">
+          <v-btn v-if="store.getters.getAccessJwt" to="/notification" icon>
+            <v-icon size="18">mdi-bell</v-icon>
+          </v-btn>
+        </template>
+      </template>
+      <template v-else>
+        <template v-if="unReadCount == 0">
+          <v-btn v-if="store.getters.getAccessJwt" to="/notification" icon>
+            <v-icon size="18">mdi-bell</v-icon>
+          </v-btn>
+        </template>
+        <template v-if="unReadCount != 0">
+          <v-badge right top overlap color="blue">
+            <template #badge>
+              <span>{{ unReadCount }}</span>
+            </template>
+            <v-btn v-if="store.getters.getAccessJwt" to="/notification" icon>
+              <v-icon size="18" color="white">mdi-bell</v-icon>
+            </v-btn>
+          </v-badge>
+        </template>
+
+        <v-btn to="/settings" icon>
+          <v-icon>mdi-cog-outline</v-icon>
+        </v-btn>
+        <v-app-bar-title class="text-subtitle-2">redocean ~always β~</v-app-bar-title>
+        <!-- <template v-if="store.getters.getProfile">
+          <v-avatar color="surface-variant">
+            <v-img cover v-bind:src=store.getters.getProfile.avatar alt="avatar"></v-img>
+          </v-avatar>
+        </template> -->
+        <v-app-bar-nav-icon @click="drawer = true" right></v-app-bar-nav-icon>
+      </template>
+    </v-app-bar>
+    <template v-if="settings.handed && drawer">
+      <v-navigation-drawer v-model="drawer" fixed temporary>
+        <v-list nav dense>
+          <template v-for="(menuItem, index) in menuItems" :key="index">
+            <v-list-item v-if="store.getters.getAccessJwt || !menuItem.login"
+              active-class="deep-purple--text text--accent-4">
+              <div>
+                <router-link :to="menuItem.link">
+                  <v-icon>{{ menuItem.icon }}</v-icon>
+                  {{ menuItem.name }}
+                </router-link>
+              </div>
+            </v-list-item>
+          </template>
+        </v-list>
+      </v-navigation-drawer>
+    </template>
+    <template v-else-if="!settings.handed && drawer">
+      <v-navigation-drawer v-model="drawer" fixed temporary class="drawer-right">
+        <v-list nav dense>
+          <template v-for="(menuItem, index) in menuItems" :key="index">
+            <v-list-item v-if="store.getters.getAccessJwt || !menuItem.login"
+              active-class="deep-purple--text text--accent-4">
+              <div>
+                <router-link :to="menuItem.link">
+                  <v-icon>{{ menuItem.icon }}</v-icon>
+                  {{ menuItem.name }}
+                </router-link>
+              </div>
+            </v-list-item>
+          </template>
+        </v-list>
+      </v-navigation-drawer>
+    </template>
   </div>
 </template>
-
+<style>
+.drawer-right {
+  right: 0 !important;
+  left: auto !important;
+}
+</style>
 <script setup>
 import { ref, watch, onMounted, onBeforeMount } from 'vue'
 import { useStore } from 'vuex'
 import { useRequestGet } from '../common/requestGet.js'
 import { createToaster } from '@meforma/vue-toaster'
+import { useStorage } from '@vueuse/core'
+
+const settings = ref({ handed: true })
+useStorage('settings', settings)
+
 const completed = ref(false)
 const store = useStore()
 const toast = createToaster()
@@ -98,12 +160,6 @@ const menuItems = ref([
     icon: "mdi-dog",
     name: "AnimalFeed",
     link: "/customFeed",
-    login: true
-  },
-  {
-    icon: "mdi-cog-outline",
-    name: "Settings",
-    link: "/settings",
     login: true
   },
   {
@@ -219,7 +275,6 @@ const getReposts = async (cursor) => {
   store.dispatch('doAddReposts', response.res)
 }
 
-
 watch(
   () => store.getters.getDid,
   async () => {
@@ -229,7 +284,6 @@ watch(
     completedReposts.value = false
     store.dispatch('doRemoveAllReposts')
     store.dispatch('doRemoveAllLikes')
-
   }
 )
 </script>

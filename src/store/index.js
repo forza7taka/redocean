@@ -16,7 +16,8 @@ export default createStore({
     color: null,
     profile: null,
     translationApiKey: null,
-    translationLang: null
+    translationLang: null,
+    handed: true
   },
   getters: {
     getServer(state) {
@@ -45,6 +46,9 @@ export default createStore({
     },
     getTranslationApiKey(state) {
       return state.translationApiKey;
+    },
+    getHanded(state) {
+      return state.handed;
     },
     getFollows(state) {
       return state.follows;
@@ -100,6 +104,10 @@ export default createStore({
     },
     setTranslationApiKey(state, session) {
       state.translationApiKey = session
+    },
+    setHanded(state, session) {
+      state.handed = session
+      console.log("handed:" + state.handed)
     },
     addFollows(state, session) {
       session.follows.forEach(element => {
@@ -198,6 +206,9 @@ export default createStore({
     doSetTranslationApiKey({ commit }, session) {
       commit('setTranslationApiKey', session)
     },
+    doSetHanded({ commit }, session) {
+      commit('setHanded', session)
+    },
     doAddFollows({ commit }, session) {
       commit('addFollows', session)
     },
@@ -246,7 +257,6 @@ export default createStore({
     doRemoveAllReposts({ commit }, session) {
       commit('removeAllReposts', session)
     },
-
     doAddMutes({ commit }, session) {
       commit('addMutes', session)
     },

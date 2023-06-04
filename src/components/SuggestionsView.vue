@@ -1,10 +1,6 @@
 <template>
   <div class="displayArea mx-auto">
-    <v-card class="mx-auto mt-5">
-      <v-card-title>
-        suggestions
-      </v-card-title>
-    </v-card>
+    <v-toolbar title="Suggestions"></v-toolbar>
     <UsersView :users="actors"></UsersView>
     <div ref="loading">
       <v-container class="my-5">
