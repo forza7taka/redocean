@@ -14,9 +14,9 @@
         <v-btn to="/settings" icon>
           <v-icon>mdi-cog-outline</v-icon>
         </v-btn>
-        <!-- <v-btn to="/link" icon>
+        <v-btn to="/link" icon>
           <v-icon>mdi-link-variant-plus</v-icon>
-        </v-btn> -->
+        </v-btn>
         <template v-if="unReadCount != 0">
           <v-badge right top overlap color="blue">
             <template #badge>

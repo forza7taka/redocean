@@ -3,16 +3,16 @@
     <v-toolbar>
       <div style="padding-left: 10px">
         <router-link :to="`/profile/${route.params.handle}`">
-          <v-avatar color="surface-variant">
+          <v-avatar v-if="subject" color="surface-variant">
             <v-img cover v-bind:src=subject.avatar alt="avatar"></v-img>
           </v-avatar>
         </router-link>
       </div>
-      <div style="padding-left: 10px">
+      <div v-if="subject" style="padding-left: 10px">
         @{{ subject.handle }} followers
       </div>
     </v-toolbar>
-    <UsersView :users="followers"></UsersView>
+    <UsersView :users="followers.array"></UsersView>
     <div ref="load">
       <v-container class="my-5">
         <v-row justify="center">
@@ -32,11 +32,12 @@ import { useRequestGet } from '../common/requestGet.js'
 import { useRoute } from "vue-router";
 import { useStore } from 'vuex'
 import { useCatchError } from '@/common/catchError';
+import Users from '@/common/users.js'
 
 const store = useStore()
 const route = useRoute()
 const completed = ref(false)
-const followers = ref([])
+const followers = ref(new Users())
 const followersCursor = ref(null)
 const historyState = useHistoryState();
 const load = ref(null)
@@ -63,7 +64,7 @@ onBackupState(() => ({ followers: followers, subject: subject }));
 useIntersectionObserver(
   load,
   async ([{ isIntersecting }]) => {
-    if (isIntersecting && !completed.value && followersCursor.value && loadingCount.value != 0) {
+    if (isIntersecting && !completed.value && loadingCount.value != 0) {
       await getFollowers(route.params.handle, followersCursor)
     }
     loadingCount.value = loadingCount.value + 1
@@ -80,7 +81,7 @@ const getFollowers = async (handle, cursor) => {
   try {
     const response = await requestGet.get("app.bsky.graph.getFollowers", params)
     subject.value = response.res.subject
-    followers.value = followers.value.concat(response.res.followers)
+    followers.value.setArray(response.res.followers)
     followersCursor.value = response.res.cursor
     if (response.res.followers.length == 0) {
       completed.value = true
