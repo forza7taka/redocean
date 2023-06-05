@@ -5,6 +5,7 @@
         Sync
       </v-card-title>
       <v-card-subtitle>
+        <GoogleLogin :callback="callback" />
         <!-- <a :href="google"><v-btn icon>
             <v-icon>mdi-google</v-icon>
           </v-btn>
@@ -16,16 +17,30 @@
 
 <script setup>
 import { onBeforeMount } from 'vue'
+
+
+
 // import { useRoute } from "vue-router"
 // import axios from "axios"
 import Parse from "parse"
-import { useStore } from 'vuex'
+// import { useStore } from 'vuex'
 
 // const route = useRoute()
 
-const store = useStore()
+// const store = useStore()
+
+const callback = (response) => {
+  // This callback will be triggered when the user selects or login to
+  // his Google account from the popup
+  console.log("Handle the response", response)
+}
+
+
 onBeforeMount(async () => {
 
+  const res = await Parse.Cloud.run("GoogleSignIn");
+  console.log(res)
+  //  window.location.href = oauthLink;
 
   // const user = new Parse.User();
   // user.set("username", "my name");
@@ -43,28 +58,28 @@ onBeforeMount(async () => {
   // }
   // const user1 = await Parse.User.logIn("my name", "my pass");
   // console.log(user1)
-  const user = Parse.User.current();
-  if (user) {
-    // do stuff with the user
-  } else {
-    // show the signup or login page
-  }
+  // const user = Parse.User.current();
+  // if (user) {
+  //   // do stuff with the user
+  // } else {
+  //   // show the signup or login page
+  // }
 
-  const Setting = Parse.Object.extend("setting");
-  const setting = new Setting();
-  setting.set("userID", user.id)
-  setting.set("translationApiKey", store.getters.getTranslationApiKey)
-  setting.set("translationLang", store.getters.getTranslationLang)
-  setting.set("handed", store.getters.getHanded)
-  setting.save()
+  // const Setting = Parse.Object.extend("setting");
+  // const setting = new Setting();
+  // setting.set("userID", user.id)
+  // setting.set("translationApiKey", store.getters.getTranslationApiKey)
+  // setting.set("translationLang", store.getters.getTranslationLang)
+  // setting.set("handed", store.getters.getHanded)
+  // setting.save()
 
-  const AccountSettings = Parse.Object.extend("accountSettings");
-  const accountSettings = new AccountSettings();
+  // const AccountSettings = Parse.Object.extend("accountSettings");
+  // const accountSettings = new AccountSettings();
 
-  accountSettings.set("userID", user.id)
-  accountSettings.set("did", "")
-  accountSettings.set("value", "")
-  accountSettings.save()
-  //did, { labels: null, color: null }
+  // accountSettings.set("userID", user.id)
+  // accountSettings.set("did", "")
+  // accountSettings.set("value", "")
+  // accountSettings.save()
+  // //did, { labels: null, color: null }
 });
 </script>
