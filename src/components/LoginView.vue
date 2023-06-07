@@ -58,13 +58,14 @@
 </template>
 <script setup>
 
-import { ref, computed, onBeforeMount } from 'vue'
+import { ref, onBeforeMount } from 'vue'
 import { useStore } from 'vuex'
 import { useRequestGet } from '../common/requestGet.js'
 import { useRequestPost } from '../common/requestPost.js'
 import { useRouter } from "vue-router"
 import { useStorage } from '@vueuse/core'
 import { useCatchError } from '@/common/catchError';
+import Setting from '@/common/settings'
 
 const tab = ref(null)
 const failed = ref(false)
@@ -78,31 +79,12 @@ const route = useRouter()
 const completed = ref(false)
 const logins = ref([{ server: null, handle: null, password: null, did: null, avatar: null }])
 
-const storageLogins = useStorage('logins', logins, undefined,
-  {
-    serializer: {
-      read: (v) => v ? JSON.parse(v) : null,
-      write: (v) => JSON.stringify(v),
-    },
-  })
-const settings = ref({ translationApiKey: null, translationLang: null, handed: true })
-useStorage('settings', settings, undefined,
-  {
-    serializer: {
-      read: (v) => v ? JSON.parse(v) : null,
-      write: (v) => JSON.stringify(v),
-    },
-  })
-const userSettings = ref(null)
-useStorage('userSettings', userSettings, undefined,
-  {
-    serializer: {
-      read: (v) => new Map(JSON.parse(v)),
-      write: (v) => v instanceof Map ? JSON.stringify([...v]) : JSON.stringify(v)
-    },
-  })
+const obj = ref(new Setting())
+const settings = ref(new Setting())
+useStorage('settingBeta', settings)
+// const storageSettings = useStorage('settingBata', settings)
 
-const getColor = computed(() => (key) => userSettings.value ? (userSettings.value.has(key) ? userSettings.value.get(key).color : null) : null);
+// const getColor = computed(() => (key) => userSettings.value ? (userSettings.value.has(key) ? userSettings.value.get(key).color : null) : null);
 
 const AppPasswordRules = [
   (value) => {
@@ -117,22 +99,18 @@ const AppPasswordRules = [
   },
 ];
 
-const del = async (index) => {
-  logins.value.splice(index, 1)
-}
-
-const add = async () => {
-  logins.value.push({ server: null, handle: null, password: null, avatar: null, did: null })
-}
+// const del = async (index) => {
+//   // logins.value.splice(index, 1)
+// }
 
 onBeforeMount(async () => {
   try {
-    store.dispatch('doSetTranslationLang', settings.value.translationLang);
-    store.dispatch('doSetTranslationApiKey', settings.value.translationApiKey);
-    store.dispatch('doSethanded', settings.value.handed);
-    if (!logins.value) {
-      add()
-    }
+    obj.value = new Setting(settings)
+
+    store.dispatch('doSetTranslationLang', obj.value.translationLang);
+    store.dispatch('doSetTranslationApiKey', obj.value.translationApiKey);
+    store.dispatch('doSethanded', obj.value.handed);
+
   } catch (e) {
     failed.value = true
     const ce = useCatchError()
@@ -148,18 +126,13 @@ const login = async (server, handle, password) => {
       identifier: handle,
       password: password
     })
-    logins.value[tab.value].did = loginResponse.res.did
     store.dispatch('doCreateSession', loginResponse.res);
-
-    if (userSettings.value && userSettings.value.has(loginResponse.res.did)) {
-      store.dispatch('doSetColor', userSettings.value.get(loginResponse.res.did).color);
-    }
+    store.dispatch('doSetColor', await obj.value.getColor(loginResponse.res.did, loginResponse.res.did.handle));
 
     const profileResponse = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
     store.dispatch('doSetProfile', profileResponse.res);
-    logins.value[tab.value].avatar = profileResponse.res.avatar
 
-    storageLogins.value = logins.value
+    await obj.value.updateUser(loginResponse.res.did, server, loginResponse.res.did.handle, profileResponse.res.avatar)
 
     while (!completed.value) {
       await getFollows(handle, followsCursor)
