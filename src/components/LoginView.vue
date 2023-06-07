@@ -3,10 +3,10 @@
     <v-card>
       <v-card-text>
         <v-tabs v-model="tab">
-          <v-tab v-for="(l, index) in logins" :key="index" :value=index>
+          <v-tab v-for="(l, index) in settings.users" :key="index" :value=index>
             <template v-if="l.avatar">
-              <template v-if="getColor(l.did)">
-                <v-avatar v-if="userSettings" :style="`border: 5px solid ${getColor(l.did)};`">
+              <template v-if="l.color">
+                <v-avatar v-if="l.color" :style="`border: 5px solid ${l.color};`">
                   <v-img cover v-bind:src=l.avatar alt="avatar"></v-img>
                 </v-avatar>
               </template>
@@ -27,7 +27,7 @@
       </v-card-text>
       <v-card-text>
         <v-window v-model="tab">
-          <div v-for="(l, index) in logins" :key="index">
+          <div v-for="(l, index) in settings.users" :key="index">
             <v-window-item :value=index>
               <v-card class="mx-auto pa-4">
                 <v-combobox v-model="l.server"
@@ -44,10 +44,10 @@
                 &nbsp;
                 <v-btn :to="`/accountSetting/${l.did}`" icon="mdi-cog-outline" size="42" :disabled="!l.did"></v-btn>
                 &nbsp;
-                <v-btn v-if="logins.length > 1" @click="del(index)" icon="mdi-minus" size="42"></v-btn>
+                <v-btn v-if="settings.users.length > 1" @click="del(index)" icon="mdi-minus" size="42"></v-btn>
                 &nbsp;
-                <v-btn v-if="l.server && l.handle && l.password && index == logins.length - 1" @click="add" size="42"
-                  icon="mdi-plus"></v-btn>
+                <v-btn v-if="l.server && l.handle && l.password && index == settings.users.length - 1" @click="add"
+                  size="42" icon="mdi-plus"></v-btn>
               </v-card>
             </v-window-item>
           </div>
@@ -58,14 +58,14 @@
 </template>
 <script setup>
 
-import { ref, onBeforeMount } from 'vue'
+import { ref, watch, onBeforeMount } from 'vue'
 import { useStore } from 'vuex'
 import { useRequestGet } from '../common/requestGet.js'
 import { useRequestPost } from '../common/requestPost.js'
 import { useRouter } from "vue-router"
 import { useStorage } from '@vueuse/core'
 import { useCatchError } from '@/common/catchError';
-import Setting from '@/common/settings'
+import { useSettings } from '@/common/settings'
 
 const tab = ref(null)
 const failed = ref(false)
@@ -77,14 +77,20 @@ const requestGet = useRequestGet(store)
 const requestPost = useRequestPost(store)
 const route = useRouter()
 const completed = ref(false)
-const logins = ref([{ server: null, handle: null, password: null, did: null, avatar: null }])
 
-const obj = ref(new Setting())
-const settings = ref(new Setting())
-useStorage('settingBeta', settings)
-// const storageSettings = useStorage('settingBata', settings)
+const settings = ref({
+  userID: null,
+  translationApiKey: null,
+  translationLang: null,
+  handed: true,
+  users: [{ did: null, server: null, handle: null, avatar: null, color: null, labels: null }]
+})
+const storageSettings = useStorage('redocean', settings)
+const settingsManager = useSettings(settings.value)
 
-// const getColor = computed(() => (key) => userSettings.value ? (userSettings.value.has(key) ? userSettings.value.get(key).color : null) : null);
+const settings1 = useStorage('settings')
+const settings2 = useStorage('userSettings')
+const settings3 = useStorage('logins')
 
 const AppPasswordRules = [
   (value) => {
@@ -99,18 +105,20 @@ const AppPasswordRules = [
   },
 ];
 
-// const del = async (index) => {
-//   // logins.value.splice(index, 1)
-// }
+const add = async () => {
+  await settingsManager.updateUser(null, null, null, null)
+}
+
+const del = async (index) => {
+  await settingsManager.deleteUser(index)
+}
 
 onBeforeMount(async () => {
   try {
-    obj.value = new Setting(settings)
-
-    store.dispatch('doSetTranslationLang', obj.value.translationLang);
-    store.dispatch('doSetTranslationApiKey', obj.value.translationApiKey);
-    store.dispatch('doSethanded', obj.value.handed);
-
+    settings1.value = null
+    settings2.value = null
+    settings3.value = null
+    store.dispatch('doSetHanded', settings.value.handed)
   } catch (e) {
     failed.value = true
     const ce = useCatchError()
@@ -122,17 +130,18 @@ const login = async (server, handle, password) => {
   failed.value = false
   try {
     store.dispatch('doSetServer', server)
-    const loginResponse = await requestPost.post("com.atproto.server.createSession", {
+    const login = await requestPost.post("com.atproto.server.createSession", {
       identifier: handle,
       password: password
     })
-    store.dispatch('doCreateSession', loginResponse.res);
-    store.dispatch('doSetColor', await obj.value.getColor(loginResponse.res.did, loginResponse.res.did.handle));
+    store.dispatch('doCreateSession', login.res);
+    store.dispatch('doSetColor', await settingsManager.getColor(login.res.did, login.res.handle));
 
-    const profileResponse = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
-    store.dispatch('doSetProfile', profileResponse.res);
+    const profile = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
+    store.dispatch('doSetProfile', profile.res);
 
-    await obj.value.updateUser(loginResponse.res.did, server, loginResponse.res.did.handle, profileResponse.res.avatar)
+    await settingsManager.updateUser(login.res.did, server, login.res.handle, profile.res.avatar)
+    storageSettings.value = settings.value
 
     while (!completed.value) {
       await getFollows(handle, followsCursor)
@@ -200,4 +209,13 @@ const getBlocks = async (cur) => {
   }
   store.dispatch('doAddBlocks', response.res)
 }
+
+watch(
+  () => settings,
+  async () => {
+    storageSettings.value = settings.value
+  }, { deep: true }
+)
+
+
 </script>

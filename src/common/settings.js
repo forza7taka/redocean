@@ -1,59 +1,31 @@
-export default class settings {
-    // userID
-    // translationApiKey
-    // translationLang
-    // handed
-    // users = [[
-    //     did,
-    //     server,
-    //     handle,
-    //     password,
-    //     avatar,
-    //     labels = [{ id, value }],
-    //     color]]
 
-    constructor(settings) {
-        if (!settings) {
-            return {
-                userID: null,
-                translationApiKey: null,
-                translationLang: null,
-                handed: null,
-                users: []
-            }
-        }
-        this.userID = settings.userID
-        this.translationApiKey = settings.translationApiKey
-        this.translationLang = settings.translationLang
-        this.handed = settings.handed
-        this.users = settings.users
-    }
+export function useSettings(obj) {
 
-    async getUser(did, handle) {
-        let index = await this.getHandleUserIndex(handle)
+    async function getUser(did, handle) {
+        let index = await getHandleUserIndex(handle)
         if (index == -1) {
-            index = await this.getUserIndex(did)
+            index = await getUserIndex(did)
         }
         if (index == -1) {
             return {}
         }
-        return this.users[index]
+        return obj.users[index]
     }
 
-    async getColor(did, handle) {
-        const user = await this.getUser(did, handle)
+    async function getColor(did, handle) {
+        const user = await getUser(did, handle)
         if (!user) {
             return null
         }
         return user.color
     }
 
-    async getUserIndex(did) {
-        if (!this.users) {
+    async function getUserIndex(did) {
+        if (!obj.users) {
             return -1
         }
-        for (let i = 0; i < this.users.length; i++) {
-            const el = this.users[i]
+        for (let i = 0; i < obj.users.length; i++) {
+            const el = obj.users[i]
             if (el.did == did) {
                 return i
             }
@@ -61,12 +33,12 @@ export default class settings {
         return -1
     }
 
-    async getHandleUserIndex(handle) {
-        if (!this.users) {
+    async function getHandleUserIndex(handle) {
+        if (!obj.users) {
             return -1
         }
-        for (let i = 0; i < this.users.length; i++) {
-            const el = this.users[i]
+        for (let i = 0; i < obj.users.length; i++) {
+            const el = obj.users[i]
             if (el.handle == handle) {
                 return i
             }
@@ -74,40 +46,55 @@ export default class settings {
         return -1
     }
 
-    async updateUser(did, server, handle, avator) {
-        let index = await this.getHandleUserIndex(handle)
+    async function updateUser(did, server, handle, avatar) {
+        let index = await getHandleUserIndex(handle)
         if (index == -1) {
-            index = await this.getUserIndex(did)
+            index = await getUserIndex(did)
         }
         if (index == -1) {
-            this.users.push({ did: did, server: server, handle: handle, avator: avator })
+            obj.users.push({ did: did, server: server, handle: handle, avatar: avatar })
             return
         }
-        let user = this.users[index]
+        let user = obj.users[index]
         user.did = did
         user.server = server
         user.handle = handle
-        user.avator = avator
-        this.users.splice(index, 0, user)
+        user.avatar = avatar
+        obj.users[index] = user
     }
 
-    async updateUserSetting(did, handle, labels, color) {
+    async function deleteUser(did, handle) {
+        let index = await getHandleUserIndex(handle)
+        if (index == -1) {
+            index = await getUserIndex(did)
+        }
+        if (index == -1) {
+            return
+        }
+        obj.users.splice(index, 1)
+    }
+
+
+    async function updateUserSetting(did, handle, labels, color) {
         let index = -1
         if (did) {
-            index = await this.getUserIndex(did)
+            index = await getUserIndex(did)
         }
         if (handle) {
-            index = await this.getHandleUserIndex(handle)
+            index = await getHandleUserIndex(handle)
         }
         let user
         if (index == -1) {
-            user = { did: did, server: null, handle: handle, avator: null, labels: labels, color: color }
-            this.users.push(user)
+            user = { did: did, server: null, handle: handle, avatar: null, labels: labels, color: color }
+            obj.users.push(user)
         } else {
-            user = this.users[index]
+            user = obj.users[index]
             user.labels = labels
             user.color = color
-            this.users.splice(index, 0, user)
+            obj.users.splice(index, 0, user)
         }
     }
+
+    return { getUser, getColor, updateUser, updateUserSetting, deleteUser }
+
 }

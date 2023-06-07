@@ -1,4 +1,7 @@
 <template>
+  {{ userSettings.color }}
+  {{ userSettings.labels }}
+
   <div class="displayArea mx-auto">
     <v-toolbar title="Account Settings"></v-toolbar>
     <div v-if="isShowTitleBarColor" @click="isShowTitleBarColor = !isShowTitleBarColor">
@@ -10,9 +13,9 @@
     <div v-show="isShowTitleBarColor">
 
       <v-card class="mx-auto pa-4" variant="flat">
-        <template v-if="settings">
+        <template v-if="userSettings">
           <v-color-picker disabled hide-canvas hide-inputs hide-mode-switch hide-sliders mode="rgba" show-swatches
-            swatches-max-height="210" v-model=settings.color></v-color-picker>
+            swatches-max-height="210" v-model=userSettings.color></v-color-picker>
         </template>
       </v-card>
     </div>
@@ -23,17 +26,15 @@
       <v-toolbar title="Filter">show</v-toolbar>
     </div>
     <div v-show="isShowfilter">
-      <template v-for="(label, index) in settings.labels" :key="index">
+      <template v-for="(label, index) in userSettings.labels" :key="index">
         <v-card class="mx-auto pa-4" variant="flat">
           <v-toolbar :title="label.id"></v-toolbar>
           <v-card-text>
-            <template v-if="settings && settings.labels">
-              <v-btn-toggle v-model="label.value" justify="center" color="primary">
-                <v-btn value="filter" icon="mdi-image-off-outline"></v-btn>
-                <v-btn value="warn" icon="mdi-alert-octagon"></v-btn>
-                <v-btn value="show" icon="mdi-image-outline"></v-btn>
-              </v-btn-toggle>
-            </template>
+            <v-btn-toggle v-model="label.value" justify="center" color="primary">
+              <v-btn value="filter" icon="mdi-image-off-outline"></v-btn>
+              <v-btn value="warn" icon="mdi-alert-octagon"></v-btn>
+              <v-btn value="show" icon="mdi-image-outline"></v-btn>
+            </v-btn-toggle>
           </v-card-text>
         </v-card>
         <v-divider />
@@ -43,9 +44,11 @@
 </template>
 
 <script setup>
-import { ref, watch, onBeforeMount } from 'vue'
-import { useRoute } from "vue-router"
+import { ref, onBeforeMount, watch, } from 'vue'
 import { useStorage } from '@vueuse/core'
+import { useStore } from 'vuex'
+import { useSettings } from '@/common/settings'
+
 const isShowTitleBarColor = ref(true)
 const isShowfilter = ref(true)
 const labelItems = [
@@ -70,26 +73,27 @@ const labelItems = [
   { id: 'spam', value: 'filter' },
   { id: 'impersonation', value: 'filter' }]
 
-const route = useRoute()
-const userSettings = ref(new Map([[route.params.did, { labels: null, color: null }]]))
-const storageUserSettings = useStorage("userSettings", userSettings)
-
-const settings = ref(null)
+const store = useStore()
+const settings = ref({
+  userID: null,
+  translationApiKey: null,
+  translationLang: null,
+  handed: true,
+  users: [{ did: null, server: null, handle: null, avatar: null, color: null, labels: null }]
+})
+const storageSettings = useStorage('redocean', settings)
+const settingsManager = useSettings(settings.value)
+let userSettings = await settingsManager.getUser(store.getters.getDid, store.getters.getHandle)
 
 onBeforeMount(async () => {
-  if (userSettings.value.has(route.params.did)) {
-    settings.value = userSettings.value.get(route.params.did)
-    if (settings.value.labels == null) {
-      settings.value.labels = labelItems
-    }
-  } else {
-    settings.value = { labels: labelItems, color: null }
+  if (!userSettings.labels) {
+    userSettings.labels = labelItems
+    return
   }
 });
 
 watch(() => settings, () => {
-  userSettings.value.set(route.params.did, settings.value)
-  storageUserSettings.value = userSettings.value
+  storageSettings.value = settings.value
 }, { deep: true }
 );
 </script>
