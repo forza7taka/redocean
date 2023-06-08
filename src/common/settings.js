@@ -63,11 +63,7 @@ export function useSettings(obj) {
         obj.users[index] = user
     }
 
-    async function deleteUser(did, handle) {
-        let index = await getHandleUserIndex(handle)
-        if (index == -1) {
-            index = await getUserIndex(did)
-        }
+    async function deleteUser(index) {
         if (index == -1) {
             return
         }

@@ -40,7 +40,8 @@
               <v-btn @click.prevent="login(index, l.server, l.handle, l.password)" icon="mdi-login" size="42"
                 :disabled="!(l.server && l.handle && l.password)"></v-btn>
               &nbsp;
-              <v-btn :to="`/accountSetting/${l.did}`" icon="mdi-cog-outline" size="42" :disabled="!l.did"></v-btn>
+              <v-btn :to="`/accountSetting/${l.did}/${l.handle}`" icon="mdi-cog-outline" size="42"
+                :disabled="!l.did"></v-btn>
               &nbsp;
               <v-btn v-if="settings.users.length > 1" @click="del(index)" icon="mdi-minus" size="42"></v-btn>
               &nbsp;
@@ -75,13 +76,16 @@ const requestPost = useRequestPost(store)
 const route = useRouter()
 const completed = ref(false)
 
+const user = ref([{ did: null, server: null, handle: null, avatar: null, color: null, labels: null }])
 const settings = ref({
   userID: null,
   translationApiKey: null,
   translationLang: null,
   handed: true,
-  users: [{ did: null, server: null, handle: null, avatar: null, color: null, labels: null }]
+  users: user
 })
+
+
 const storageSettings = useStorage('redocean', settings)
 const settingsManager = useSettings(settings.value)
 
@@ -103,11 +107,12 @@ const AppPasswordRules = [
 ];
 
 const add = async () => {
-  await settingsManager.updateUser(-1, null, null, null, null)
-}
+  const user = { did: null, server: null, handle: null, avatar: null, labels: null, color: null }
+  settings.value.users.push(user)
 
+}
 const del = async (index) => {
-  await settingsManager.deleteUser(index)
+  settings.value.users.splice(index, 1)
 }
 
 onBeforeMount(async () => {
@@ -139,8 +144,6 @@ const login = async (index, server, handle, password) => {
     settings.value.users[index].did = login.res.did
     settings.value.users[index].handle = login.res.handle
     settings.value.users[index].avatar = profile.res.avatar
-    // await settingsManager.updateUser(index, login.res.did, server, login.res.handle, profile.res.avatar)
-    // storageSettings.value = settings.value
 
     while (!completed.value) {
       await getFollows(handle, followsCursor)

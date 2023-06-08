@@ -86,7 +86,7 @@ const settingsManager = useSettings(settings.value)
 const userSettings = ref(null)
 
 onBeforeMount(async () => {
-  userSettings.value = await settingsManager.getUser(route.paramas.did, route.paramas.handle)
+  userSettings.value = await settingsManager.getUser(route.params.did, route.params.handle)
   if (!userSettings.value.labels) {
     userSettings.value.labels = labelItems
     return
@@ -95,7 +95,7 @@ onBeforeMount(async () => {
 
 watch(() => userSettings, () => {
   store.dispatch('doSetColor', userSettings.value.color)
-  settingsManager.updateUserSetting(route.paramas.did, route.paramas.handle, userSettings.value.labels, userSettings.value.color)
+  settingsManager.updateUserSetting(route.params.did, route.params.handle, userSettings.value.labels, userSettings.value.color)
   storageSettings.value = settings.value
 }, { deep: true }
 );
