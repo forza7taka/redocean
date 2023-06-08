@@ -27,30 +27,27 @@
       </v-card-text>
       <v-card-text>
         <v-window v-model="tab">
-          <div v-for="(l, index) in settings.users" :key="index">
-            <v-window-item :value=index>
-              <v-card class="mx-auto pa-4">
-                <v-combobox v-model="l.server"
-                  :items="['https://bsky.social', 'https://boobee.blue', 'https://redocean.one']" label="server"
-                  placeholder="https://bsky.social" color="green darken-5" clearable dense
-                  variant="outlined"></v-combobox>
-                <v-text-field label="xxxx.bsky.social" placeholder="xxxx.bsky.social" color="green darken-5" clearable
-                  dense v-model="l.handle" variant="outlined"></v-text-field>
-                <v-text-field label="app password" placeholder="app password" color="green darken-5" clearable dense
-                  type="password" v-model="l.password" :rules="AppPasswordRules" variant="outlined"></v-text-field>
-                <br>
-                <v-btn @click.prevent="login(l.server, l.handle, l.password)" icon="mdi-login" size="42"
-                  :disabled="!(l.server && l.handle && l.password)"></v-btn>
-                &nbsp;
-                <v-btn :to="`/accountSetting/${l.did}`" icon="mdi-cog-outline" size="42" :disabled="!l.did"></v-btn>
-                &nbsp;
-                <v-btn v-if="settings.users.length > 1" @click="del(index)" icon="mdi-minus" size="42"></v-btn>
-                &nbsp;
-                <v-btn v-if="l.server && l.handle && l.password && index == settings.users.length - 1" @click="add"
-                  size="42" icon="mdi-plus"></v-btn>
-              </v-card>
-            </v-window-item>
-          </div>
+          <v-window-item v-for="(l, index) in settings.users" :key="index" :value="index">
+            <v-card class="mx-auto pa-4">
+              <v-combobox v-model="l.server"
+                :items="['https://bsky.social', 'https://boobee.blue', 'https://redocean.one']" label="server"
+                placeholder="https://bsky.social" color="green darken-5" clearable dense variant="outlined"></v-combobox>
+              <v-text-field label="xxxx.bsky.social" placeholder="xxxx.bsky.social" color="green darken-5" clearable dense
+                v-model="l.handle" variant="outlined"></v-text-field>
+              <v-text-field label="app password" placeholder="app password" color="green darken-5" clearable dense
+                type="password" v-model="l.password" :rules="AppPasswordRules" variant="outlined"></v-text-field>
+              <br>
+              <v-btn @click.prevent="login(index, l.server, l.handle, l.password)" icon="mdi-login" size="42"
+                :disabled="!(l.server && l.handle && l.password)"></v-btn>
+              &nbsp;
+              <v-btn :to="`/accountSetting/${l.did}`" icon="mdi-cog-outline" size="42" :disabled="!l.did"></v-btn>
+              &nbsp;
+              <v-btn v-if="settings.users.length > 1" @click="del(index)" icon="mdi-minus" size="42"></v-btn>
+              &nbsp;
+              <v-btn v-if="l.server && l.handle && l.password && index == settings.users.length - 1" @click="add"
+                size="42" icon="mdi-plus"></v-btn>
+            </v-card>
+          </v-window-item>
         </v-window>
       </v-card-text>
     </v-card>
@@ -106,7 +103,7 @@ const AppPasswordRules = [
 ];
 
 const add = async () => {
-  await settingsManager.updateUser(null, null, null, null)
+  await settingsManager.updateUser(-1, null, null, null, null)
 }
 
 const del = async (index) => {
@@ -126,7 +123,7 @@ onBeforeMount(async () => {
   }
 })
 
-const login = async (server, handle, password) => {
+const login = async (index, server, handle, password) => {
   failed.value = false
   try {
     store.dispatch('doSetServer', server)
@@ -139,9 +136,11 @@ const login = async (server, handle, password) => {
 
     const profile = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
     store.dispatch('doSetProfile', profile.res);
-
-    await settingsManager.updateUser(login.res.did, server, login.res.handle, profile.res.avatar)
-    storageSettings.value = settings.value
+    settings.value.users[index].did = login.res.did
+    settings.value.users[index].handle = login.res.handle
+    settings.value.users[index].avatar = profile.res.avatar
+    // await settingsManager.updateUser(index, login.res.did, server, login.res.handle, profile.res.avatar)
+    // storageSettings.value = settings.value
 
     while (!completed.value) {
       await getFollows(handle, followsCursor)
@@ -216,6 +215,12 @@ watch(
     storageSettings.value = settings.value
   }, { deep: true }
 )
-
+// watch(
+//   () => [settings.value, settings.value.users], // 監視する値を配列として返す
+//   async () => {
+//     storageSettings.value = settings.value;
+//   },
+//   { deep: true }
+// );
 
 </script>
