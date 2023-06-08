@@ -1,7 +1,4 @@
 <template>
-  {{ userSettings.color }}
-  {{ userSettings.labels }}
-
   <div class="displayArea mx-auto">
     <v-toolbar title="Account Settings"></v-toolbar>
     <div v-if="isShowTitleBarColor" @click="isShowTitleBarColor = !isShowTitleBarColor">
@@ -11,7 +8,6 @@
       <v-toolbar title="TitleBarColor">show</v-toolbar>
     </div>
     <div v-show="isShowTitleBarColor">
-
       <v-card class="mx-auto pa-4" variant="flat">
         <template v-if="userSettings">
           <v-color-picker disabled hide-canvas hide-inputs hide-mode-switch hide-sliders mode="rgba" show-swatches
@@ -26,18 +22,20 @@
       <v-toolbar title="Filter">show</v-toolbar>
     </div>
     <div v-show="isShowfilter">
-      <template v-for="(label, index) in userSettings.labels" :key="index">
-        <v-card class="mx-auto pa-4" variant="flat">
-          <v-toolbar :title="label.id"></v-toolbar>
-          <v-card-text>
-            <v-btn-toggle v-model="label.value" justify="center" color="primary">
-              <v-btn value="filter" icon="mdi-image-off-outline"></v-btn>
-              <v-btn value="warn" icon="mdi-alert-octagon"></v-btn>
-              <v-btn value="show" icon="mdi-image-outline"></v-btn>
-            </v-btn-toggle>
-          </v-card-text>
-        </v-card>
-        <v-divider />
+      <template v-if="userSettings">
+        <template v-for="(label, index) in userSettings.labels" :key="index">
+          <v-card class="mx-auto pa-4" variant="flat">
+            <v-toolbar :title="label.id"></v-toolbar>
+            <v-card-text>
+              <v-btn-toggle v-model="label.value" justify="center" color="primary">
+                <v-btn value="filter" icon="mdi-image-off-outline"></v-btn>
+                <v-btn value="warn" icon="mdi-alert-octagon"></v-btn>
+                <v-btn value="show" icon="mdi-image-outline"></v-btn>
+              </v-btn-toggle>
+            </v-card-text>
+          </v-card>
+          <v-divider />
+        </template>
       </template>
     </div>
   </div>
@@ -47,6 +45,7 @@
 import { ref, onBeforeMount, watch, } from 'vue'
 import { useStorage } from '@vueuse/core'
 import { useStore } from 'vuex'
+import { useRoute } from 'vue-router'
 import { useSettings } from '@/common/settings'
 
 const isShowTitleBarColor = ref(true)
@@ -74,6 +73,7 @@ const labelItems = [
   { id: 'impersonation', value: 'filter' }]
 
 const store = useStore()
+const route = useRoute()
 const settings = ref({
   userID: null,
   translationApiKey: null,
@@ -83,16 +83,19 @@ const settings = ref({
 })
 const storageSettings = useStorage('redocean', settings)
 const settingsManager = useSettings(settings.value)
-let userSettings = await settingsManager.getUser(store.getters.getDid, store.getters.getHandle)
+const userSettings = ref(null)
 
 onBeforeMount(async () => {
-  if (!userSettings.labels) {
-    userSettings.labels = labelItems
+  userSettings.value = await settingsManager.getUser(route.paramas.did, route.paramas.handle)
+  if (!userSettings.value.labels) {
+    userSettings.value.labels = labelItems
     return
   }
 });
 
-watch(() => settings, () => {
+watch(() => userSettings, () => {
+  store.dispatch('doSetColor', userSettings.value.color)
+  settingsManager.updateUserSetting(route.paramas.did, route.paramas.handle, userSettings.value.labels, userSettings.value.color)
   storageSettings.value = settings.value
 }, { deep: true }
 );
