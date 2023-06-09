@@ -52,7 +52,6 @@ export function useSettings(obj) {
             index = await getUserIndex(did)
         }
         if (index == -1) {
-            obj.users.push({ did: did, server: server, handle: handle, avatar: avatar })
             return
         }
         let user = obj.users[index]
@@ -63,34 +62,25 @@ export function useSettings(obj) {
         obj.users[index] = user
     }
 
-    async function deleteUser(index) {
-        if (index == -1) {
-            return
-        }
-        obj.users.splice(index, 1)
-    }
-
-
     async function updateUserSetting(did, handle, labels, color) {
         let index = -1
         if (did) {
             index = await getUserIndex(did)
         }
-        if (handle) {
+        if (index == -1 && handle) {
             index = await getHandleUserIndex(handle)
         }
         let user
         if (index == -1) {
-            user = { did: did, server: null, handle: handle, avatar: null, labels: labels, color: color }
-            obj.users.push(user)
+            return
         } else {
             user = obj.users[index]
             user.labels = labels
             user.color = color
-            obj.users.splice(index, 0, user)
+            obj.users.splice(index, 1, user)
         }
     }
 
-    return { getUser, getColor, updateUser, updateUserSetting, deleteUser }
+    return { getUser, getColor, updateUser, updateUserSetting }
 
 }

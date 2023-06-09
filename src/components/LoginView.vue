@@ -3,53 +3,59 @@
     <v-card>
       <v-card-text>
         <v-tabs v-model="tab">
-          <v-tab v-for="(l, index) in settings.users" :key="index" :value=index>
-            <template v-if="l.avatar">
-              <template v-if="l.color">
-                <v-avatar v-if="l.color" :style="`border: 5px solid ${l.color};`">
-                  <v-img cover v-bind:src=l.avatar alt="avatar"></v-img>
-                </v-avatar>
+          <div v-for="(l, index) in settings.users" :key="index" :value=index>
+            <v-tab :value=index>
+              <template v-if="l.avatar">
+                <template v-if="l.color">
+                  <v-avatar v-if="l.color" :style="`border: 5px solid ${l.color};`">
+                    <v-img cover v-bind:src=l.avatar alt="avatar"></v-img>
+                  </v-avatar>
+                </template>
+                <template v-else>
+                  <v-avatar>
+                    <v-img cover v-bind:src=l.avatar alt="avatar"></v-img>
+                  </v-avatar>
+                </template>
               </template>
-              <template v-else>
-                <v-avatar>
-                  <v-img cover v-bind:src=l.avatar alt="avatar"></v-img>
-                </v-avatar>
+              <template v-if="!l.avatar && l.handle">
+                {{ l.handle }}
               </template>
-            </template>
-            <template v-if="!l.avatar && l.handle">
-              {{ l.handle }}
-            </template>
-            <template v-if="!l.avatar && !l.handle">
-              New Account
-            </template>
-          </v-tab>
+              <template v-if="!l.avatar && !l.handle">
+                New Account
+              </template>
+            </v-tab>
+          </div>
         </v-tabs>
-      </v-card-text>
-      <v-card-text>
-        <v-window v-model="tab">
-          <v-window-item v-for="(l, index) in settings.users" :key="index" :value="index">
-            <v-card class="mx-auto pa-4">
-              <v-combobox v-model="l.server"
-                :items="['https://bsky.social', 'https://boobee.blue', 'https://redocean.one']" label="server"
-                placeholder="https://bsky.social" color="green darken-5" clearable dense variant="outlined"></v-combobox>
-              <v-text-field label="xxxx.bsky.social" placeholder="xxxx.bsky.social" color="green darken-5" clearable dense
-                v-model="l.handle" variant="outlined"></v-text-field>
-              <v-text-field label="app password" placeholder="app password" color="green darken-5" clearable dense
-                type="password" v-model="l.password" :rules="AppPasswordRules" variant="outlined"></v-text-field>
-              <br>
-              <v-btn @click.prevent="login(index, l.server, l.handle, l.password)" icon="mdi-login" size="42"
-                :disabled="!(l.server && l.handle && l.password)"></v-btn>
-              &nbsp;
-              <v-btn :to="`/accountSetting/${l.did}/${l.handle}`" icon="mdi-cog-outline" size="42"
-                :disabled="!l.did"></v-btn>
-              &nbsp;
-              <v-btn v-if="settings.users.length > 1" @click="del(index)" icon="mdi-minus" size="42"></v-btn>
-              &nbsp;
-              <v-btn v-if="l.server && l.handle && l.password && index == settings.users.length - 1" @click="add"
-                size="42" icon="mdi-plus"></v-btn>
-            </v-card>
-          </v-window-item>
-        </v-window>
+
+        <v-card-text>
+          <v-window v-model="tab">
+            <div v-for="(l, index) in settings.users" :key="index" :value=index>
+              <v-window-item :value=index>
+                <v-card class="mx-auto pa-4">
+                  <v-combobox v-model="l.server"
+                    :items="['https://bsky.social', 'https://boobee.blue', 'https://redocean.one']" label="server"
+                    placeholder="https://bsky.social" color="green darken-5" clearable dense
+                    variant="outlined"></v-combobox>
+                  <v-text-field label="xxxx.bsky.social" placeholder="xxxx.bsky.social" color="green darken-5" clearable
+                    dense v-model="l.handle" variant="outlined"></v-text-field>
+                  <v-text-field label="app password" placeholder="app password" color="green darken-5" clearable dense
+                    type="password" v-model="l.password" :rules="AppPasswordRules" variant="outlined"></v-text-field>
+                  <br>
+                  <v-btn @click.prevent="login(index, l.server, l.handle, l.password)" icon="mdi-login" size="42"
+                    :disabled="!(l.server && l.handle && l.password)"></v-btn>
+                  &nbsp;
+                  <v-btn :to="`/accountSetting/${l.did}/${l.handle}`" icon="mdi-cog-outline" size="42"
+                    :disabled="!l.did"></v-btn>
+                  &nbsp;
+                  <v-btn v-if="settings.users.length > 1" @click="del(index)" icon="mdi-minus" size="42"></v-btn>
+                  &nbsp;
+                  <v-btn v-if="l.server && l.handle && l.password && index == settings.users.length - 1"
+                    @click="add(index)" size="42" icon="mdi-plus"></v-btn>
+                </v-card>
+              </v-window-item>
+            </div>
+          </v-window>
+        </v-card-text>
       </v-card-text>
     </v-card>
   </div>
@@ -106,13 +112,14 @@ const AppPasswordRules = [
   },
 ];
 
-const add = async () => {
+const add = async (index) => {
   const user = { did: null, server: null, handle: null, avatar: null, labels: null, color: null }
   settings.value.users.push(user)
-
+  tab.value = index + 1
 }
 const del = async (index) => {
   settings.value.users.splice(index, 1)
+  tab.value = index - 1
 }
 
 onBeforeMount(async () => {
@@ -218,12 +225,4 @@ watch(
     storageSettings.value = settings.value
   }, { deep: true }
 )
-// watch(
-//   () => [settings.value, settings.value.users], // 監視する値を配列として返す
-//   async () => {
-//     storageSettings.value = settings.value;
-//   },
-//   { deep: true }
-// );
-
 </script>
