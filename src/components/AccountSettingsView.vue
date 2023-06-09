@@ -8,11 +8,10 @@
       <v-toolbar title="TitleBarColor">show</v-toolbar>
     </div>
     <div v-show="isShowTitleBarColor">
-
       <v-card class="mx-auto pa-4" variant="flat">
-        <template v-if="settings">
+        <template v-if="userSettings">
           <v-color-picker disabled hide-canvas hide-inputs hide-mode-switch hide-sliders mode="rgba" show-swatches
-            swatches-max-height="210" v-model=settings.color></v-color-picker>
+            swatches-max-height="210" v-model=userSettings.color></v-color-picker>
         </template>
       </v-card>
     </div>
@@ -23,29 +22,32 @@
       <v-toolbar title="Filter">show</v-toolbar>
     </div>
     <div v-show="isShowfilter">
-      <template v-for="(label, index) in settings.labels" :key="index">
-        <v-card class="mx-auto pa-4" variant="flat">
-          <v-toolbar :title="label.id"></v-toolbar>
-          <v-card-text>
-            <template v-if="settings && settings.labels">
+      <template v-if="userSettings">
+        <template v-for="(label, index) in userSettings.labels" :key="index">
+          <v-card class="mx-auto pa-4" variant="flat">
+            <v-toolbar :title="label.id"></v-toolbar>
+            <v-card-text>
               <v-btn-toggle v-model="label.value" justify="center" color="primary">
                 <v-btn value="filter" icon="mdi-image-off-outline"></v-btn>
                 <v-btn value="warn" icon="mdi-alert-octagon"></v-btn>
                 <v-btn value="show" icon="mdi-image-outline"></v-btn>
               </v-btn-toggle>
-            </template>
-          </v-card-text>
-        </v-card>
-        <v-divider />
+            </v-card-text>
+          </v-card>
+          <v-divider />
+        </template>
       </template>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, watch, onBeforeMount } from 'vue'
-import { useRoute } from "vue-router"
+import { ref, onBeforeMount, watch, } from 'vue'
 import { useStorage } from '@vueuse/core'
+import { useStore } from 'vuex'
+import { useRoute } from 'vue-router'
+import { useSettings } from '@/common/settings'
+
 const isShowTitleBarColor = ref(true)
 const isShowfilter = ref(true)
 const labelItems = [
@@ -70,26 +72,31 @@ const labelItems = [
   { id: 'spam', value: 'filter' },
   { id: 'impersonation', value: 'filter' }]
 
+const store = useStore()
 const route = useRoute()
-const userSettings = ref(new Map([[route.params.did, { labels: null, color: null }]]))
-const storageUserSettings = useStorage("userSettings", userSettings)
-
-const settings = ref(null)
+const settings = ref({
+  userID: null,
+  translationApiKey: null,
+  translationLang: null,
+  handed: true,
+  users: [{ did: null, server: null, handle: null, avatar: null, color: null, labels: null }]
+})
+const storageSettings = useStorage('redocean', settings)
+const settingsManager = useSettings(settings.value)
+const userSettings = ref(null)
 
 onBeforeMount(async () => {
-  if (userSettings.value.has(route.params.did)) {
-    settings.value = userSettings.value.get(route.params.did)
-    if (settings.value.labels == null) {
-      settings.value.labels = labelItems
-    }
-  } else {
-    settings.value = { labels: labelItems, color: null }
+  userSettings.value = await settingsManager.getUser(route.params.did, route.params.handle)
+  if (!userSettings.value.labels) {
+    userSettings.value.labels = labelItems
+    return
   }
 });
 
-watch(() => settings, () => {
-  userSettings.value.set(route.params.did, settings.value)
-  storageUserSettings.value = userSettings.value
+watch(() => userSettings, () => {
+  store.dispatch('doSetColor', userSettings.value.color)
+  settingsManager.updateUserSetting(route.params.did, route.params.handle, userSettings.value.labels, userSettings.value.color)
+  storageSettings.value = settings.value
 }, { deep: true }
 );
 </script>

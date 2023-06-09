@@ -3,68 +3,73 @@
     <v-card>
       <v-card-text>
         <v-tabs v-model="tab">
-          <v-tab v-for="(l, index) in logins" :key="index" :value=index>
-            <template v-if="l.avatar">
-              <template v-if="getColor(l.did)">
-                <v-avatar v-if="userSettings" :style="`border: 5px solid ${getColor(l.did)};`">
-                  <v-img cover v-bind:src=l.avatar alt="avatar"></v-img>
-                </v-avatar>
+          <div v-for="(l, index) in settings.users" :key="index" :value=index>
+            <v-tab :value=index>
+              <template v-if="l.avatar">
+                <template v-if="l.color">
+                  <v-avatar v-if="l.color" :style="`border: 5px solid ${l.color};`">
+                    <v-img cover v-bind:src=l.avatar alt="avatar"></v-img>
+                  </v-avatar>
+                </template>
+                <template v-else>
+                  <v-avatar>
+                    <v-img cover v-bind:src=l.avatar alt="avatar"></v-img>
+                  </v-avatar>
+                </template>
               </template>
-              <template v-else>
-                <v-avatar>
-                  <v-img cover v-bind:src=l.avatar alt="avatar"></v-img>
-                </v-avatar>
+              <template v-if="!l.avatar && l.handle">
+                {{ l.handle }}
               </template>
-            </template>
-            <template v-if="!l.avatar && l.handle">
-              {{ l.handle }}
-            </template>
-            <template v-if="!l.avatar && !l.handle">
-              New Account
-            </template>
-          </v-tab>
-        </v-tabs>
-      </v-card-text>
-      <v-card-text>
-        <v-window v-model="tab">
-          <div v-for="(l, index) in logins" :key="index">
-            <v-window-item :value=index>
-              <v-card class="mx-auto pa-4">
-                <v-combobox v-model="l.server"
-                  :items="['https://bsky.social', 'https://boobee.blue', 'https://redocean.one']" label="server"
-                  placeholder="https://bsky.social" color="green darken-5" clearable dense
-                  variant="outlined"></v-combobox>
-                <v-text-field label="xxxx.bsky.social" placeholder="xxxx.bsky.social" color="green darken-5" clearable
-                  dense v-model="l.handle" variant="outlined"></v-text-field>
-                <v-text-field label="app password" placeholder="app password" color="green darken-5" clearable dense
-                  type="password" v-model="l.password" :rules="AppPasswordRules" variant="outlined"></v-text-field>
-                <br>
-                <v-btn @click.prevent="login(l.server, l.handle, l.password)" icon="mdi-login" size="42"
-                  :disabled="!(l.server && l.handle && l.password)"></v-btn>
-                &nbsp;
-                <v-btn :to="`/accountSetting/${l.did}`" icon="mdi-cog-outline" size="42" :disabled="!l.did"></v-btn>
-                &nbsp;
-                <v-btn v-if="logins.length > 1" @click="del(index)" icon="mdi-minus" size="42"></v-btn>
-                &nbsp;
-                <v-btn v-if="l.server && l.handle && l.password && index == logins.length - 1" @click="add" size="42"
-                  icon="mdi-plus"></v-btn>
-              </v-card>
-            </v-window-item>
+              <template v-if="!l.avatar && !l.handle">
+                New Account
+              </template>
+            </v-tab>
           </div>
-        </v-window>
+        </v-tabs>
+
+        <v-card-text>
+          <v-window v-model="tab">
+            <div v-for="(l, index) in settings.users" :key="index" :value=index>
+              <v-window-item :value=index>
+                <v-card class="mx-auto pa-4">
+                  <v-combobox v-model="l.server"
+                    :items="['https://bsky.social', 'https://boobee.blue', 'https://redocean.one']" label="server"
+                    placeholder="https://bsky.social" color="green darken-5" clearable dense
+                    variant="outlined"></v-combobox>
+                  <v-text-field label="xxxx.bsky.social" placeholder="xxxx.bsky.social" color="green darken-5" clearable
+                    dense v-model="l.handle" variant="outlined"></v-text-field>
+                  <v-text-field label="app password" placeholder="app password" color="green darken-5" clearable dense
+                    type="password" v-model="l.password" :rules="AppPasswordRules" variant="outlined"></v-text-field>
+                  <br>
+                  <v-btn @click.prevent="login(index, l.server, l.handle, l.password)" icon="mdi-login" size="42"
+                    :disabled="!(l.server && l.handle && l.password)"></v-btn>
+                  &nbsp;
+                  <v-btn :to="`/accountSetting/${l.did}/${l.handle}`" icon="mdi-cog-outline" size="42"
+                    :disabled="!l.did"></v-btn>
+                  &nbsp;
+                  <v-btn v-if="settings.users.length > 1" @click="del(index)" icon="mdi-minus" size="42"></v-btn>
+                  &nbsp;
+                  <v-btn v-if="l.server && l.handle && l.password && index == settings.users.length - 1"
+                    @click="add(index)" size="42" icon="mdi-plus"></v-btn>
+                </v-card>
+              </v-window-item>
+            </div>
+          </v-window>
+        </v-card-text>
       </v-card-text>
     </v-card>
   </div>
 </template>
 <script setup>
 
-import { ref, computed, onBeforeMount } from 'vue'
+import { ref, watch, onBeforeMount } from 'vue'
 import { useStore } from 'vuex'
 import { useRequestGet } from '../common/requestGet.js'
 import { useRequestPost } from '../common/requestPost.js'
 import { useRouter } from "vue-router"
 import { useStorage } from '@vueuse/core'
 import { useCatchError } from '@/common/catchError';
+import { useSettings } from '@/common/settings'
 
 const tab = ref(null)
 const failed = ref(false)
@@ -76,33 +81,27 @@ const requestGet = useRequestGet(store)
 const requestPost = useRequestPost(store)
 const route = useRouter()
 const completed = ref(false)
-const logins = ref([{ server: null, handle: null, password: null, did: null, avatar: null }])
 
-const storageLogins = useStorage('logins', logins, undefined,
-  {
-    serializer: {
-      read: (v) => v ? JSON.parse(v) : null,
-      write: (v) => JSON.stringify(v),
-    },
-  })
-const settings = ref({ translationApiKey: null, translationLang: null, handed: true })
-useStorage('settings', settings, undefined,
-  {
-    serializer: {
-      read: (v) => v ? JSON.parse(v) : null,
-      write: (v) => JSON.stringify(v),
-    },
-  })
-const userSettings = ref(null)
-useStorage('userSettings', userSettings, undefined,
-  {
-    serializer: {
-      read: (v) => new Map(JSON.parse(v)),
-      write: (v) => v instanceof Map ? JSON.stringify([...v]) : JSON.stringify(v)
-    },
-  })
+const user = ref([{ did: null, server: null, handle: null, avatar: null, color: null, labels: null }])
+const settings = ref({
+  userID: null,
+  translationApiKey: null,
+  translationLang: null,
+  handed: true,
+  users: user
+})
 
-const getColor = computed(() => (key) => userSettings.value ? (userSettings.value.has(key) ? userSettings.value.get(key).color : null) : null);
+
+const storageSettings = useStorage('redocean', settings)
+const settingsManager = useSettings(settings.value)
+
+const settings1 = ref(null)
+const settings2 = ref(null)
+const settings3 = ref(null)
+
+const storageSettings1 = useStorage('settings', settings1)
+const storageSettings2 = useStorage('userSettings', settings2)
+const storageSettings3 = useStorage('logins', settings3)
 
 const AppPasswordRules = [
   (value) => {
@@ -117,22 +116,43 @@ const AppPasswordRules = [
   },
 ];
 
-const del = async (index) => {
-  logins.value.splice(index, 1)
+const add = async (index) => {
+  const user = { did: null, server: null, handle: null, avatar: null, labels: null, color: null }
+  settings.value.users.push(user)
+  tab.value = index + 1
 }
-
-const add = async () => {
-  logins.value.push({ server: null, handle: null, password: null, avatar: null, did: null })
+const del = async (index) => {
+  settings.value.users.splice(index, 1)
+  tab.value = index - 1
 }
 
 onBeforeMount(async () => {
   try {
-    store.dispatch('doSetTranslationLang', settings.value.translationLang);
-    store.dispatch('doSetTranslationApiKey', settings.value.translationApiKey);
-    store.dispatch('doSethanded', settings.value.handed);
-    if (!logins.value) {
-      add()
+    if (settings1.value) {
+      const value = JSON.parse(settings1.value)
+      settings.value.translationApiKey = value.translationApiKey
+      settings.value.translationLang = value.translationLang
+      settings.value.handed = value.handed
     }
+    storageSettings1.value = null
+    if (settings3.value) {
+      const value = JSON.parse(settings3.value)
+      settings.value.users = value
+    }
+    storageSettings3.value = null
+    if (settings2.value) {
+      const value = JSON.parse(settings2.value)
+      for (let i = 0; i < value.length; i++) {
+        for (let j = 0; j < settings.value.users.length; j++) {
+          if (settings.value.users[j].did == value[i][0]) {
+            settings.value.users[j].color = value[i][1].color
+          }
+        }
+      }
+    }
+    storageSettings2.value = null
+
+    store.dispatch('doSetHanded', settings.value.handed)
   } catch (e) {
     failed.value = true
     const ce = useCatchError()
@@ -140,26 +160,22 @@ onBeforeMount(async () => {
   }
 })
 
-const login = async (server, handle, password) => {
+const login = async (index, server, handle, password) => {
   failed.value = false
   try {
     store.dispatch('doSetServer', server)
-    const loginResponse = await requestPost.post("com.atproto.server.createSession", {
+    const login = await requestPost.post("com.atproto.server.createSession", {
       identifier: handle,
       password: password
     })
-    logins.value[tab.value].did = loginResponse.res.did
-    store.dispatch('doCreateSession', loginResponse.res);
+    store.dispatch('doCreateSession', login.res);
+    store.dispatch('doSetColor', await settingsManager.getColor(login.res.did, login.res.handle));
 
-    if (userSettings.value && userSettings.value.has(loginResponse.res.did)) {
-      store.dispatch('doSetColor', userSettings.value.get(loginResponse.res.did).color);
-    }
-
-    const profileResponse = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
-    store.dispatch('doSetProfile', profileResponse.res);
-    logins.value[tab.value].avatar = profileResponse.res.avatar
-
-    storageLogins.value = logins.value
+    const profile = await requestGet.get("app.bsky.actor.getProfile", { actor: handle })
+    store.dispatch('doSetProfile', profile.res);
+    settings.value.users[index].did = login.res.did
+    settings.value.users[index].handle = login.res.handle
+    settings.value.users[index].avatar = profile.res.avatar
 
     while (!completed.value) {
       await getFollows(handle, followsCursor)
@@ -227,4 +243,21 @@ const getBlocks = async (cur) => {
   }
   store.dispatch('doAddBlocks', response.res)
 }
+
+watch(
+  () => settings,
+  async () => {
+    storageSettings.value = settings.value
+  }, { deep: true }
+)
+
+watch(
+  () => tab.value,
+  async () => {
+    const did = settings.value.users[tab.value].did
+    const handle = settings.value.users[tab.value].handle
+    store.dispatch('doSetColor', await settingsManager.getColor(did, handle));
+  }
+)
+
 </script>

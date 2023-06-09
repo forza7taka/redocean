@@ -13,10 +13,9 @@
         <PostUserView :author="defProps.post.author" :createdAt="defProps.post.record.createdAt" />
       </v-card-actions>
       <template v-if="warnLabels">
-        <v-card-subtitle @click="isWarn = !isWarn">
+        <v-card-title @click="isWarn = !isWarn">
           [Warning] {{ warnLabels }}
-          <template></template>
-        </v-card-subtitle>
+        </v-card-title>
       </template>
       <template v-if="!isWarn">
         <v-card-text class="text-pre-wrap">
@@ -153,6 +152,7 @@ import { useStore } from 'vuex'
 import { useRequestPost } from "@/common/requestPost";
 import { useCatchError } from '@/common/catchError';
 import { useStorage } from '@vueuse/core'
+import { useSettings } from '@/common/settings'
 
 const defProps = defineProps({
   post: null,
@@ -163,35 +163,36 @@ const defProps = defineProps({
   replies: null,
 })
 
-const userSettings = ref(null)
-useStorage('userSettings', userSettings, undefined,
-  {
-    serializer: {
-      read: (v) => new Map(JSON.parse(v)),
-      write: (v) => v instanceof Map ? JSON.stringify([...v]) : JSON.stringify(v)
-    },
-  })
-
 const emit = defineEmits(
   ['deletePost']
 )
 const store = useStore()
 const request = useRequestPost(store)
-const translateText = ref(null)
-const settings = ref(null)
+
+const settings = ref({
+  userID: null,
+  translationApiKey: null,
+  translationLang: null,
+  handed: true,
+  users: [{ did: null, server: null, handle: null, avatar: null, color: null, labels: null }]
+})
+useStorage('redocean', settings)
+const settingsManager = useSettings(settings.value)
+const userSettings = settingsManager.getUser(store.getters.getDid, store.getters.getHandle)
+
 const isWarn = ref(false)
 const isFilter = ref(false)
 const warnLabels = ref(null)
+
+const translateText = ref(null)
+
 onBeforeMount(async () => {
-  if (userSettings.value == null) {
-    settings.value = null
-  }
-  if (userSettings.value.has(store.getters.getDid)) {
-    settings.value = userSettings.value.get(store.getters.getDid)
-  }
   isWarn.value = await contains("warn")
   isFilter.value = await contains("filter")
-  warnLabels.value = (await getWarnLabels()).join(' ')
+  const value = await getWarnLabels()
+  if (value) {
+    warnLabels.value = value.join(' ')
+  }
 });
 
 const contains = async (value) => {
@@ -201,18 +202,18 @@ const contains = async (value) => {
   if (!defProps.post.labels) {
     return false
   }
-  if (!settings.value) {
+  if (!userSettings) {
     return false
   }
-  if (!settings.value.labels) {
+  if (!userSettings.labels) {
     return false
   }
   const labels = new Array()
-  for (const index in settings.value.labels) {
-    if (settings.value.labels[index].value != value) {
+  for (const index in userSettings.labels) {
+    if (userSettings.labels[index].value != value) {
       continue
     }
-    labels.push(settings.value.labels[index].id)
+    labels.push(userSettings.labels[index].id)
   }
   for (const index in defProps.post.labels) {
     const includes = labels.includes(defProps.post.labels[index].val)
@@ -230,18 +231,18 @@ const getWarnLabels = async () => {
   if (!defProps.post.labels) {
     return null
   }
-  if (!settings.value) {
+  if (!userSettings) {
     return null
   }
-  if (!settings.value.labels) {
+  if (!userSettings.labels) {
     return null
   }
   let labels = new Array()
-  for (const index in settings.value.labels) {
-    if (settings.value.labels[index].value != 'warn') {
+  for (const index in userSettings.labels) {
+    if (userSettings.labels[index].value != 'warn') {
       continue
     }
-    labels.push(settings.value.labels[index].id)
+    labels.push(userSettings.labels[index].id)
   }
   let warnLabels = new Array()
   for (const index in defProps.post.labels) {
@@ -255,12 +256,10 @@ const getWarnLabels = async () => {
 
 const translate = async (text) => {
   try {
-    console.log(store.getters.getTranslationLang)
-    console.log(store.getters.getTranslationApiKey)
     const params = {
       q: text,
-      target: store.getters.getTranslationLang,
-      key: store.getters.getTranslationApiKey
+      target: settings.value.translationLang,
+      key: settings.value.translationApiKey
     }
     const response = await axios.get('https://translation.googleapis.com/language/translate/v2', { params })
     translateText.value = response.data.data.translations[0].translatedText

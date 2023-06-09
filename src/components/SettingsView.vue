@@ -22,27 +22,17 @@
 </template>
 
 <script setup>
-import { ref, watch, onBeforeMount } from 'vue'
+import { ref, watch } from 'vue'
 import { useStorage } from '@vueuse/core'
-import { useStore } from 'vuex'
 
-const settings = ref({ translationApiKey: null, translationLang: null, handed: true })
-const store = useStore();
-const storageSettings = useStorage('settings', settings)
-
-onBeforeMount(async () => {
-  settings.value.translationApiKey = storageSettings.value.translationApiKey
-  settings.value.translationLang = storageSettings.value.translationLang
-  settings.value.handed = storageSettings.value.handed
-})
+const settings = ref({ userID: null, translationApiKey: null, translationLang: null, handed: true, users: [{ did: null, server: null, handle: null, avatar: null }] })
+const storageSettings = useStorage('redocean', settings)
 
 watch(
   () => settings,
   async () => {
     storageSettings.value = settings.value
-    store.dispatch('doSetTranslationLang', storageSettings.value.translationLang);
-    store.dispatch('doSetTranslationApiKey', storageSettings.value.translationApiKey);
-    store.dispatch('doSetHanded', storageSettings.value.handed);
   }, { deep: true }
 )
+
 </script>

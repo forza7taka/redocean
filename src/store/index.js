@@ -196,7 +196,6 @@ export default createStore({
       commit('createSession', session)
     },
     doSetColor({ commit }, session) {
-      console.log(session)
       commit('setColor', session)
     },
     doSetProfile({ commit }, session) {

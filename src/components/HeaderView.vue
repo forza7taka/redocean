@@ -14,9 +14,9 @@
         <v-btn to="/settings" icon>
           <v-icon>mdi-cog-outline</v-icon>
         </v-btn>
-        <v-btn to="/link" icon>
+        <!-- <v-btn to="/link" icon>
           <v-icon>mdi-link-variant-plus</v-icon>
-        </v-btn>
+        </v-btn> -->
         <template v-if="unReadCount != 0">
           <v-badge right top overlap color="blue">
             <template #badge>
@@ -111,8 +111,8 @@ import { useRequestGet } from '../common/requestGet.js'
 import { createToaster } from '@meforma/vue-toaster'
 import { useStorage } from '@vueuse/core'
 
-const settings = ref({ handed: true })
-useStorage('settings', settings)
+const settings = ref({ userID: null, translationApiKey: null, translationLang: null, handed: true, users: [{ did: null, server: null, handle: null, avatar: null }] })
+useStorage('redocean', settings)
 
 const completed = ref(false)
 const store = useStore()
