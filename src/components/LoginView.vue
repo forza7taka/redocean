@@ -95,9 +95,13 @@ const settings = ref({
 const storageSettings = useStorage('redocean', settings)
 const settingsManager = useSettings(settings.value)
 
-const settings1 = useStorage('settings')
-const settings2 = useStorage('userSettings')
-const settings3 = useStorage('logins')
+const settings1 = ref(null)
+const settings2 = ref(null)
+const settings3 = ref(null)
+
+const storageSettings1 = useStorage('settings', settings1)
+const storageSettings2 = useStorage('userSettings', settings2)
+const storageSettings3 = useStorage('logins', settings3)
 
 const AppPasswordRules = [
   (value) => {
@@ -124,9 +128,30 @@ const del = async (index) => {
 
 onBeforeMount(async () => {
   try {
-    settings1.value = null
-    settings2.value = null
-    settings3.value = null
+    if (settings1.value) {
+      const value = JSON.parse(settings1.value)
+      settings.value.translationApiKey = value.translationApiKey
+      settings.value.translationLang = value.translationLang
+      settings.value.handed = value.handed
+    }
+    storageSettings1.value = null
+    if (settings3.value) {
+      const value = JSON.parse(settings3.value)
+      settings.value.users = value
+    }
+    storageSettings3.value = null
+    if (settings2.value) {
+      const value = JSON.parse(settings2.value)
+      for (let i = 0; i < value.length; i++) {
+        for (let j = 0; j < settings.value.users.length; j++) {
+          if (settings.value.users[j].did == value[i][0]) {
+            settings.value.users[j].color = value[i][1].color
+          }
+        }
+      }
+    }
+    storageSettings2.value = null
+
     store.dispatch('doSetHanded', settings.value.handed)
   } catch (e) {
     failed.value = true
@@ -225,4 +250,14 @@ watch(
     storageSettings.value = settings.value
   }, { deep: true }
 )
+
+watch(
+  () => tab.value,
+  async () => {
+    const did = settings.value.users[tab.value].did
+    const handle = settings.value.users[tab.value].handle
+    store.dispatch('doSetColor', await settingsManager.getColor(did, handle));
+  }
+)
+
 </script>
