@@ -66,7 +66,6 @@ const labelItems = [
   { id: 'gore', value: 'filter' },
   { id: 'self-harm', value: 'filter' },
   { id: 'torture', value: 'filter' },
-  { id: 'nsfl', value: 'filter' },
   { id: 'icon-kkk', value: 'filter' },
   { id: 'icon-nazi', value: 'filter' },
   { id: 'icon-intolerant', value: 'filter' },
@@ -101,8 +100,13 @@ onUnmounted(async () => {
 
 watch(() => userSettings, () => {
   store.dispatch('doSetColor', userSettings.value.color)
-  settingsManager.updateUserSetting(route.params.did, route.params.handle, userSettings.value.labels, userSettings.value.color)
-  storageSettings.value = settings.value
+  for (let i = 0; i < settings.value.users.length; i++) {
+    const user = settings.value.users[i]
+    if (route.params.did == user.did) {
+      storageSettings.value.users[i].color = userSettings.value.color
+      storageSettings.value.users[i].labels = userSettings.value.labels
+    }
+  }
 }, { deep: true }
 );
 </script>

@@ -18,7 +18,7 @@
           <v-icon>mdi-link-variant-plus</v-icon>
         </v-btn> -->
         <template v-if="unReadCount != 0">
-          <v-badge right top overlap color="blue">
+          <v-badge offset-x="10" offset-y="10" overlap color="blue">
             <template #badge>
               <span>{{ unReadCount }}</span>
             </template>
@@ -40,7 +40,7 @@
           </v-btn>
         </template>
         <template v-if="unReadCount != 0">
-          <v-badge right top overlap color="blue">
+          <v-badge offset-x="10" offset-y="10" overlap color="blue">
             <template #badge>
               <span>{{ unReadCount }}</span>
             </template>

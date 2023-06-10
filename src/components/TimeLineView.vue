@@ -1,6 +1,6 @@
 <template>
   <div class="displayArea mx-auto">
-    <!-- <v-bottom-navigation :elevation="0">
+    <v-bottom-navigation :elevation="0">
       <v-row justify="center" rowa="auto">
         <v-col cols="auto">
           <v-switch v-model="isShowRepost" label="Repost"></v-switch>
@@ -9,7 +9,7 @@
           <v-switch v-model="isShowReply" label="Reply"></v-switch>
         </v-col>
       </v-row>
-    </v-bottom-navigation> -->
+    </v-bottom-navigation>
     <FeedView :feeds="timeline.array" :isShowReply="isShowReply" :isShowRepost="isShowRepost" @deletePost="deletePost">
     </FeedView>
     <div ref="loading">

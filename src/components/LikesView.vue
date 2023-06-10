@@ -1,15 +1,17 @@
 <template>
   <div class="displayArea mx-auto">
     <v-toolbar title="Likes"></v-toolbar>
-    <v-list-item v-for="(f, fIndex) in timeline.array" :key="fIndex">
-      <v-row>
-        <v-col class="d-flex justify-center align-center">
-          <PostView v-if="f.reply" :post="f.post" :reason="f.reason" :parent="f.reply.parent" :root="f.reply.root"
-            :depth="0" @deletePost="deletePost"></PostView>
-          <PostView v-if="!f.reply" :post="f.post" :reason="f.reason" :depth="0" @deletePost="deletePost"></PostView>
-        </v-col>
-      </v-row>
-    </v-list-item>
+    <div v-for="(f, fIndex) in timeline.array" :key="fIndex">
+      <v-list-item>
+        <v-row>
+          <v-col class="justify-center align-center">
+            <PostView v-if="f.reply" :post="f.post" :reason="f.reason" :parent="f.reply.parent" :root="f.reply.root"
+              :depth="0" @deletePost="deletePost"></PostView>
+            <PostView v-if="!f.reply" :post="f.post" :reason="f.reason" :depth="0" @deletePost="deletePost"></PostView>
+          </v-col>
+        </v-row>
+      </v-list-item>
+    </div>
     <div ref="loading">
       <v-container class="my-5">
         <v-row justify="center">
@@ -17,6 +19,24 @@
         </v-row>
       </v-container>
     </div>
+
+
+    <!-- <v-list-item v-for="(f, fIndex) in timeline.array" :key="fIndex">
+      <v-row>
+        <v-col class="d-flex justify-center align-center">
+          <PostView v-if="f.reply" :post="f.post" :reason="f.reason" :parent="f.reply.parent" :root="f.reply.root"
+            :depth="0" @deletePost="deletePost"></PostView>
+          <PostView v-if="!f.reply" :post="f.post" :reason="f.reason" :depth="0" @deletePost="deletePost"></PostView>
+        </v-col>
+      </v-row>
+    </v-list-item> -->
+    <!-- <div ref="loading">
+      <v-container class="my-5">
+        <v-row justify="center">
+          <v-progress-circular indeterminate v-if="!completed" model-value="20"></v-progress-circular>
+        </v-row>
+      </v-container>
+    </div> -->
   </div>
 </template>
 

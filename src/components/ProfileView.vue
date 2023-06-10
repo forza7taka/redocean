@@ -1,6 +1,16 @@
 <template>
   <div class="displayArea mx-auto">
     <div v-if="profile">
+      <v-bottom-navigation :elevation="0">
+        <v-row justify="center" rowa="auto">
+          <v-col cols="auto">
+            <v-switch v-model="isShowRepost" label="Repost"></v-switch>
+          </v-col>
+          <v-col cols="auto">
+            <v-switch v-model="isShowReply" label="Reply"></v-switch>
+          </v-col>
+        </v-row>
+      </v-bottom-navigation>
       <v-card class="mx-auto mt-5">
         <v-card-actions>
           <v-list-item class="w-100">
@@ -138,7 +148,8 @@
       </v-container>
     </div>
     <div v-else ref="root">
-      <FeedView :feeds="timeline.array" @deletePost="deletePost"></FeedView>
+      <FeedView :feeds="timeline.array" :isShowReply="isShowReply" :isShowRepost="isShowRepost" @deletePost="deletePost">
+      </FeedView>
       <div ref="loading">
         <v-container class="my-5">
           <v-row justify="center">
@@ -168,6 +179,8 @@ import { useCatchError } from '@/common/catchError';
 
 const route = useRoute()
 const store = useStore()
+const isShowReply = ref(true)
+const isShowRepost = ref(true)
 
 const { follow, unFollow } = useFollow(store)
 const { mute, unMute } = useMute(store)
