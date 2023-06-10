@@ -18,13 +18,14 @@ import { useStore } from 'vuex'
 import { useRoute } from "vue-router"
 import { useGtag } from 'vue-gtag-next'
 import Parse from "parse"
-// import setting from '@/common/settings'
+import { useParseSettings } from '@/common/parseSettings'
 
 const store = useStore()
 const route = useRoute()
 const gtag = useGtag()
 const visiblePost = ref(false)
 const color = ref(null)
+const parseSettings = useParseSettings()
 
 onBeforeMount(async () => {
   gtag.pageview({
@@ -34,57 +35,11 @@ onBeforeMount(async () => {
   if (route.path === '/') {
     gtag.pageview(window.location.pathname);
   }
+
   Parse.initialize(process.env.VUE_APP_PARSE_APP_ID, process.env.VUE_APP_PARSE_JAVASCRIPT_KEY);
   Parse.serverURL = process.env.VUE_APP_PARSE_SERVER_URI
-
-  const user = await Parse.User.current();
-  if (user) {
-    // connect
-    await downloadSetting(user.id)
-    await downloadLogins(user.id)
-    await downloadUserSettings(user.id)
-  }
+  await parseSettings.download()
 })
-
-const downloadSetting = async (id) => {
-  const Setting = Parse.Object.extend("setting");
-  const query = new Parse.Query(Setting);
-  query.equalTo("userID", id);
-  const object = await query.first();
-  console.log(object.get("userID"))
-  console.log(object.get("translationApiKey"))
-  console.log(object.get("translationLang"))
-  console.log(object.get("handed"))
-}
-
-const downloadLogins = async (id) => {
-  const Logins = Parse.Object.extend("logins");
-  const query = new Parse.Query(Logins);
-  query.equalTo("userID", id);
-  const results = await query.find();
-  for (let i = 0; i < results.length; i++) {
-    const object = results[i];
-    console.log(object.get("userID"))
-    console.log(object.get("server"))
-    console.log(object.get("handle"))
-    //    console.log(object.get("password"))
-    console.log(object.get("did"))
-    console.log(object.get("avatar"))
-  }
-}
-
-const downloadUserSettings = async (id) => {
-  const Setting = Parse.Object.extend("setting");
-  const query = new Parse.Query(Setting);
-  query.equalTo("userID", id);
-  const results = await query.find();
-  for (let i = 0; i < results.length; i++) {
-    const object = results[i];
-    console.log(object.get("userID"))
-    console.log(object.get("did"))
-    console.log(object.get("value"))
-  }
-}
 
 watch(() => store.getters.getColor, () => {
   color.value = store.getters.getColor || 'pink-lighten-2'
