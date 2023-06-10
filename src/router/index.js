@@ -23,7 +23,7 @@ import Moderation from '@/components/ModerationView.vue'
 import AccountSetting from '@/components/AccountSettingsView.vue'
 import CustomFeed from '@/components/CustomFeedView.vue'
 import { trackRouter } from "vue-gtag-next";
-import Link from "@/components/LinkView.vue"
+import Sync from "@/components/SyncView.vue"
 const routes = [
   {
     path: '/login',
@@ -182,9 +182,9 @@ const routes = [
     component: CustomFeed
   },
   {
-    path: '/link',
-    name: 'link',
-    component: Link
+    path: '/sync',
+    name: 'sync',
+    component: Sync
   },
   {
     path: '/',

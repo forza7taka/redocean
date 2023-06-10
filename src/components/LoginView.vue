@@ -62,7 +62,7 @@
 </template>
 <script setup>
 
-import { ref, watch, onBeforeMount } from 'vue'
+import { ref, watch, onBeforeMount, onUnmounted } from 'vue'
 import { useStore } from 'vuex'
 import { useRequestGet } from '../common/requestGet.js'
 import { useRequestPost } from '../common/requestPost.js'
@@ -70,6 +70,8 @@ import { useRouter } from "vue-router"
 import { useStorage } from '@vueuse/core'
 import { useCatchError } from '@/common/catchError';
 import { useSettings } from '@/common/settings'
+import { useParseSettings } from "@/common/parseSettings"
+const parseSettings = useParseSettings()
 
 const tab = ref(null)
 const failed = ref(false)
@@ -84,13 +86,11 @@ const completed = ref(false)
 
 const user = ref([{ did: null, server: null, handle: null, avatar: null, color: null, labels: null }])
 const settings = ref({
-  userID: null,
   translationApiKey: null,
   translationLang: null,
   handed: true,
   users: user
 })
-
 
 const storageSettings = useStorage('redocean', settings)
 const settingsManager = useSettings(settings.value)
@@ -158,6 +158,10 @@ onBeforeMount(async () => {
     const ce = useCatchError()
     ce.catchError(e)
   }
+})
+
+onUnmounted(async () => {
+  parseSettings.upload()
 })
 
 const login = async (index, server, handle, password) => {

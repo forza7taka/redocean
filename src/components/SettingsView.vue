@@ -22,11 +22,17 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onUnmounted } from 'vue'
 import { useStorage } from '@vueuse/core'
+import { useParseSettings } from "@/common/parseSettings"
+const parseSettings = useParseSettings()
 
 const settings = ref({ userID: null, translationApiKey: null, translationLang: null, handed: true, users: [{ did: null, server: null, handle: null, avatar: null }] })
 const storageSettings = useStorage('redocean', settings)
+
+onUnmounted(async () => {
+  parseSettings.upload()
+})
 
 watch(
   () => settings,

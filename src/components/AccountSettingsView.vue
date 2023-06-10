@@ -42,11 +42,13 @@
 </template>
 
 <script setup>
-import { ref, onBeforeMount, watch, } from 'vue'
+import { ref, onBeforeMount, watch, onUnmounted } from 'vue'
 import { useStorage } from '@vueuse/core'
 import { useStore } from 'vuex'
 import { useRoute } from 'vue-router'
 import { useSettings } from '@/common/settings'
+import { useParseSettings } from "@/common/parseSettings"
+const parseSettings = useParseSettings()
 
 const isShowTitleBarColor = ref(true)
 const isShowfilter = ref(true)
@@ -92,6 +94,10 @@ onBeforeMount(async () => {
     return
   }
 });
+
+onUnmounted(async () => {
+  parseSettings.upload()
+})
 
 watch(() => userSettings, () => {
   store.dispatch('doSetColor', userSettings.value.color)
