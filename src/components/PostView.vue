@@ -1,5 +1,5 @@
 <template>
-  <div v-if="defProps.post && !isFilter">
+  <template v-if="defProps.post && !isFilter">
     <v-card :class="['mx-auto mt-5', { 'v-card--depth': depth !== 0 }]" variant="flat">
       <div v-if="defProps.reason && defProps.reason.by">
         <v-card-subtitle>Reposted by {{ defProps.reason.by.displayName }}(@{{ defProps.reason.by.handle
@@ -140,7 +140,7 @@
       </div>
     </v-card>
     <v-divider v-if="depth == 0" />
-  </div>
+  </template>
 </template>
 
 <script setup>
@@ -178,7 +178,7 @@ const settings = ref({
 })
 useStorage('redocean', settings)
 const settingsManager = useSettings(settings.value)
-const userSettings = settingsManager.getUser(store.getters.getDid, store.getters.getHandle)
+const userSettings = ref(null)
 
 const isWarn = ref(false)
 const isFilter = ref(false)
@@ -187,6 +187,8 @@ const warnLabels = ref(null)
 const translateText = ref(null)
 
 onBeforeMount(async () => {
+  userSettings.value = await settingsManager.getUser(store.getters.getDid, store.getters.getHandle)
+
   isWarn.value = await contains("warn")
   isFilter.value = await contains("filter")
   const value = await getWarnLabels()
@@ -202,18 +204,18 @@ const contains = async (value) => {
   if (!defProps.post.labels) {
     return false
   }
-  if (!userSettings) {
+  if (!userSettings.value) {
     return false
   }
-  if (!userSettings.labels) {
+  if (!userSettings.value.labels) {
     return false
   }
   const labels = new Array()
-  for (const index in userSettings.labels) {
-    if (userSettings.labels[index].value != value) {
+  for (const index in userSettings.value.labels) {
+    if (userSettings.value.labels[index].value != value) {
       continue
     }
-    labels.push(userSettings.labels[index].id)
+    labels.push(userSettings.value.labels[index].id)
   }
   for (const index in defProps.post.labels) {
     const includes = labels.includes(defProps.post.labels[index].val)
@@ -231,18 +233,18 @@ const getWarnLabels = async () => {
   if (!defProps.post.labels) {
     return null
   }
-  if (!userSettings) {
+  if (!userSettings.value) {
     return null
   }
-  if (!userSettings.labels) {
+  if (!userSettings.value.labels) {
     return null
   }
   let labels = new Array()
-  for (const index in userSettings.labels) {
-    if (userSettings.labels[index].value != 'warn') {
+  for (const index in userSettings.value.labels) {
+    if (userSettings.value.labels[index].value != 'warn') {
       continue
     }
-    labels.push(userSettings.labels[index].id)
+    labels.push(userSettings.value.labels[index].id)
   }
   let warnLabels = new Array()
   for (const index in defProps.post.labels) {

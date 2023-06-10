@@ -1,15 +1,19 @@
 <template>
   <v-list v-if="props.feeds">
-    <v-list-item v-for="(f, fIndex) in props.feeds" :key="fIndex">
-      <v-row>
-        <v-col class="justify-center align-center">
-          <PostView v-if="f.reply" :post="f.post" :reason="f.reason" :parent="f.reply.parent" :root="f.reply.root"
-            :depth="0" @deletePost="deletePost"></PostView>
-          <PostView v-if="!f.reply" :post="f.post" :reason="f.reason" :depth="0" @deletePost="deletePost"></PostView>
-          <div ref="loading" v-if="fIndex % 10 == 0"></div>
-        </v-col>
-      </v-row>
-    </v-list-item>
+    <div v-for="(f, fIndex) in props.feeds" :key="fIndex">
+      <template
+        v-if="(!f.reason || (isShowRepost && f.reason)) && (!(f.reply && f.reply.parent) || (isShowReply && f.reply.parent))">
+        <v-list-item>
+          <v-row>
+            <v-col class="justify-center align-center">
+              <PostView v-if="f.reply" :post="f.post" :reason="f.reason" :parent="f.reply.parent" :root="f.reply.root"
+                :depth="0" @deletePost="deletePost"></PostView>
+              <PostView v-if="!f.reply" :post="f.post" :reason="f.reason" :depth="0" @deletePost="deletePost"></PostView>
+            </v-col>
+          </v-row>
+        </v-list-item>
+      </template>
+    </div>
   </v-list>
 </template>
 
@@ -19,6 +23,8 @@ import { defineProps, defineEmits } from 'vue'
 
 const props = defineProps({
   feeds: null,
+  isShowReply: null,
+  isShowRepost: null
 })
 
 const emit = defineEmits(
