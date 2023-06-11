@@ -124,6 +124,10 @@
             <v-btn v-bind="props" class="ma-2" variant="text" size="32" icon="mdi-dots-vertical" />
           </template>
           <v-list>
+            <!-- <v-list-item v-if="defProps.post.author.handle == store.getters.getHandle"
+              :to="`/editPost/${encodeURIComponent(defProps.post.uri)}`">
+              <v-icon size="24">mdi-square-edit-outline</v-icon>Edit Post
+            </v-list-item> -->
             <v-list-item :to="`/reportPost/${encodeURIComponent(defProps.post.uri)}`">
               <v-icon size="24">mdi-alert-circle-outline</v-icon>Report Post
             </v-list-item>

@@ -110,6 +110,7 @@ import { useStore } from 'vuex'
 import { useRequestGet } from '../common/requestGet.js'
 import { createToaster } from '@meforma/vue-toaster'
 import { useStorage } from '@vueuse/core'
+import Parse from "parse"
 
 const settings = ref({ userID: null, translationApiKey: null, translationLang: null, handed: true, users: [{ did: null, server: null, handle: null, avatar: null }] })
 useStorage('redocean', settings)
@@ -181,7 +182,10 @@ onBeforeMount(async () => {
 onMounted(async () => {
   setInterval(async () => {
     await getUnreadCount()
-  }, 60000)
+    if (unReadCount.value != 0) {
+      await Parse.Cloud.run("Push", { did: store.getters.getDid, message: "Message" });
+    }
+  }, 30000)
 
   setInterval(async () => {
     try {

@@ -13,6 +13,17 @@
         </v-card>
       </div>
 
+      <div v-if="editPost">
+        <v-card class="mx-auto mt-5">
+          <v-card-actions>
+            <PostUserView :author="editPost.author" :createdAt="editPost.record.createdAt" />
+          </v-card-actions>
+          <v-card-text>
+            <div v-if="editPost && editPost.record && editPost.record.text">{{ editPost.record.text }}</div>
+          </v-card-text>
+        </v-card>
+      </div>
+
       <v-card-text>
         <v-textarea variant="outlined" required counter v-model=contents label="contents" maxlength=300></v-textarea>
       </v-card-text>
@@ -89,6 +100,7 @@ const parentPost = ref(null)
 const root = ref(null)
 const parent = ref(null)
 const quotePost = ref(null)
+const editPost = ref(null)
 
 onBeforeMount(async () => {
   try {
@@ -96,6 +108,13 @@ onBeforeMount(async () => {
 
     if (route.path.startsWith("/post")) {
       mode.value = "post"
+    } else if (route.path.startsWith("/editPost")) {
+      mode.value = "edit"
+      const response = await requestGet.get("app.bsky.feed.getPosts", { uris: [route.params.uri] })
+      if (response.res.posts.length == 0) {
+        return
+      }
+      editPost.value = response.res.posts[0]
     } else if (route.path.startsWith("/reply")) {
       mode.value = "reply"
 
@@ -182,6 +201,16 @@ const post = async () => {
     record: { text: contents.value, createdAt: new Date(), facets: await getRichTexts(contents.value), via: "redocean" }
   })
 }
+
+const edit = async () => {
+  await requestPost.post("com.atproto.repo.putRecord", {
+    collection: "app.bsky.feed.post",
+    repo: store.getters.getDid,
+    rkey: editPost.value.uri.substr(-13),
+    record: { text: contents.value, createdAt: new Date(), facets: await getRichTexts(contents.value), via: "redocean" }
+  })
+}
+
 const postWithImage = async () => {
   if (files.value.length != 0) {
     let imgs = []
@@ -331,6 +360,12 @@ const send = async () => {
         await quoteRepostWithImage()
       } else {
         await quoteRepost()
+      }
+    } else if (mode.value == "edit") {
+      if (files.value && files.value.length != 0) {
+        //await quoteRepostWithImage()
+      } else {
+        await edit()
       }
     }
     router.go(-1)

@@ -152,6 +152,11 @@ const routes = [
     component: Post
   },
   {
+    path: '/editPost/:uri',
+    name: 'editPost',
+    component: Post
+  },
+  {
     path: '/quoteRepost/:uri',
     name: 'quoteRepost',
     component: Post
