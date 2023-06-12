@@ -42,6 +42,7 @@ import { ref, onBeforeMount } from 'vue'
 import { useRoute } from "vue-router"
 import Parse from "parse"
 import { useParseSettings } from "@/common/parseSettings"
+import push from 'push.js';
 //import { useStore } from "vuex"
 //const store = useStore()
 const route = useRoute()
@@ -54,12 +55,13 @@ const signInGoogle = async () => {
 }
 
 const Push = async () => {
-  user.value = Parse.User.current();
-  const data = {
-    userId: user.value.id,
-    message: "aaaaaaaaaa"
-  }
-  await Parse.Cloud.run("Push", data);
+  push.create('test')
+  // user.value = Parse.User.current();
+  // const data = {
+  //   userId: user.value.id,
+  //   message: "aaaaaaaaaa"
+  // }
+  // await Parse.Cloud.run("Push", data);
 }
 
 onBeforeMount(async () => {

@@ -19,7 +19,7 @@ import { useRoute } from "vue-router"
 import { useGtag } from 'vue-gtag-next'
 import Parse from "parse"
 import { useParseSettings } from '@/common/parseSettings'
-import { initializeApp } from "firebase/app";
+// import { initializeApp } from "firebase/app";
 
 const store = useStore()
 const route = useRoute()
@@ -41,15 +41,15 @@ onBeforeMount(async () => {
   Parse.serverURL = process.env.VUE_APP_PARSE_SERVER_URI
   await parseSettings.download()
 
-  const firebaseConfig = {
-    apiKey: process.env.VUE_APP_FIREBASE_API_KEY,
-    authDomain: process.env.VUE_APP_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.VUE_APP_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.VUE_APP_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.VUE_APP_FIREBASE_MESSAGING_SENFER_ID,
-    appId: process.env.VUE_APP_FIREBASE_APP_ID
-  };
-  initializeApp(firebaseConfig);
+  // const firebaseConfig = {
+  //   apiKey: process.env.VUE_APP_FIREBASE_API_KEY,
+  //   authDomain: process.env.VUE_APP_FIREBASE_AUTH_DOMAIN,
+  //   projectId: process.env.VUE_APP_FIREBASE_PROJECT_ID,
+  //   storageBucket: process.env.VUE_APP_FIREBASE_STORAGE_BUCKET,
+  //   messagingSenderId: process.env.VUE_APP_FIREBASE_MESSAGING_SENFER_ID,
+  //   appId: process.env.VUE_APP_FIREBASE_APP_ID
+  // };
+  // initializeApp(firebaseConfig);
 })
 
 watch(() => store.getters.getColor, () => {

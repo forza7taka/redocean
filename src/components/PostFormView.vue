@@ -203,11 +203,16 @@ const post = async () => {
 }
 
 const edit = async () => {
-  await requestPost.post("com.atproto.repo.putRecord", {
+  const ret = await requestPost.post("com.atproto.repo.createRecord", {
     collection: "app.bsky.feed.post",
     repo: store.getters.getDid,
-    rkey: editPost.value.uri.substr(-13),
     record: { text: contents.value, createdAt: new Date(), facets: await getRichTexts(contents.value), via: "redocean" }
+  })
+  await requestPost.post("com.atproto.repo.deleteRecord", {
+    collection: "app.bsky.feed.post",
+    repo: store.getters.getDid,
+    rkey: String(route.params.uri).substr(-13),
+    swapCommit: ret.res.cid
   })
 }
 
