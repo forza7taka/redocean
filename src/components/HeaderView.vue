@@ -111,7 +111,7 @@ import { useStore } from 'vuex'
 import { useRequestGet } from '@/common/requestGet'
 import { createToaster } from '@meforma/vue-toaster'
 import { useStorage } from '@vueuse/core'
-import push from 'push.js'
+// import push from 'push.js'
 
 const settings = ref({ userID: null, translationApiKey: null, translationLang: null, handed: true, users: [{ did: null, server: null, handle: null, avatar: null }] })
 useStorage('redocean', settings)
@@ -184,7 +184,7 @@ onMounted(async () => {
   setInterval(async () => {
     await getUnreadCount()
     if (unReadCount.value != 0) {
-      push.create('test')
+      // push.create('test')
     }
   }, 30000)
 
