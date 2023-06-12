@@ -11,7 +11,7 @@
           </v-col>
         </v-row>
       </v-bottom-navigation>
-      <v-card class="mx-auto mt-5">
+      <v-card class="mx-auto mt-5" variant="flat">
         <v-card-actions>
           <v-list-item class="w-100">
             <template v-slot:prepend>
@@ -27,9 +27,6 @@
             </v-list-item-title>
             <v-list-item-subtitle>
               @{{ profile.handle }}
-              <!-- <v-btn size=12 v-if="profile && profile.did == store.getters.getDid" icon to="handleEdit">
-                <v-icon size="12">mdi-pencil</v-icon>
-              </v-btn> -->
             </v-list-item-subtitle>
             <v-list-item-subtitle>
               <router-link :to="`/followers/${encodeURIComponent(profile.handle)}`"
@@ -135,10 +132,8 @@
             {{ profile.description }}
           </div>
         </v-card-text>
-        <v-card-text>
-          <div justify="center"></div>
-        </v-card-text>
       </v-card>
+      <v-divider />
     </div>
     <div v-if="profile && profile.viewer && (profile.viewer.blocking || profile.viewer.blockedBy)">
       <v-container class="my-5">
@@ -314,7 +309,6 @@ const getAuthorFeed = async (handle, cur) => {
   if (response.res.feed.length == 0) {
     completedAuthorFeed.value = true
   }
-  console.log(response.res.feed)
 }
 
 const getProfile = async (handle) => {

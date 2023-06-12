@@ -3,20 +3,13 @@
     <v-app-bar fixed :color="color">
       <template v-if="settings.handed">
         <v-app-bar-nav-icon @click="drawer = true"></v-app-bar-nav-icon>
-        <!-- <template v-if="store.getters.getProfile">
-          <v-avatar color="surface-variant">
-            <v-img cover v-bind:src=store.getters.getProfile.avatar alt="avatar"></v-img>
-          </v-avatar>
-        </template> -->
         <v-app-bar-title class="text-subtitle-2">redocean ~always β~</v-app-bar-title>
-
-
         <v-btn to="/settings" icon>
           <v-icon>mdi-cog-outline</v-icon>
         </v-btn>
-        <!-- <v-btn to="/link" icon>
+        <v-btn to="/sync" icon>
           <v-icon>mdi-link-variant-plus</v-icon>
-        </v-btn> -->
+        </v-btn>
         <template v-if="unReadCount != 0">
           <v-badge offset-x="10" offset-y="10" overlap color="blue">
             <template #badge>
@@ -50,20 +43,23 @@
           </v-badge>
         </template>
 
+        <v-btn to="/sync" icon>
+          <v-icon>mdi-link-variant-plus</v-icon>
+        </v-btn>
         <v-btn to="/settings" icon>
           <v-icon>mdi-cog-outline</v-icon>
         </v-btn>
         <v-app-bar-title class="text-subtitle-2">redocean ~always β~</v-app-bar-title>
-        <!-- <template v-if="store.getters.getProfile">
-          <v-avatar color="surface-variant">
-            <v-img cover v-bind:src=store.getters.getProfile.avatar alt="avatar"></v-img>
-          </v-avatar>
-        </template> -->
         <v-app-bar-nav-icon @click="drawer = true" right></v-app-bar-nav-icon>
       </template>
     </v-app-bar>
     <template v-if="settings.handed && drawer">
       <v-navigation-drawer v-model="drawer" fixed temporary>
+        <!-- <template v-if="store.getters.getProfile">
+          <v-avatar color="surface-variant">
+            <v-img cover v-bind:src=store.getters.getProfile.avatar alt="avatar"></v-img>
+          </v-avatar>
+        </template> -->
         <v-list nav dense>
           <template v-for="(menuItem, index) in menuItems" :key="index">
             <v-list-item v-if="store.getters.getAccessJwt || !menuItem.login"
@@ -81,6 +77,11 @@
     </template>
     <template v-else-if="!settings.handed && drawer">
       <v-navigation-drawer v-model="drawer" fixed temporary class="drawer-right">
+        <!-- <template v-if="store.getters.getProfile">
+          <v-avatar color="surface-variant">
+            <v-img cover v-bind:src=store.getters.getProfile.avatar alt="avatar"></v-img>
+          </v-avatar>
+        </template> -->
         <v-list nav dense>
           <template v-for="(menuItem, index) in menuItems" :key="index">
             <v-list-item v-if="store.getters.getAccessJwt || !menuItem.login"
@@ -107,10 +108,10 @@
 <script setup>
 import { ref, watch, onMounted, onBeforeMount } from 'vue'
 import { useStore } from 'vuex'
-import { useRequestGet } from '../common/requestGet.js'
+import { useRequestGet } from '@/common/requestGet'
 import { createToaster } from '@meforma/vue-toaster'
 import { useStorage } from '@vueuse/core'
-import Parse from "parse"
+import push from 'push.js'
 
 const settings = ref({ userID: null, translationApiKey: null, translationLang: null, handed: true, users: [{ did: null, server: null, handle: null, avatar: null }] })
 useStorage('redocean', settings)
@@ -183,7 +184,7 @@ onMounted(async () => {
   setInterval(async () => {
     await getUnreadCount()
     if (unReadCount.value != 0) {
-      await Parse.Cloud.run("Push", { did: store.getters.getDid, message: "Message" });
+      push.create('test')
     }
   }, 30000)
 

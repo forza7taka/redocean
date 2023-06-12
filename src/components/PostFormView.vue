@@ -12,18 +12,6 @@
           </v-card-text>
         </v-card>
       </div>
-
-      <div v-if="editPost">
-        <v-card class="mx-auto mt-5">
-          <v-card-actions>
-            <PostUserView :author="editPost.author" :createdAt="editPost.record.createdAt" />
-          </v-card-actions>
-          <v-card-text>
-            <div v-if="editPost && editPost.record && editPost.record.text">{{ editPost.record.text }}</div>
-          </v-card-text>
-        </v-card>
-      </div>
-
       <v-card-text>
         <v-textarea variant="outlined" required counter v-model=contents label="contents" maxlength=300></v-textarea>
       </v-card-text>
@@ -202,20 +190,6 @@ const post = async () => {
   })
 }
 
-const edit = async () => {
-  const ret = await requestPost.post("com.atproto.repo.createRecord", {
-    collection: "app.bsky.feed.post",
-    repo: store.getters.getDid,
-    record: { text: contents.value, createdAt: new Date(), facets: await getRichTexts(contents.value), via: "redocean" }
-  })
-  await requestPost.post("com.atproto.repo.deleteRecord", {
-    collection: "app.bsky.feed.post",
-    repo: store.getters.getDid,
-    rkey: String(route.params.uri).substr(-13),
-    swapCommit: ret.res.cid
-  })
-}
-
 const postWithImage = async () => {
   if (files.value.length != 0) {
     let imgs = []
@@ -365,12 +339,6 @@ const send = async () => {
         await quoteRepostWithImage()
       } else {
         await quoteRepost()
-      }
-    } else if (mode.value == "edit") {
-      if (files.value && files.value.length != 0) {
-        //await quoteRepostWithImage()
-      } else {
-        await edit()
       }
     }
     router.go(-1)

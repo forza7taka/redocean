@@ -1,30 +1,25 @@
 <template>
   <div class="displayArea mx-auto">
 
-    <v-toolbar title="Sync Settings"></v-toolbar>
+    <v-toolbar title="Sync Settings Not Working"></v-toolbar>
     <v-card class="mx-auto pa-4" variant="flat">
       <v-card-subtitle>
         <v-card-actions>
-          <v-btn @click="Push()">
-            push
-          </v-btn>
-
           <template v-if="!user">
             <v-btn @click="signInGoogle()">
               <span>
                 <v-img width="150px" src="/img/google/btn_google_signin_light_normal_web@2x.png"></v-img>
               </span>
             </v-btn>
-
           </template>
           <template v-else>
-            <v-badge offset-x="40" offset-y="40" color="transparent">
+            <v-badge offset-x="36" offset-y="40" color="transparent" class="ma-3">
               <template #badge>
                 <span>upload</span>
               </template>
               <v-btn @click.prevent="parseSettings.upload()" icon><v-icon>mdi-upload</v-icon></v-btn>
             </v-badge>
-            <v-badge offset-x="42" offset-y="40" color="transparent">
+            <v-badge offset-x="45" offset-y="40" color="transparent" class="ma-3">
               <template #badge>
                 <span>download</span>
               </template>
@@ -42,9 +37,7 @@ import { ref, onBeforeMount } from 'vue'
 import { useRoute } from "vue-router"
 import Parse from "parse"
 import { useParseSettings } from "@/common/parseSettings"
-import push from 'push.js';
-//import { useStore } from "vuex"
-//const store = useStore()
+
 const route = useRoute()
 const user = ref(null)
 const parseSettings = useParseSettings()
@@ -52,16 +45,6 @@ const parseSettings = useParseSettings()
 const signInGoogle = async () => {
   const res = await Parse.Cloud.run("GoogleSignIn");
   window.location.href = res
-}
-
-const Push = async () => {
-  push.create('test')
-  // user.value = Parse.User.current();
-  // const data = {
-  //   userId: user.value.id,
-  //   message: "aaaaaaaaaa"
-  // }
-  // await Parse.Cloud.run("Push", data);
 }
 
 onBeforeMount(async () => {
