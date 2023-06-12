@@ -1,27 +1,25 @@
 <template>
   <div class="displayArea mx-auto">
-    <v-toolbar title="Sync Settings"></v-toolbar>
+
+    <v-toolbar title="Sync Settings Not Working"></v-toolbar>
     <v-card class="mx-auto pa-4" variant="flat">
       <v-card-subtitle>
         <v-card-actions>
           <template v-if="!user">
-            <v-badge offset-x="33" offset-y="40" color="transparent">
-              <template #badge>
-                <span>signin</span>
-              </template>
-              <v-btn icon @click="signInGoogle()">
-                <v-icon>mdi-google</v-icon>
-              </v-btn>
-            </v-badge>
+            <v-btn @click="signInGoogle()">
+              <span>
+                <v-img width="150px" src="/img/google/btn_google_signin_light_normal_web@2x.png"></v-img>
+              </span>
+            </v-btn>
           </template>
           <template v-else>
-            <v-badge offset-x="40" offset-y="40" color="transparent">
+            <v-badge offset-x="36" offset-y="40" color="transparent" class="ma-3">
               <template #badge>
                 <span>upload</span>
               </template>
               <v-btn @click.prevent="parseSettings.upload()" icon><v-icon>mdi-upload</v-icon></v-btn>
             </v-badge>
-            <v-badge offset-x="42" offset-y="40" color="transparent">
+            <v-badge offset-x="45" offset-y="40" color="transparent" class="ma-3">
               <template #badge>
                 <span>download</span>
               </template>
@@ -39,6 +37,7 @@ import { ref, onBeforeMount } from 'vue'
 import { useRoute } from "vue-router"
 import Parse from "parse"
 import { useParseSettings } from "@/common/parseSettings"
+
 const route = useRoute()
 const user = ref(null)
 const parseSettings = useParseSettings()

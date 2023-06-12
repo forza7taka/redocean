@@ -12,7 +12,6 @@
           </v-card-text>
         </v-card>
       </div>
-
       <v-card-text>
         <v-textarea variant="outlined" required counter v-model=contents label="contents" maxlength=300></v-textarea>
       </v-card-text>
@@ -89,6 +88,7 @@ const parentPost = ref(null)
 const root = ref(null)
 const parent = ref(null)
 const quotePost = ref(null)
+const editPost = ref(null)
 
 onBeforeMount(async () => {
   try {
@@ -96,6 +96,13 @@ onBeforeMount(async () => {
 
     if (route.path.startsWith("/post")) {
       mode.value = "post"
+    } else if (route.path.startsWith("/editPost")) {
+      mode.value = "edit"
+      const response = await requestGet.get("app.bsky.feed.getPosts", { uris: [route.params.uri] })
+      if (response.res.posts.length == 0) {
+        return
+      }
+      editPost.value = response.res.posts[0]
     } else if (route.path.startsWith("/reply")) {
       mode.value = "reply"
 
@@ -182,6 +189,7 @@ const post = async () => {
     record: { text: contents.value, createdAt: new Date(), facets: await getRichTexts(contents.value), via: "redocean" }
   })
 }
+
 const postWithImage = async () => {
   if (files.value.length != 0) {
     let imgs = []

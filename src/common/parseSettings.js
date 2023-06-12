@@ -14,26 +14,36 @@ export function useParseSettings() {
         })
         useStorage('redocean', settings)
 
-        const u = Parse.User.current();
-        if (!u) {
+        const current = Parse.User.current();
+        if (!current) {
             return
         }
-        u.setACL(new Parse.ACL(u));
-
-        await del(u);
+        current.setACL(new Parse.ACL(current));
 
         const Setting = Parse.Object.extend("setting");
-        const setting = new Setting();
+        const settingQuery = new Parse.Query(Setting);
+        settingQuery.equalTo("userId", current.id);
+        let setting = await settingQuery.first();
+        if (!setting) {
+            setting = new Setting();
+        }
         setting.setACL(new Parse.ACL(Parse.User.current()));
         setting.set("translationApiKey", settings.value.translationApiKey)
         setting.set("translationLang", settings.value.translationLang)
         setting.set("handed", settings.value.handed)
+        setting.set("userId", current.id)
         setting.save()
 
         const AccountSetting = Parse.Object.extend("accountSetting");
+        const map = new Map()
         for (let i = 0; i < settings.value.users.length; i++) {
             const u = settings.value.users[i]
-            const accountSetting = new AccountSetting();
+            const accountSettingQuery = new Parse.Query(AccountSetting);
+            accountSettingQuery.equalTo("did", u.did);
+            let accountSetting = await accountSettingQuery.first();
+            if (!accountSetting) {
+                accountSetting = new AccountSetting();
+            }
             accountSetting.setACL(new Parse.ACL(Parse.User.current()));
             accountSetting.set("server", u.server)
             accountSetting.set("did", u.did)
@@ -42,9 +52,28 @@ export function useParseSettings() {
             accountSetting.set("color", u.color)
             accountSetting.set("parent", setting);
             accountSetting.save()
+            map.set(u.did, u.did)
+        }
+
+        const accountSettingQuery = new Parse.Query(AccountSetting);
+        accountSettingQuery.equalTo("parent", setting.id);
+        const accountSettings = await accountSettingQuery.find();
+        for (let i = 0; i < accountSettings.length; i++) {
+            const accountSetting = accountSettings[i];
+            if (map.get(accountSetting.get("did"))) {
+                continue
+            }
+            accountSetting.destroy();
         }
 
         const LabelsSetting = Parse.Object.extend("labelsSetting");
+        const labelsSettingQuery = new Parse.Query(LabelsSetting);
+        labelsSettingQuery.equalTo("parent", setting.id);
+        const labelsSettings = await labelsSettingQuery.find();
+        for (let i = 0; i < labelsSettings.length; i++) {
+            labelsSettings[i].destroy();
+        }
+
         for (let i = 0; i < settings.value.users.length; i++) {
             const u = settings.value.users[i]
             if (!u.labels) {
@@ -61,31 +90,6 @@ export function useParseSettings() {
                 labelsSetting.save()
             }
         }
-    }
-
-    async function del(user) {
-        const Setting = Parse.Object.extend("setting");
-        const query1 = new Parse.Query(Setting);
-        query1.equalTo("userId", user.id);
-        const object = await query1.first();
-        if (!object) {
-            return
-        }
-        const AccountSetting = Parse.Object.extend("accountSetting");
-        const query2 = new Parse.Query(AccountSetting);
-        query2.equalTo("parent", object.id);
-        const results2 = await query2.find();
-        for (let i = 0; i < results2.length; i++) {
-            results2[i].destroy();
-        }
-        const LabelsSetting = Parse.Object.extend("labelsSetting");
-        const query3 = new Parse.Query(LabelsSetting);
-        query3.equalTo("parent", object.id);
-        const results3 = await query3.find();
-        for (let i = 0; i < results3.length; i++) {
-            results3[i].destroy();
-        }
-        object.destroy()
     }
 
     async function download() {
@@ -106,6 +110,7 @@ export function useParseSettings() {
 
         const Setting = Parse.Object.extend("setting");
         const query = new Parse.Query(Setting);
+        query.equalTo("userId", u.id);
         const object = await query.first();
         if (!object) {
             return
@@ -133,18 +138,21 @@ export function useParseSettings() {
         const query3 = new Parse.Query(LabelsSetting);
         query3.equalTo("parent", object.id);
         const results3 = await query3.find();
-        for (let i = 0; i < results3.length; i++) {
-            for (let j = 0; j < settings.value.users.length; j++) {
-                if (results3[i].get("did") == settings.value.users[j].did) {
-                    settings.value.users[j].labels.push({
-                        id: results3[i].get("labelId"),
-                        value: results3[i].get("value")
-                    })
+        for (let i = 0; i < settings.value.users.length; i++) {
+            if (!settings.value.users[i].labels) {
+                settings.value.users[i].labels = []
+            }
+            for (let j = 0; j < results3.length; j++) {
+                if (results3[j].get("did") != settings.value.users[i].did) {
+                    continue
                 }
+                settings.value.users[i].labels.push({
+                    id: results3[j].get("labelId"),
+                    value: results3[j].get("value")
+                })
             }
         }
         storageSettings.value = settings.value
-    }
-    return { upload, download }
+    } return { upload, download }
 
 }
