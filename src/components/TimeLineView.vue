@@ -52,7 +52,7 @@ onBeforeMount(async () => {
     return
   }
   if (historyState.action === 'back' || historyState.action === 'forward') {
-    if (historyState.action === 'back' && (historyState.getItems(historyState.page + 1)[2].name == 'post')) {
+    if (historyState.action === 'back' && (historyState.getItems()[historyState.page + 1].item[1].name == 'post')) {
       await getTimeline()
     }
     timeline.value.setArray(Object.values(historyState.data))

@@ -111,7 +111,7 @@ import { useStore } from 'vuex'
 import { useRequestGet } from '@/common/requestGet'
 import { createToaster } from '@meforma/vue-toaster'
 import { useStorage } from '@vueuse/core'
-// import push from 'push.js'
+import push from 'push.js'
 
 const settings = ref({ userID: null, translationApiKey: null, translationLang: null, handed: true, users: [{ did: null, server: null, handle: null, avatar: null }] })
 useStorage('redocean', settings)
@@ -127,6 +127,7 @@ const likesCursor = ref(null)
 const repostsCursor = ref(null)
 const completedReposts = ref(false)
 const completedLikes = ref(false)
+const pushedNotifications = ref(new Map())
 const menuItems = ref([
   {
     icon: "mdi-home",
@@ -184,7 +185,7 @@ onMounted(async () => {
   setInterval(async () => {
     await getUnreadCount()
     if (unReadCount.value != 0) {
-      // push.create('test')
+      notificate()
     }
   }, 30000)
 
@@ -215,6 +216,46 @@ const getUnreadCount = async () => {
     unReadCount.value = response.res.count
   } catch (e) {
     toast.error(e, { position: "top-right" })
+  }
+}
+
+const notificate = async () => {
+  const response = await requestGet.get("app.bsky.notification.listNotifications", {})
+  for (let i = 0; i < response.res.notifications.length; i++) {
+    const n = response.res.notifications[i]
+    if (n.isRead) {
+      continue
+    }
+    if (pushedNotifications.value.get(n.cid)) {
+      continue
+    }
+    let message = ""
+    if (n.reason == "follow") {
+      message = "followed"
+    }
+    if (n.reason == "repost") {
+      message = "reposted"
+    }
+    if (n.reason == "reply") {
+      message = "replied"
+    }
+    if (n.reason == "like") {
+      message = "liked"
+    }
+    if (n.reason == "mention") {
+      message = "mention"
+    }
+    message = message + " by " + n.author.handle
+    pushedNotifications.value.set(n.cid, n.cid)
+    push.create(n.reason, {
+      body: message,
+      icon: "/favicon.ico",
+      timeout: 5000,
+      onClick: function () {
+        window.focus();
+        this.close();
+      }
+    })
   }
 }
 
