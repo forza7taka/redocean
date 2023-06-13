@@ -238,7 +238,7 @@ onBeforeMount(async () => {
     mutes.value = Object.values(historyState.data.mutes)
     blocks.value = Object.values(historyState.data.blocks)
     inviteCodes.value = Object.values(historyState.data.inviteCodes)
-    if (historyState.action === 'back' && (historyState.getItems(historyState.page + 1)[2].name == 'post')) {
+    if (historyState.action === 'back' && (historyState.getItems()[historyState.page + 1].item[1].name == 'post')) {
       await getAuthorFeed(handle)
     }
     timeline.value.setArray(Object.values(historyState.data.timeline))

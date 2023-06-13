@@ -20,6 +20,15 @@
             {{ n.author.displayName }}
           </v-card-text>
 
+          <v-card v-if="n.reason == 'reply'" :to="`/thread/${encodeURIComponent(n.reasonSubject)}`" variant="flat">
+            <v-card-text>
+              <v-card-subtitle>{{ convertDate(n.record.createdAt) }}</v-card-subtitle>
+              <v-card-text>
+                {{ n.record.text }}
+              </v-card-text>
+            </v-card-text>
+          </v-card>
+
           <v-card v-if="posts.get(n.reasonSubject)" :to="`/thread/${encodeURIComponent(n.reasonSubject)}`" variant="flat">
             <v-card-subtitle>{{ convertDate(posts.get(n.reasonSubject).value.createdAt) }}</v-card-subtitle>
             <v-card-text>
