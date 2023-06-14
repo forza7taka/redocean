@@ -12,7 +12,7 @@ import toaster from '@meforma/vue-toaster';
 import HistoryStatePlugin from 'vue-history-state'
 import './registerServiceWorker'
 // import qs from 'qs'
-
+import urlJoin from 'url-join'
 loadFonts()
 
 createApp(App)
@@ -28,13 +28,23 @@ createApp(App)
 
 axios.interceptors.request.use(
   (config) => {
-    const url = config.url
-    if (url != 'https://translation.googleapis.com/language/translate/v2') {
+    const url1 = config.url
+    if (url1 != 'https://translation.googleapis.com/language/translate/v2') {
       const accessJwt = store.getters.getAccessJwt
       if (accessJwt) {
         config.headers.Authorization = `Bearer ${accessJwt}`
       }
     }
+
+    const url2 = config.url
+    const refreshUrl = urlJoin(store.getters.getServer, 'xrpc', 'com.atproto.server.refreshSession')
+    if (url2 == refreshUrl) {
+      const refreshJwt = store.getters.getRefreshJwt
+      if (refreshJwt) {
+        config.headers.Authorization = `Bearer ${refreshJwt}`
+      }
+    }
+
     return config
   },
   (error) => {

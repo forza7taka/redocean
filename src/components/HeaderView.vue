@@ -77,11 +77,6 @@
     </template>
     <template v-else-if="!settings.handed && drawer">
       <v-navigation-drawer v-model="drawer" fixed temporary class="drawer-right">
-        <!-- <template v-if="store.getters.getProfile">
-          <v-avatar color="surface-variant">
-            <v-img cover v-bind:src=store.getters.getProfile.avatar alt="avatar"></v-img>
-          </v-avatar>
-        </template> -->
         <v-list nav dense>
           <template v-for="(menuItem, index) in menuItems" :key="index">
             <v-list-item v-if="store.getters.getAccessJwt || !menuItem.login"
@@ -109,25 +104,33 @@
 import { ref, watch, onMounted, onBeforeMount } from 'vue'
 import { useStore } from 'vuex'
 import { useRequestGet } from '@/common/requestGet'
+import { useRequestPost } from '@/common/requestPost'
 import { createToaster } from '@meforma/vue-toaster'
 import { useStorage } from '@vueuse/core'
 import push from 'push.js'
+import { Setting } from '@/common/setting'
+import { useSettings } from '@/common/settings'
 
-const settings = ref({ userID: null, translationApiKey: null, translationLang: null, handed: true, users: [{ did: null, server: null, handle: null, avatar: null }] })
+const settings = ref(new Setting())
 useStorage('redocean', settings)
 
 const completed = ref(false)
 const store = useStore()
 const toast = createToaster()
 const requestGet = useRequestGet(store)
+const requestPost = useRequestPost(store)
 const drawer = ref(false)
 const unReadCount = ref(0)
 const color = ref("pink-lighten-2")
+const followsCursor = ref(null)
 const likesCursor = ref(null)
 const repostsCursor = ref(null)
+const completedFollows = ref(false)
 const completedReposts = ref(false)
 const completedLikes = ref(false)
 const pushedNotifications = ref(new Map())
+const userSettings = ref(null)
+const settingsManager = useSettings(settings.value)
 const menuItems = ref([
   {
     icon: "mdi-home",
@@ -179,6 +182,7 @@ watch(() => store.getters.getColor, () => {
 
 onBeforeMount(async () => {
   color.value = store.getters.getColor || 'pink-lighten-2'
+  userSettings.value = await settingsManager.getUser(store.getters.getDid, store.getters.getHandle)
 })
 
 onMounted(async () => {
@@ -190,10 +194,22 @@ onMounted(async () => {
   }, 30000)
 
   setInterval(async () => {
+    if (!store.getters.getDid) {
+      return
+    }
+    const response = await requestPost.post("com.atproto.server.refreshSession")
+    store.dispatch('doCreateSession', response.res);
+  }, 30000)
+
+  setInterval(async () => {
     try {
       if (!(store.getters.getDid) && !(store.getters.getAccessJwt)) {
         return
       }
+      if (!completedFollows.value) {
+        await getFollows(followsCursor)
+      }
+
       if (!completedLikes.value) {
         await getLikes(likesCursor)
       }
@@ -231,18 +247,33 @@ const notificate = async () => {
     }
     let message = ""
     if (n.reason == "follow") {
+      if (!userSettings.value.push || !userSettings.value.push.enableFollowed) {
+        continue
+      }
       message = "followed"
     }
     if (n.reason == "repost") {
+      if (!userSettings.value.push || !userSettings.value.push.enableReposted) {
+        continue
+      }
       message = "reposted"
     }
     if (n.reason == "reply") {
+      if (!userSettings.value.push || !userSettings.value.push.enableReplied) {
+        continue
+      }
       message = "replied"
     }
     if (n.reason == "like") {
+      if (!userSettings.value.push || !userSettings.value.push.enableLiked) {
+        continue
+      }
       message = "liked"
     }
     if (n.reason == "mention") {
+      if (!userSettings.value.push || !userSettings.value.push.enableMention) {
+        continue
+      }
       message = "mention"
     }
     message = message + " by " + n.author.handle
@@ -258,7 +289,6 @@ const notificate = async () => {
     })
   }
 }
-
 const getLikes = async (cursor) => {
   try {
     let params = {}
@@ -321,9 +351,35 @@ const getReposts = async (cursor) => {
   store.dispatch('doAddReposts', response.res)
 }
 
+
+const getFollows = async (cursor) => {
+  let params = {}
+  if (!cursor.value) {
+    params = { actor: store.getters.getHandle, limit: 100 }
+  } else {
+    params = { actor: store.getters.getHandle, cursor: cursor.value, limit: 100 }
+  }
+  let response = null
+  try {
+    response = await requestGet.get("app.bsky.graph.getFollows", params)
+  } catch (e) {
+    if (!(e.response && e.response.status === 400)) {
+      completedReposts.value = true
+      throw e
+    }
+  }
+  followsCursor.value = response.res.cursor
+  if (response.res.follows.length == 0) {
+    completedFollows.value = true
+    return
+  }
+  store.dispatch('doAddFollows', response.res)
+}
+
 watch(
   () => store.getters.getDid,
   async () => {
+    userSettings.value = await settingsManager.getUser(store.getters.getDid, store.getters.getHandle)
     likesCursor.value = null
     completedLikes.value = false
     repostsCursor.value = null

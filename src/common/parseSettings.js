@@ -1,19 +1,17 @@
 import { ref } from 'vue'
 import Parse from "parse"
 import { useStorage } from '@vueuse/core'
+// import { Setting } from 'setting'
 
 export function useParseSettings() {
 
     async function upload() {
-        const user = ref(null)
-        const settings = ref({
-            translationApiKey: null,
-            translationLang: null,
-            handed: true,
-            users: user
-        })
+        // const user = ref(null)
+        const settings = ref(null)
         useStorage('redocean', settings)
-
+        if (!settings.value) {
+            return
+        }
         const current = Parse.User.current();
         if (!current) {
             return
@@ -50,6 +48,14 @@ export function useParseSettings() {
             accountSetting.set("handle", u.handle)
             accountSetting.set("avatar", u.avatar)
             accountSetting.set("color", u.color)
+            if (u.push) {
+                setting.set("push.enable", u.push.enable)
+                setting.set("push.enableFollowed", u.push.enableFollowed)
+                setting.set("push.enableReposted", u.push.enableReposted)
+                setting.set("push.enableReplied", u.push.enableReplied)
+                setting.set("push.enableLiked", u.push.enableLiked)
+                setting.set("push.enableMention", u.push.enableMention)
+            }
             accountSetting.set("parent", setting);
             accountSetting.save()
             map.set(u.did, u.did)
@@ -131,7 +137,15 @@ export function useParseSettings() {
                 handle: results2[i].get("handle"),
                 avatar: results2[i].get("avatar"),
                 labels: null,
-                color: results2[i].get("color")
+                color: results2[i].get("color"),
+                push: {
+                    enable: results2[i].get("push.enable"),
+                    enableFollowed: results2[i].get("push.enableFollowed"),
+                    enableReposted: results2[i].get("push.enableReposted"),
+                    enableReplied: results2[i].get("push.enableReplied"),
+                    enableLiked: results2[i].get("push.enableLiked"),
+                    enableMention: results2[i].get("push.enableMention")
+                }
             })
         }
         const LabelsSetting = Parse.Object.extend("labelsSetting");

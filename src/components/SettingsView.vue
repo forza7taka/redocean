@@ -25,9 +25,9 @@
 import { ref, watch, onUnmounted } from 'vue'
 import { useStorage } from '@vueuse/core'
 import { useParseSettings } from "@/common/parseSettings"
+import { Setting } from "@/common/setting"
 const parseSettings = useParseSettings()
-
-const settings = ref({ userID: null, translationApiKey: null, translationLang: null, handed: true, users: [{ did: null, server: null, handle: null, avatar: null }] })
+const settings = ref(new Setting())
 const storageSettings = useStorage('redocean', settings)
 
 onUnmounted(async () => {

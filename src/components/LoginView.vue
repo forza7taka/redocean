@@ -71,6 +71,7 @@ import { useStorage } from '@vueuse/core'
 import { useCatchError } from '@/common/catchError';
 import { useSettings } from '@/common/settings'
 import { useParseSettings } from "@/common/parseSettings"
+import { Setting } from "@/common/setting"
 const parseSettings = useParseSettings()
 
 const tab = ref(null)
@@ -84,13 +85,7 @@ const requestPost = useRequestPost(store)
 const route = useRouter()
 const completed = ref(false)
 
-const user = ref([{ did: null, server: null, handle: null, avatar: null, color: null, labels: null }])
-const settings = ref({
-  translationApiKey: null,
-  translationLang: null,
-  handed: true,
-  users: user
-})
+const settings = ref(new Setting())
 
 const storageSettings = useStorage('redocean', settings)
 const settingsManager = useSettings(settings.value)
