@@ -153,6 +153,7 @@ import { useRequestPost } from "@/common/requestPost";
 import { useCatchError } from '@/common/catchError';
 import { useStorage } from '@vueuse/core'
 import { useSettings } from '@/common/settings'
+import { Setting } from '@/common/setting'
 
 const defProps = defineProps({
   post: null,
@@ -168,14 +169,8 @@ const emit = defineEmits(
 )
 const store = useStore()
 const request = useRequestPost(store)
+const settings = ref(new Setting())
 
-const settings = ref({
-  userID: null,
-  translationApiKey: null,
-  translationLang: null,
-  handed: true,
-  users: [{ did: null, server: null, handle: null, avatar: null, color: null, labels: null }]
-})
 useStorage('redocean', settings)
 const settingsManager = useSettings(settings.value)
 const userSettings = ref(null)
