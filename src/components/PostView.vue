@@ -1,14 +1,14 @@
 <template>
   <template v-if="defProps.post && !isFilter">
     <v-card :class="['mx-auto mt-5', { 'v-card--depth': depth !== 0 }]" variant="flat">
-      <div v-if="defProps.reason && defProps.reason.by">
+      <template v-if="defProps.reason && defProps.reason.by">
         <v-card-subtitle>Reposted by {{ defProps.reason.by.displayName }}(@{{ defProps.reason.by.handle
         }})</v-card-subtitle>
-      </div>
-      <div v-if="defProps.parent && defProps.parent.author">
+      </template>
+      <template v-if="defProps.parent && defProps.parent.author">
         <v-card-subtitle>Replied to {{ defProps.parent.author.displayName }}(@{{ defProps.parent.author.handle
         }})</v-card-subtitle>
-      </div>
+      </template>
       <v-card-actions>
         <PostUserView :author="defProps.post.author" :createdAt="defProps.post.record.createdAt" />
       </v-card-actions>
@@ -19,8 +19,8 @@
       </template>
       <template v-if="!isWarn">
         <v-card-text class="text-pre-wrap">
-          <div v-if="defProps.post && defProps.post.record && defProps.post.record.text">
-            {{ defProps.post.record.text }}</div>
+          <template v-if="defProps.post && defProps.post.record && defProps.post.record.text">
+            {{ defProps.post.record.text }}</template>
         </v-card-text>
         <v-card-text v-if="translateText" class="text-pre-wrap">
           {{ translateText }}
@@ -34,52 +34,86 @@
         </div>
         <v-card-subtitle>
           <v-list-item-subtitle>
-            <div v-if="defProps.post.record.via">
+            <template v-if="defProps.post.record.via">
               via:{{ defProps.post.record.via }}
-            </div>
+            </template>
           </v-list-item-subtitle>
         </v-card-subtitle>
 
-        <div v-if="defProps.post.embed && defProps.post.embed.images">
+        <template v-if="defProps.post.embed && defProps.post.embed.images">
           <PostImageView :images="defProps.post.embed.images" />
-        </div>
+        </template>
 
-        <div v-if="defProps.post.embed && defProps.post.embed.media">
+        <template v-if="defProps.post.embed && defProps.post.embed.media">
           <PostImageView :images="defProps.post.embed.media.images" />
-        </div>
+        </template>
+
+        <template v-if="defProps.post.embed && defProps.post.embed.external">
+          <template v-if="defProps.post.embed.$type == 'app.bsky.embed.external#view'">
+            <a :href="defProps.post.embed.external.uri">
+              <v-card class="mx-auto" variant="outlined">
+                <v-card-text class="text-pre-wrap">
+                  <template v-if="defProps.post.embed.external">
+                    {{ defProps.post.embed.external.title }}</template>
+                  <v-img v-bind:src=defProps.post.embed.external.thumb class="rounded-xl" alt=""></v-img>
+                  <template v-if="defProps.post.embed.external">
+                    {{ defProps.post.embed.external.description }}</template>
+                </v-card-text>
+              </v-card>
+            </a>
+          </template>
+        </template>
 
         <!--quoteRepostWithImage S-->
-        <div v-if="defProps.post.embed && defProps.post.embed.record">
-          <div v-if="defProps.post.embed.$type == 'app.bsky.embed.recordWithMedia#view'">
+        <template v-if="defProps.post.embed && defProps.post.embed.record">
+          <template v-if="defProps.post.embed.$type == 'app.bsky.embed.recordWithMedia#view'">
             <v-card class="mx-auto" variant="outlined" :to="`/thread/${encodeURIComponent(defProps.post.uri)}`">
               <v-card-actions>
                 <PostUserView :author="defProps.post.embed.record.record.author"
                   :createdAt="defProps.post.embed.record.record.value.createdAt" />
               </v-card-actions>
               <v-card-text class="text-pre-wrap" :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
-                <div
+                <template
                   v-if="defProps.post.embed && defProps.post.embed.record && defProps.post.embed.record.record && defProps.post.embed.record.record.value">
-                  {{ defProps.post.embed.record.record.value.text }}</div>
+                  {{ defProps.post.embed.record.record.value.text }}</template>
               </v-card-text>
             </v-card>
-          </div>
+          </template>
           <!--quoteRepostWithImage E-->
 
           <!--quoteRepost S-->
-          <div v-if="defProps.post.embed.$type == 'app.bsky.embed.record#view'">
-            <v-card class="mx-auto mt-5" variant="outlined"
-              :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
-              <v-card-actions>
-                <PostUserView :author="defProps.post.embed.record.author"
-                  :createdAt="defProps.post.embed.record.value.createdAt" />
-              </v-card-actions>
-              <v-card-text class="text-pre-wrap" :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
-                <div v-if="defProps.post.embed && defProps.post.embed.record && defProps.post.embed.record.value">{{
-                  defProps.post.embed.record.value.text }}</div>
-              </v-card-text>
-            </v-card>
-          </div>
-        </div>
+          <template v-if="defProps.post.embed && defProps.post.embed.record">
+            <template v-if="defProps.post.embed.$type == 'app.bsky.embed.record#view'">
+              <template v-if="defProps.post.embed.record.$type == 'app.bsky.feed.defs#generatorView'">
+                <v-card class="mx-auto mt-5" variant="outlined">
+                  <v-card-text class="text-pre-wrap">
+                    <template v-if="defProps.post.embed && defProps.post.embed.record">
+                      <div>{{ defProps.post.embed.record.displayName }}</div>
+                    </template>
+                    <template v-if="defProps.post.embed && defProps.post.embed.record">
+                      <div>{{ defProps.post.embed.record.description }}</div>
+                    </template>
+                  </v-card-text>
+                </v-card>
+              </template>
+              <template v-else>
+                <v-card class="mx-auto mt-5" variant="outlined"
+                  :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
+                  <v-card-actions>
+                    <PostUserView :author="defProps.post.embed.record.author"
+                      :indexedAt="defProps.post.embed.record.indexedAt" />
+                  </v-card-actions>
+                  <v-card-text class="text-pre-wrap"
+                    :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
+                    <div v-if="defProps.post.embed && defProps.post.embed.record">{{
+                      defProps.post.embed.record.text }}</div>
+                  </v-card-text>
+                </v-card>
+              </template>
+
+            </template>
+          </template>
+        </template>
         <!--quoteRepost E-->
       </template>
 
