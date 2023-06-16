@@ -8,7 +8,13 @@ export function useParseSettings() {
     async function upload() {
         // const user = ref(null)
         const settings = ref(null)
-        useStorage('redocean', settings)
+        useStorage('redocean', settings, undefined,
+            {
+                serializer: {
+                    read: (v) => JSON.parse(v),
+                    write: (v) => JSON.stringify(v)
+                },
+            })
         if (!settings.value) {
             return
         }
@@ -32,6 +38,8 @@ export function useParseSettings() {
         setting.set("userId", current.id)
         setting.save()
 
+        console.log(settings.value.users)
+
         const AccountSetting = Parse.Object.extend("accountSetting");
         const map = new Map()
         for (let i = 0; i < settings.value.users.length; i++) {
@@ -49,12 +57,12 @@ export function useParseSettings() {
             accountSetting.set("avatar", u.avatar)
             accountSetting.set("color", u.color)
             if (u.push) {
-                setting.set("push.enable", u.push.enable)
-                setting.set("push.enableFollowed", u.push.enableFollowed)
-                setting.set("push.enableReposted", u.push.enableReposted)
-                setting.set("push.enableReplied", u.push.enableReplied)
-                setting.set("push.enableLiked", u.push.enableLiked)
-                setting.set("push.enableMention", u.push.enableMention)
+                setting.set("pushEnable", u.push.enable)
+                setting.set("pushEnableFollowed", u.push.enableFollowed)
+                setting.set("pushEnableReposted", u.push.enableReposted)
+                setting.set("pushEnableReplied", u.push.enableReplied)
+                setting.set("pushEnableLiked", u.push.enableLiked)
+                setting.set("pushEnableMention", u.push.enableMention)
             }
             accountSetting.set("parent", setting);
             accountSetting.save()
@@ -79,7 +87,6 @@ export function useParseSettings() {
         for (let i = 0; i < labelsSettings.length; i++) {
             labelsSettings[i].destroy();
         }
-
         for (let i = 0; i < settings.value.users.length; i++) {
             const u = settings.value.users[i]
             if (!u.labels) {
@@ -139,12 +146,12 @@ export function useParseSettings() {
                 labels: null,
                 color: results2[i].get("color"),
                 push: {
-                    enable: results2[i].get("push.enable"),
-                    enableFollowed: results2[i].get("push.enableFollowed"),
-                    enableReposted: results2[i].get("push.enableReposted"),
-                    enableReplied: results2[i].get("push.enableReplied"),
-                    enableLiked: results2[i].get("push.enableLiked"),
-                    enableMention: results2[i].get("push.enableMention")
+                    enable: results2[i].get("pushEnable"),
+                    enableFollowed: results2[i].get("pushEnableFollowed"),
+                    enableReposted: results2[i].get("pushEnableReposted"),
+                    enableReplied: results2[i].get("pushEnableReplied"),
+                    enableLiked: results2[i].get("pushEnableLiked"),
+                    enableMention: results2[i].get("pushEnableMention")
                 }
             })
         }
