@@ -1,12 +1,10 @@
 import { ref } from 'vue'
 import Parse from "parse"
 import { useStorage } from '@vueuse/core'
-// import { Setting } from 'setting'
 
 export function useParseSettings() {
 
     async function upload() {
-        // const user = ref(null)
         const settings = ref(null)
         useStorage('redocean', settings, undefined,
             {
@@ -103,10 +101,41 @@ export function useParseSettings() {
                 labelsSetting.save()
             }
         }
+
+        const FeedsSetting = Parse.Object.extend("feedsSetting");
+        const feedsSettingQuery = new Parse.Query(FeedsSetting);
+        feedsSettingQuery.equalTo("parent", setting.id);
+        const feedsSettings = await feedsSettingQuery.find();
+        for (let i = 0; i < feedsSettings.length; i++) {
+            feedsSettings[i].destroy();
+        }
+        for (let i = 0; i < settings.value.users.length; i++) {
+            const u = settings.value.users[i]
+            if (!u.feeds) {
+                continue
+            }
+            for (let j = 0; j < u.feeds.length; j++) {
+                const feed = u.feeds[j]
+                const feedsSetting = new FeedsSetting();
+                feedsSetting.setACL(new Parse.ACL(Parse.User.current()));
+                feedsSetting.set("did", u.did)
+                feedsSetting.set("uri", feed)
+                feedsSetting.set("parent", setting);
+                feedsSetting.save()
+            }
+        }
     }
 
     async function download() {
-        const user = ref([{ did: null, server: null, handle: null, avatar: null, color: null, labels: null }])
+        const user = ref([{
+            did: null,
+            server: null,
+            handle: null,
+            avatar: null,
+            color: null,
+            labels: null,
+            feeds: null
+        }])
         const settings = ref({
             translationApiKey: null,
             translationLang: null,
@@ -173,6 +202,22 @@ export function useParseSettings() {
                 })
             }
         }
+        const FeedsSetting = Parse.Object.extend("feedsSetting");
+        const query4 = new Parse.Query(FeedsSetting);
+        query4.equalTo("parent", object.id);
+        const results4 = await query4.find();
+        for (let i = 0; i < settings.value.users.length; i++) {
+            if (!settings.value.users[i].feeds) {
+                settings.value.users[i].feeds = []
+            }
+            for (let j = 0; j < results4.length; j++) {
+                if (results4[j].get("did") != settings.value.users[i].did) {
+                    continue
+                }
+                settings.value.users[i].labels.push(results4[j].get("uri"))
+            }
+        }
+
         storageSettings.value = settings.value
     } return { upload, download }
 
