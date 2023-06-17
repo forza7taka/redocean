@@ -50,7 +50,7 @@
 
         <template v-if="defProps.post.embed && defProps.post.embed.external">
           <template v-if="defProps.post.embed.$type == 'app.bsky.embed.external#view'">
-            <a :href="defProps.post.embed.external.uri">
+            <a class="no-underline" :href="defProps.post.embed.external.uri">
               <v-card class="mx-auto" variant="outlined">
                 <v-card-text class="text-pre-wrap">
                   <template v-if="defProps.post.embed.external">
@@ -106,7 +106,7 @@
                   <v-card-text class="text-pre-wrap"
                     :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
                     <div v-if="defProps.post.embed && defProps.post.embed.record">{{
-                      defProps.post.embed.record.text }}</div>
+                      defProps.post.embed.record.value.text }}</div>
                   </v-card-text>
                 </v-card>
               </template>

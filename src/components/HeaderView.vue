@@ -65,7 +65,7 @@
             <v-list-item v-if="store.getters.getAccessJwt || !menuItem.login"
               active-class="deep-purple--text text--accent-4">
               <div>
-                <router-link :to="menuItem.link">
+                <router-link :to="menuItem.link" class="link">
                   <v-icon>{{ menuItem.icon }}</v-icon>
                   {{ menuItem.name }}
                 </router-link>
@@ -82,7 +82,7 @@
             <v-list-item v-if="store.getters.getAccessJwt || !menuItem.login"
               active-class="deep-purple--text text--accent-4">
               <div>
-                <router-link :to="menuItem.link">
+                <router-link :to="menuItem.link" class="link">
                   <v-icon>{{ menuItem.icon }}</v-icon>
                   {{ menuItem.name }}
                 </router-link>
@@ -145,6 +145,12 @@ const menuItems = ref([
     login: true
   },
   {
+    icon: "mdi-playlist-check",
+    name: "CustomFeed",
+    link: "/customFeed",
+    login: true
+  },
+  {
     icon: "mdi-face-profile",
     name: "Profile",
     link: "/profile",
@@ -160,12 +166,6 @@ const menuItems = ref([
     icon: "mdi-star",
     name: "Suggestions",
     link: "/suggestions",
-    login: true
-  },
-  {
-    icon: "mdi-dog",
-    name: "AnimalFeed",
-    link: "/customFeed",
     login: true
   },
   {
