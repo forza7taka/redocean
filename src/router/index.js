@@ -23,6 +23,8 @@ import AccountSettingFilter from '@/components/AccountSettingsFilterView.vue'
 import CustomFeed from '@/components/CustomFeedView.vue'
 import { trackRouter } from "vue-gtag-next";
 import Sync from "@/components/SyncView.vue"
+import CustomFeedList from "@/components/CustomFeedListView"
+
 const routes = [
   {
     path: '/login',
@@ -184,6 +186,11 @@ const routes = [
     path: '/',
     name: 'login',
     component: Login
+  },
+  {
+    path: '/customFeedList/:did/:handle',
+    name: 'customFeedList',
+    component: CustomFeedList
   }
 ];
 

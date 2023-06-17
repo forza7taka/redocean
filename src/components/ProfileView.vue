@@ -29,14 +29,12 @@
               @{{ profile.handle }}
             </v-list-item-subtitle>
             <v-list-item-subtitle>
-              <router-link :to="`/followers/${encodeURIComponent(profile.handle)}`"
-                style="text-decoration: none; color: inherit;">
+              <router-link :to="`/followers/${encodeURIComponent(profile.handle)}`" class="link">
                 Followers:{{ profile.followersCount }}
               </router-link>
             </v-list-item-subtitle>
             <v-list-item-subtitle>
-              <router-link :to="`/follows/${encodeURIComponent(profile.handle)}`"
-                style="text-decoration: none; color: inherit;">
+              <router-link :to="`/follows/${encodeURIComponent(profile.handle)}`" class="link">
                 Follows:{{ profile.followsCount }}
               </router-link>
             </v-list-item-subtitle>
@@ -44,23 +42,22 @@
               Posts: {{ profile.postsCount }}
             </v-list-item-subtitle>
             <v-list-item-subtitle v-if="profile && profile.did == store.getters.getDid">
-              <router-link v-if="likes" :to="`/likes/${encodeURIComponent(profile.handle)}`"
-                style="text-decoration: none; color: inherit;">
+              <router-link v-if="likes" :to="`/likes/${encodeURIComponent(profile.handle)}`" class="link">
                 Likes: {{ likes.length }}
               </router-link>
             </v-list-item-subtitle>
             <v-list-item-subtitle v-if="profile && profile.did == store.getters.getDid">
-              <router-link v-if="mutes" :to="`/mutes`" style="text-decoration: none; color: inherit;">
+              <router-link v-if="mutes" :to="`/mutes`" class="link">
                 Mutes: {{ mutes.length }}
               </router-link>
             </v-list-item-subtitle>
             <v-list-item-subtitle v-if="profile && profile.did == store.getters.getDid">
-              <router-link v-if="blocks" :to="`/blocks`" style="text-decoration: none; color: inherit;">
+              <router-link v-if="blocks" :to="`/blocks`" class="link">
                 Blocks: {{ blocks.length }}
               </router-link>
             </v-list-item-subtitle>
             <v-list-item-subtitle v-if="inviteCodes && inviteCodes.length !== 0">
-              <router-link v-if="mutes" :to="`/inviteCodes`" style="text-decoration: none; color: inherit;">
+              <router-link v-if="mutes" :to="`/inviteCodes`" class="link">
                 InviteCode: {{ inviteCodes.length }}
               </router-link>
             </v-list-item-subtitle>

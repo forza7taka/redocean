@@ -104,4 +104,9 @@ watch(() => route.path, (newPath) => {
   right: v-bind('store.getters.getHanded ? `20px` : `auto`');
   z-index: 9999;
 }
+
+.link {
+  color: inherit;
+  text-decoration: none;
+}
 </style>
