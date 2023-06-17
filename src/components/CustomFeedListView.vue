@@ -16,7 +16,7 @@
                     <v-icon>mdi-playlist-check</v-icon>
                   </v-btn>
                 </template>
-                <v-avatar size="100" rounded="0">
+                <v-avatar size="75" rounded="0">
                   <v-img v-bind:src="f.avatar" alt="avatar" cover class="rounded-xl"></v-img>
                 </v-avatar>
               </template>
@@ -31,7 +31,12 @@
                   {{ f.uri }}
                 </v-list-item-subtitle>
                 <v-list-item-subtitle>
-                  Likes:{{ f.likeCount }}
+                  Likes:
+                  <v-btn class=" ma-2" variant="text" size="32" icon="mdi-heart" color="red"
+                    v-if="store.getters.hasLike(f.uri)" @click="like(f)"></v-btn>
+                  <v-btn class="ma-2" variant="text" size="32" icon="mdi-heart-outline" color="red" v-else
+                    @click="like(f)"></v-btn>
+                  {{ f.likeCount }}
                 </v-list-item-subtitle>
                 <v-card class="mx-auto mt-5" variant="flat">
                   <v-card-actions>
@@ -67,8 +72,9 @@
 <script setup>
 import { ref, onBeforeMount, onUnmounted, watch } from 'vue'
 import { useStore } from 'vuex'
-import { useCatchError } from '@/common/catchError';
-import { useRequestGet } from "@/common/requestGet";
+import { useCatchError } from '@/common/catchError'
+import { useRequestGet } from "@/common/requestGet"
+import { useRequestPost } from "@/common/requestPost"
 import { useStorage } from '@vueuse/core'
 import { useRoute } from 'vue-router'
 import { useSettings } from '@/common/settings'
@@ -87,7 +93,14 @@ const userSettings = ref(null)
 
 const store = useStore()
 const requestGet = useRequestGet(store)
-const feedUris = ref(["at://did:plc:au6x2h2niz27male2krpwmzz/app.bsky.feed.generator/includesWord"])
+const requestPost = useRequestPost(store)
+
+const feedUris = ref([
+  "at://did:plc:au6x2h2niz27male2krpwmzz/app.bsky.feed.generator/includesWord",
+  "at://did:plc:hiptcrt4k63szzz4ty3dhwcp/app.bsky.feed.generator/ko-images",
+  "at://did:plc:hiptcrt4k63szzz4ty3dhwcp/app.bsky.feed.generator/ja-images",
+  "at://did:plc:hiptcrt4k63szzz4ty3dhwcp/app.bsky.feed.generator/illusts"])
+
 const feeds = ref(new Array())
 
 const subscribedFeeds = ref(new Array())
@@ -97,7 +110,7 @@ onBeforeMount(async () => {
   if (userSettings.value.feeds) {
     subscribedFeeds.value = userSettings.value.feeds
   }
-  await getPopularFeedGenerators()
+  await getFeedGenerators()
 });
 
 onUnmounted(async () => {
@@ -119,7 +132,37 @@ const unSubscribe = async (uri) => {
   }
 }
 
-const getPopularFeedGenerators = async () => {
+const like = async (feed) => {
+  try {
+    if (!store.getters.hasLike(feed.uri)) {
+      const subject = { uri: feed.uri, cid: feed.cid }
+      const response = await requestPost.post("com.atproto.repo.createRecord", {
+        collection: "app.bsky.feed.like",
+        repo: store.getters.getDid,
+        record: {
+          subject: subject,
+          createdAt: new Date()
+        }
+      })
+      feed.likeCount = feed.likeCount + 1
+      store.dispatch('doAddLike', { key: feed.uri, value: response.res.uri });
+    } else {
+      await requestPost.post("com.atproto.repo.deleteRecord", {
+        collection: "app.bsky.feed.like",
+        repo: store.getters.getDid,
+        rkey: store.getters.getLikes.get(feed.uri).substr(-13)
+      })
+      feed.likeCount = feed.likeCount - 1
+      store.dispatch('doRemoveLike', feed.uri);
+    }
+  } catch (e) {
+    const ce = useCatchError()
+    ce.catchError(e)
+  }
+}
+
+
+const getFeedGenerators = async () => {
   try {
     const response1 = await requestGet.get("app.bsky.feed.describeFeedGenerator")
     for (let i = 0; i < response1.res.feeds.length; i++) {

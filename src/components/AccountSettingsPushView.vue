@@ -56,6 +56,8 @@ const changeEnablePushNotification = async () => {
         if (route.params.did == user.did) {
             storageSettings.value.users[i].color = userSettings.value.color
             storageSettings.value.users[i].labels = userSettings.value.labels
+            storageSettings.value.users[i].push = userSettings.value.push
+            storageSettings.value.users[i].muteWords = userSettings.value.muteWords
         }
     }
 }
@@ -65,8 +67,8 @@ watch(() => userSettings, () => {
     for (let i = 0; i < settings.value.users.length; i++) {
         const user = settings.value.users[i]
         if (route.params.did == user.did) {
-            storageSettings.value.users[i].color = userSettings.value.color
-            storageSettings.value.users[i].labels = userSettings.value.labels
+            // storageSettings.value.users[i].color = userSettings.value.color
+            // storageSettings.value.users[i].labels = userSettings.value.labels
             storageSettings.value.users[i].push = userSettings.value.push
         }
     }

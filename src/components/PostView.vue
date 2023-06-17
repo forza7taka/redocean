@@ -18,13 +18,21 @@
         </v-card-title>
       </template>
       <template v-if="!isWarn">
-        <v-card-text class="text-pre-wrap">
-          <template v-if="defProps.post && defProps.post.record && defProps.post.record.text">
-            {{ defProps.post.record.text }}</template>
-        </v-card-text>
-        <v-card-text v-if="translateText" class="text-pre-wrap">
-          {{ translateText }}
-        </v-card-text>
+        <template v-if="defProps.post && defProps.post.record && defProps.post.record.text">
+          <template v-if="isMuteWord">
+            <v-card-title @click="visivleMuteWord = !visivleMuteWord">
+              [Contains MuteWords]
+            </v-card-title>
+          </template>
+          <template v-if="!visivleMuteWord">
+            <v-card-text class="text-pre-wrap">
+              {{ defProps.post.record.text }}
+            </v-card-text>
+            <v-card-text v-if="translateText" class="text-pre-wrap">
+              {{ translateText }}
+            </v-card-text>
+          </template>
+        </template>
         <div v-for="(facet, facetIndex) in defProps.post.record.facets" :key="facetIndex">
           <div v-for="(feature, featureIndex) in facet.features" :key="featureIndex">
             <v-card-text>
@@ -212,6 +220,10 @@ const userSettings = ref(null)
 const isWarn = ref(false)
 const isFilter = ref(false)
 const warnLabels = ref(null)
+const isMuteWord = ref(false)
+const visivleMuteWord = ref(false)
+const isMuteWordQuote = ref(false)
+const visivleMuteWordQuote = ref(false)
 
 const translateText = ref(null)
 
@@ -224,7 +236,42 @@ onBeforeMount(async () => {
   if (value) {
     warnLabels.value = value.join(' ')
   }
+  isMuteWord.value = await containsMuteWords(defProps.post.record.text)
+  visivleMuteWord.value = isMuteWord.value
+  if (defProps.post && defProps.post.embed && defProps.post.embed.record) {
+    if (defProps.post.embed.record.value) {
+      isMuteWordQuote.value = await containsMuteWords(defProps.post.embed.record.value)
+      visivleMuteWordQuote.value = isMuteWordQuote.value
+    }
+    if (defProps.post.embed.record.record && defProps.post.embed.record.record.value) {
+      isMuteWordQuote.value = await containsMuteWords(defProps.post.embed.record.record.value.text)
+      visivleMuteWordQuote.value = isMuteWordQuote.value
+    }
+  }
 });
+
+const containsMuteWords = async (value) => {
+  if (!userSettings.value) {
+    return false
+  }
+  if (!userSettings.value.muteWords) {
+    return false
+  }
+  if (userSettings.value.muteWords.length == 0) {
+    return false
+  }
+  for (let i = 0; i < userSettings.value.muteWords.length; i++) {
+    const muteWord = userSettings.value.muteWords[i]
+    if (!muteWord) {
+      continue
+    }
+    if ((new RegExp(muteWord.value)).test(value)) {
+      return true
+    }
+  }
+  return false
+}
+
 
 const contains = async (value) => {
   if (!defProps.post) {

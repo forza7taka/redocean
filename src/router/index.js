@@ -18,13 +18,13 @@ import Settings from '@/components/SettingsView.vue'
 import Blocks from '@/components/BlocksView.vue'
 import Moderation from '@/components/ModerationView.vue'
 import AccountSetting from '@/components/AccountSettingsView.vue'
-import AccountSettingPush from '@/components/AccountSettingsPushView.vue'
-import AccountSettingFilter from '@/components/AccountSettingsFilterView.vue'
+import AccountSettingsPush from '@/components/AccountSettingsPushView.vue'
+import AccountSettingsFilter from '@/components/AccountSettingsFilterView.vue'
 import CustomFeed from '@/components/CustomFeedView.vue'
 import { trackRouter } from "vue-gtag-next";
 import Sync from "@/components/SyncView.vue"
 import CustomFeedList from "@/components/CustomFeedListView"
-
+import AccountSettingsMuteWords from '@/components/AccountSettingsMuteWordsView'
 const routes = [
   {
     path: '/login',
@@ -163,14 +163,14 @@ const routes = [
     component: AccountSetting
   },
   {
-    path: '/accountSettingPush/:did/:handle',
-    name: 'accountSettingPush',
-    component: AccountSettingPush
+    path: '/accountSettingsPush/:did/:handle',
+    name: 'accountSettingsPush',
+    component: AccountSettingsPush
   },
   {
-    path: '/accountSettingFilter/:did/:handle',
-    name: 'accountSettingFilter',
-    component: AccountSettingFilter
+    path: '/accountSettingsFilter/:did/:handle',
+    name: 'accountSettingsFilter',
+    component: AccountSettingsFilter
   },
   {
     path: '/customFeed/',
@@ -191,6 +191,11 @@ const routes = [
     path: '/customFeedList/:did/:handle',
     name: 'customFeedList',
     component: CustomFeedList
+  },
+  {
+    path: '/accountSettingsMuteWords/:did/:handle',
+    name: 'accountSettingsMuteWords',
+    component: AccountSettingsMuteWords
   }
 ];
 
