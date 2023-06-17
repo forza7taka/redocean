@@ -124,6 +124,29 @@ export function useParseSettings() {
                 feedsSetting.save()
             }
         }
+        const MuteWordsSetting = Parse.Object.extend("muteWordsSetting");
+        const muteWordsSettingQuery = new Parse.Query(MuteWordsSetting);
+        muteWordsSettingQuery.equalTo("parent", setting.id);
+        const muteWordsSettings = await muteWordsSettingQuery.find();
+        for (let i = 0; i < muteWordsSettings.length; i++) {
+            muteWordsSettings[i].destroy();
+        }
+        for (let i = 0; i < settings.value.users.length; i++) {
+            const u = settings.value.users[i]
+            if (!u.muteWords) {
+                continue
+            }
+            for (let j = 0; j < u.muteWords.length; j++) {
+                const muteWord = u.muteWords[j]
+                const muteWordsSetting = new MuteWordsSetting();
+                muteWordsSetting.setACL(new Parse.ACL(Parse.User.current()));
+                muteWordsSetting.set("did", u.did)
+                muteWordsSetting.set("value", muteWord.value)
+                muteWordsSetting.set("parent", setting);
+                muteWordsSetting.save()
+            }
+        }
+
     }
 
     async function download() {
@@ -215,6 +238,22 @@ export function useParseSettings() {
                     continue
                 }
                 settings.value.users[i].labels.push(results4[j].get("uri"))
+            }
+        }
+
+        const MuteWordsSetting = Parse.Object.extend("muteWordsSetting");
+        const query5 = new Parse.Query(MuteWordsSetting);
+        query5.equalTo("parent", object.id);
+        const results5 = await query5.find();
+        for (let i = 0; i < settings.value.users.length; i++) {
+            if (!settings.value.users[i].muteWords) {
+                settings.value.users[i].muteWords = []
+            }
+            for (let j = 0; j < results5.length; j++) {
+                if (results5[j].get("did") != settings.value.users[i].did) {
+                    continue
+                }
+                settings.value.users[i].muteWords.push({ value: results5[j].get("value") })
             }
         }
 
