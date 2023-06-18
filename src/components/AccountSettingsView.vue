@@ -9,11 +9,15 @@
     </v-card>
     <v-divider></v-divider>
     <v-card class="mx-auto pa-4" variant="flat">
-      <v-btn :to="`/accountSettingPush/${route.params.did}/${route.params.handle}`">Push Notification</v-btn>
+      <v-btn :to="`/accountSettingsPush/${route.params.did}/${route.params.handle}`">Push Notification</v-btn>
     </v-card>
     <v-divider></v-divider>
     <v-card class="mx-auto pa-4" variant="flat">
-      <v-btn :to="`/accountSettingFilter/${route.params.did}/${route.params.handle}`">Filter</v-btn>
+      <v-btn :to="`/accountSettingsFilter/${route.params.did}/${route.params.handle}`">Filter</v-btn>
+    </v-card>
+    <v-divider></v-divider>
+    <v-card class="mx-auto pa-4" variant="flat">
+      <v-btn :to="`/accountSettingsMuteWords/${route.params.did}/${route.params.handle}`">Mute Words</v-btn>
     </v-card>
   </div>
 </template>
