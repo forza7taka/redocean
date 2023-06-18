@@ -29,7 +29,7 @@
 <script setup>
 import FeedView from "./FeedView.vue"
 import { useIntersectionObserver } from '@vueuse/core'
-import { ref, onBeforeMount } from 'vue'
+import { ref, onBeforeMount, watch } from 'vue'
 import { useStore } from 'vuex'
 import Timeline from '@/common/timeline.js'
 import { useCatchError } from '@/common/catchError';
@@ -127,10 +127,17 @@ const getTimeline = async (uri, cur) => {
     if (response.res.feed.length == 0) {
       completed.value = true
     }
-    console.log(response.res.feed)
   } catch (e) {
     const ce = useCatchError()
     ce.catchError(e)
   }
 }
+
+watch(() => tab, () => {
+  completed.value = false
+  timeline.value = new Timeline()
+  cursor.value = null
+}, { deep: true }
+);
+
 </script>

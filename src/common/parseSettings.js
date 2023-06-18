@@ -212,9 +212,7 @@ export function useParseSettings() {
         query3.equalTo("parent", object.id);
         const results3 = await query3.find();
         for (let i = 0; i < settings.value.users.length; i++) {
-            if (!settings.value.users[i].labels) {
-                settings.value.users[i].labels = []
-            }
+            settings.value.users[i].labels = []
             for (let j = 0; j < results3.length; j++) {
                 if (results3[j].get("did") != settings.value.users[i].did) {
                     continue
@@ -230,9 +228,7 @@ export function useParseSettings() {
         query4.equalTo("parent", object.id);
         const results4 = await query4.find();
         for (let i = 0; i < settings.value.users.length; i++) {
-            if (!settings.value.users[i].feeds) {
-                settings.value.users[i].feeds = []
-            }
+            settings.value.users[i].feeds = []
             for (let j = 0; j < results4.length; j++) {
                 if (results4[j].get("did") != settings.value.users[i].did) {
                     continue
@@ -246,9 +242,7 @@ export function useParseSettings() {
         query5.equalTo("parent", object.id);
         const results5 = await query5.find();
         for (let i = 0; i < settings.value.users.length; i++) {
-            if (!settings.value.users[i].muteWords) {
-                settings.value.users[i].muteWords = []
-            }
+            settings.value.users[i].muteWords = []
             for (let j = 0; j < results5.length; j++) {
                 if (results5[j].get("did") != settings.value.users[i].did) {
                     continue
