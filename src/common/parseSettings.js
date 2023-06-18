@@ -1,14 +1,18 @@
 import { ref } from 'vue'
 import Parse from "parse"
 import { useStorage } from '@vueuse/core'
-// import { Setting } from 'setting'
 
 export function useParseSettings() {
 
     async function upload() {
-        // const user = ref(null)
         const settings = ref(null)
-        useStorage('redocean', settings)
+        useStorage('redocean', settings, undefined,
+            {
+                serializer: {
+                    read: (v) => JSON.parse(v),
+                    write: (v) => JSON.stringify(v)
+                },
+            })
         if (!settings.value) {
             return
         }
@@ -32,6 +36,8 @@ export function useParseSettings() {
         setting.set("userId", current.id)
         setting.save()
 
+        console.log(settings.value.users)
+
         const AccountSetting = Parse.Object.extend("accountSetting");
         const map = new Map()
         for (let i = 0; i < settings.value.users.length; i++) {
@@ -49,12 +55,12 @@ export function useParseSettings() {
             accountSetting.set("avatar", u.avatar)
             accountSetting.set("color", u.color)
             if (u.push) {
-                setting.set("push.enable", u.push.enable)
-                setting.set("push.enableFollowed", u.push.enableFollowed)
-                setting.set("push.enableReposted", u.push.enableReposted)
-                setting.set("push.enableReplied", u.push.enableReplied)
-                setting.set("push.enableLiked", u.push.enableLiked)
-                setting.set("push.enableMention", u.push.enableMention)
+                setting.set("pushEnable", u.push.enable)
+                setting.set("pushEnableFollowed", u.push.enableFollowed)
+                setting.set("pushEnableReposted", u.push.enableReposted)
+                setting.set("pushEnableReplied", u.push.enableReplied)
+                setting.set("pushEnableLiked", u.push.enableLiked)
+                setting.set("pushEnableMention", u.push.enableMention)
             }
             accountSetting.set("parent", setting);
             accountSetting.save()
@@ -79,7 +85,6 @@ export function useParseSettings() {
         for (let i = 0; i < labelsSettings.length; i++) {
             labelsSettings[i].destroy();
         }
-
         for (let i = 0; i < settings.value.users.length; i++) {
             const u = settings.value.users[i]
             if (!u.labels) {
@@ -96,10 +101,64 @@ export function useParseSettings() {
                 labelsSetting.save()
             }
         }
+
+        const FeedsSetting = Parse.Object.extend("feedsSetting");
+        const feedsSettingQuery = new Parse.Query(FeedsSetting);
+        feedsSettingQuery.equalTo("parent", setting.id);
+        const feedsSettings = await feedsSettingQuery.find();
+        for (let i = 0; i < feedsSettings.length; i++) {
+            feedsSettings[i].destroy();
+        }
+        for (let i = 0; i < settings.value.users.length; i++) {
+            const u = settings.value.users[i]
+            if (!u.feeds) {
+                continue
+            }
+            for (let j = 0; j < u.feeds.length; j++) {
+                const feed = u.feeds[j]
+                const feedsSetting = new FeedsSetting();
+                feedsSetting.setACL(new Parse.ACL(Parse.User.current()));
+                feedsSetting.set("did", u.did)
+                feedsSetting.set("uri", feed)
+                feedsSetting.set("parent", setting);
+                feedsSetting.save()
+            }
+        }
+        const MuteWordsSetting = Parse.Object.extend("muteWordsSetting");
+        const muteWordsSettingQuery = new Parse.Query(MuteWordsSetting);
+        muteWordsSettingQuery.equalTo("parent", setting.id);
+        const muteWordsSettings = await muteWordsSettingQuery.find();
+        for (let i = 0; i < muteWordsSettings.length; i++) {
+            muteWordsSettings[i].destroy();
+        }
+        for (let i = 0; i < settings.value.users.length; i++) {
+            const u = settings.value.users[i]
+            if (!u.muteWords) {
+                continue
+            }
+            for (let j = 0; j < u.muteWords.length; j++) {
+                const muteWord = u.muteWords[j]
+                const muteWordsSetting = new MuteWordsSetting();
+                muteWordsSetting.setACL(new Parse.ACL(Parse.User.current()));
+                muteWordsSetting.set("did", u.did)
+                muteWordsSetting.set("value", muteWord.value)
+                muteWordsSetting.set("parent", setting);
+                muteWordsSetting.save()
+            }
+        }
+
     }
 
     async function download() {
-        const user = ref([{ did: null, server: null, handle: null, avatar: null, color: null, labels: null }])
+        const user = ref([{
+            did: null,
+            server: null,
+            handle: null,
+            avatar: null,
+            color: null,
+            labels: null,
+            feeds: null
+        }])
         const settings = ref({
             translationApiKey: null,
             translationLang: null,
@@ -139,12 +198,12 @@ export function useParseSettings() {
                 labels: null,
                 color: results2[i].get("color"),
                 push: {
-                    enable: results2[i].get("push.enable"),
-                    enableFollowed: results2[i].get("push.enableFollowed"),
-                    enableReposted: results2[i].get("push.enableReposted"),
-                    enableReplied: results2[i].get("push.enableReplied"),
-                    enableLiked: results2[i].get("push.enableLiked"),
-                    enableMention: results2[i].get("push.enableMention")
+                    enable: results2[i].get("pushEnable"),
+                    enableFollowed: results2[i].get("pushEnableFollowed"),
+                    enableReposted: results2[i].get("pushEnableReposted"),
+                    enableReplied: results2[i].get("pushEnableReplied"),
+                    enableLiked: results2[i].get("pushEnableLiked"),
+                    enableMention: results2[i].get("pushEnableMention")
                 }
             })
         }
@@ -153,9 +212,7 @@ export function useParseSettings() {
         query3.equalTo("parent", object.id);
         const results3 = await query3.find();
         for (let i = 0; i < settings.value.users.length; i++) {
-            if (!settings.value.users[i].labels) {
-                settings.value.users[i].labels = []
-            }
+            settings.value.users[i].labels = []
             for (let j = 0; j < results3.length; j++) {
                 if (results3[j].get("did") != settings.value.users[i].did) {
                     continue
@@ -166,6 +223,34 @@ export function useParseSettings() {
                 })
             }
         }
+        const FeedsSetting = Parse.Object.extend("feedsSetting");
+        const query4 = new Parse.Query(FeedsSetting);
+        query4.equalTo("parent", object.id);
+        const results4 = await query4.find();
+        for (let i = 0; i < settings.value.users.length; i++) {
+            settings.value.users[i].feeds = []
+            for (let j = 0; j < results4.length; j++) {
+                if (results4[j].get("did") != settings.value.users[i].did) {
+                    continue
+                }
+                settings.value.users[i].labels.push(results4[j].get("uri"))
+            }
+        }
+
+        const MuteWordsSetting = Parse.Object.extend("muteWordsSetting");
+        const query5 = new Parse.Query(MuteWordsSetting);
+        query5.equalTo("parent", object.id);
+        const results5 = await query5.find();
+        for (let i = 0; i < settings.value.users.length; i++) {
+            settings.value.users[i].muteWords = []
+            for (let j = 0; j < results5.length; j++) {
+                if (results5[j].get("did") != settings.value.users[i].did) {
+                    continue
+                }
+                settings.value.users[i].muteWords.push({ value: results5[j].get("value") })
+            }
+        }
+
         storageSettings.value = settings.value
     } return { upload, download }
 

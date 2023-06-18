@@ -14,6 +14,8 @@ export class User {
     color = null
     labels = null
     push = new Push()
+    feeds = null
+    muteWords = null
 }
 
 export class Push {
