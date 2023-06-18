@@ -81,9 +81,16 @@
                   :createdAt="defProps.post.embed.record.record.value.createdAt" />
               </v-card-actions>
               <v-card-text class="text-pre-wrap" :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
-                <template
-                  v-if="defProps.post.embed && defProps.post.embed.record && defProps.post.embed.record.record && defProps.post.embed.record.record.value">
-                  {{ defProps.post.embed.record.record.value.text }}</template>
+                <template v-if="isMuteWordQuote">
+                  <v-card-title @click="visivleMuteWordQuote = !visivleMuteWordQuote">
+                    [Contains MuteWords]
+                  </v-card-title>
+                </template>
+                <template v-if="!visivleMuteWordQuote">
+                  <template
+                    v-if="defProps.post.embed && defProps.post.embed.record && defProps.post.embed.record.record && defProps.post.embed.record.record.value">
+                    {{ defProps.post.embed.record.record.value.text }}</template>
+                </template>
               </v-card-text>
             </v-card>
           </template>
@@ -111,14 +118,20 @@
                     <PostUserView :author="defProps.post.embed.record.author"
                       :indexedAt="defProps.post.embed.record.indexedAt" />
                   </v-card-actions>
-                  <v-card-text class="text-pre-wrap"
-                    :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
-                    <div v-if="defProps.post.embed && defProps.post.embed.record">{{
-                      defProps.post.embed.record.value.text }}</div>
-                  </v-card-text>
+                  <template v-if="isMuteWordQuote">
+                    <v-card-title @click="visivleMuteWordQuote = !visivleMuteWordQuote">
+                      [Contains MuteWords]
+                    </v-card-title>
+                  </template>
+                  <template v-if="!visivleMuteWordQuote">
+                    <v-card-text class="text-pre-wrap"
+                      :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
+                      <div v-if="defProps.post.embed && defProps.post.embed.record">{{
+                        defProps.post.embed.record.value.text }}</div>
+                    </v-card-text>
+                  </template>
                 </v-card>
               </template>
-
             </template>
           </template>
         </template>
@@ -240,7 +253,7 @@ onBeforeMount(async () => {
   visivleMuteWord.value = isMuteWord.value
   if (defProps.post && defProps.post.embed && defProps.post.embed.record) {
     if (defProps.post.embed.record.value) {
-      isMuteWordQuote.value = await containsMuteWords(defProps.post.embed.record.value)
+      isMuteWordQuote.value = await containsMuteWords(defProps.post.embed.record.value.text)
       visivleMuteWordQuote.value = isMuteWordQuote.value
     }
     if (defProps.post.embed.record.record && defProps.post.embed.record.record.value) {
@@ -263,6 +276,12 @@ const containsMuteWords = async (value) => {
   for (let i = 0; i < userSettings.value.muteWords.length; i++) {
     const muteWord = userSettings.value.muteWords[i]
     if (!muteWord) {
+      continue
+    }
+    if (!muteWord.value) {
+      continue
+    }
+    if (muteWord.value == "") {
       continue
     }
     if ((new RegExp(muteWord.value)).test(value)) {
