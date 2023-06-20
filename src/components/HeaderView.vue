@@ -209,7 +209,6 @@ onMounted(async () => {
       if (!completedFollows.value) {
         await getFollows(followsCursor)
       }
-
       if (!completedLikes.value) {
         await getLikes(likesCursor)
       }
@@ -363,10 +362,8 @@ const getFollows = async (cursor) => {
   try {
     response = await requestGet.get("app.bsky.graph.getFollows", params)
   } catch (e) {
-    if (!(e.response && e.response.status === 400)) {
-      completedReposts.value = true
-      throw e
-    }
+    completedFollows.value = true
+    throw e
   }
   followsCursor.value = response.res.cursor
   if (response.res.follows.length == 0) {
