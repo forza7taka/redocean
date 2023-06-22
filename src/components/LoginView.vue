@@ -1,5 +1,5 @@
 <template>
-  <div class="displayArea">
+  <div class="displayArea mx-auto">
     <v-card>
       <v-card-text>
         <v-tabs v-model="tab">

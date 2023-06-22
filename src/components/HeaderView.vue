@@ -170,14 +170,14 @@ const menuItems = ref([
   },
   {
     icon: "mdi-link-variant-plus",
-    name: "sync",
+    name: "Sync",
     link: "/sync",
     login: false
   },
   {
     icon: "mdi-semantic-web",
-    name: "FunctionDescription",
-    link: "/functionDescription",
+    name: "Description",
+    link: "/dsescription",
     login: false
   },
 

@@ -25,7 +25,7 @@ import { trackRouter } from "vue-gtag-next";
 import Sync from "@/components/SyncView.vue"
 import CustomFeedList from "@/components/CustomFeedListView"
 import AccountSettingsMuteWords from '@/components/AccountSettingsMuteWordsView'
-import FunctionDescription from '@/components/FunctionDescriptionView'
+import Dsescription from '@/components/DsescriptionView'
 const routes = [
   {
     path: '/login',
@@ -199,9 +199,9 @@ const routes = [
     component: AccountSettingsMuteWords
   },
   {
-    path: '/functionDescription',
-    name: 'functionDescription',
-    component: FunctionDescription
+    path: '/dsescription',
+    name: 'dsescription',
+    component: Dsescription
   },
 ];
 
