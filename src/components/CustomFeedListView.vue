@@ -97,6 +97,7 @@ const requestPost = useRequestPost(store)
 
 const feedUris = ref([
   "at://did:plc:au6x2h2niz27male2krpwmzz/app.bsky.feed.generator/includesWord",
+  "at://did:plc:au6x2h2niz27male2krpwmzz/app.bsky.feed.generator/hashtagTrends",
   "at://did:plc:hiptcrt4k63szzz4ty3dhwcp/app.bsky.feed.generator/ko-images",
   "at://did:plc:hiptcrt4k63szzz4ty3dhwcp/app.bsky.feed.generator/ja-images",
   "at://did:plc:hiptcrt4k63szzz4ty3dhwcp/app.bsky.feed.generator/illusts"])

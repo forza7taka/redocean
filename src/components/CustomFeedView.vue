@@ -16,13 +16,15 @@
       </v-tabs>
     </template>
     <FeedView :feeds="timeline.array" @deletePost="deletePost"></FeedView>
-    <div ref="loading">
-      <v-container class="my-5">
-        <v-row justify="center">
-          <v-progress-circular indeterminate v-if="!completed" model-value="20"></v-progress-circular>
-        </v-row>
-      </v-container>
-    </div>
+    <template v-if="!userSettings || !userSettings.feeds">
+      <div ref="loading">
+        <v-container class="my-5">
+          <v-row justify="center">
+            <v-progress-circular indeterminate v-if="!completed" model-value="20"></v-progress-circular>
+          </v-row>
+        </v-container>
+      </div>
+    </template>
   </div>
 </template>
 
