@@ -1,7 +1,7 @@
 <template>
   <div class="displayArea mx-auto">
 
-    <v-toolbar title="Sync Settings Not Working"></v-toolbar>
+    <v-toolbar title="Sync Settings"></v-toolbar>
     <v-card class="mx-auto pa-4" variant="flat">
       <v-card-subtitle>
         <v-card-actions>
