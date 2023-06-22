@@ -169,6 +169,19 @@ const menuItems = ref([
     login: true
   },
   {
+    icon: "mdi-link-variant-plus",
+    name: "sync",
+    link: "/sync",
+    login: false
+  },
+  {
+    icon: "mdi-semantic-web",
+    name: "FunctionDescription",
+    link: "/functionDescription",
+    login: false
+  },
+
+  {
     icon: "mdi-shield-account",
     name: "PrivacyPolicy",
     link: "/privacypolicy",
