@@ -6,9 +6,9 @@
           icon><v-icon>mdi-playlist-check</v-icon></v-btn>
       </v-card-text>
     </v-card>
-    <template v-if="userSettings && userSettings.feeds">
+    <template v-if="subscribedFeeds">
       <v-tabs v-model="tab">
-        <div v-for="(f, index) in userSettings.feeds" :key="index" :value=index>
+        <div v-for="(f, index) in subscribedFeeds" :key="index" :value=index>
           <v-tab :value=index @click="getTimeline(f)">
             {{ displayNameMap.get(f) }}
           </v-tab>
@@ -36,14 +36,14 @@ import { useStore } from 'vuex'
 import Timeline from '@/common/timeline.js'
 import { useCatchError } from '@/common/catchError';
 import { useRequestGet } from "@/common/requestGet";
-import { useStorage } from '@vueuse/core'
-import { useSettings } from '@/common/settings'
-import { Setting } from "@/common/setting"
+// import { useStorage } from '@vueuse/core'
+// import { useSettings } from '@/common/settings'
+// import { Setting } from "@/common/setting"
 
-const settings = ref(new Setting())
-useStorage('redocean', settings)
-const settingsManager = useSettings(settings.value)
-const userSettings = ref(null)
+// const settings = ref(new Setting())
+// useStorage('redocean', settings)
+// const settingsManager = useSettings(settings.value)
+// const userSettings = ref(null)
 
 const completed = ref(false)
 const cursor = ref(null)
@@ -58,11 +58,22 @@ const tab = ref(0)
 
 const displayNameMap = ref(new Map())
 
+const subscribedFeeds = ref(new Array())
+
 const deletePost = async (uri) => {
   timeline.value.delete(uri)
 }
 onBeforeMount(async () => {
-  userSettings.value = await settingsManager.getUser(store.getters.getDid, store.getters.getHandle)
+  const res = await requestGet.get("app.bsky.actor.getPreferences")
+  for (let i = 0; i < res.res.preferences.length; i++) {
+    const preferences = res.res.preferences[i]
+    if (preferences.$type == "app.bsky.actor.defs#savedFeedsPref") {
+      subscribedFeeds.value = preferences.saved
+    }
+  }
+
+
+  // userSettings.value = await settingsManager.getUser(store.getters.getDid, store.getters.getHandle)
   await getFeedGenerators()
   const uri = await getUri(tab.value)
   await getTimeline(uri)
@@ -82,24 +93,24 @@ useIntersectionObserver(
 )
 
 const getUri = async (index) => {
-  if (!userSettings.value.feeds) {
+  if (!subscribedFeeds.value) {
     return null
   }
-  if (userSettings.value.feeds.length == 0) {
+  if (subscribedFeeds.value.length == 0) {
     return null
   }
-  return userSettings.value.feeds[index]
+  return subscribedFeeds.value[index]
 }
 
 const getFeedGenerators = async () => {
   try {
-    if (!userSettings.value.feeds) {
+    if (!subscribedFeeds.value) {
       return
     }
-    if (userSettings.value.feeds.length == 0) {
+    if (subscribedFeeds.value.length == 0) {
       return
     }
-    const params = { feeds: userSettings.value.feeds }
+    const params = { feeds: subscribedFeeds.value }
     const response = await requestGet.get("app.bsky.feed.getFeedGenerators", params)
 
     feeds.value = response.res.feeds

@@ -16,6 +16,17 @@
                     <v-icon>mdi-playlist-check</v-icon>
                   </v-btn>
                 </template>
+                <template v-if="!pinnedFeeds.includes(f.uri)">
+                  <v-btn icon @click="pinned(f.uri)">
+                    <v-icon>mdi-pin-outline</v-icon>
+                  </v-btn>
+                </template>
+                <template v-else>
+                  <v-btn icon @click="unPinned(f.uri)" color="blue">
+                    <v-icon>mdi-pin-outline</v-icon>
+                  </v-btn>
+                </template>
+
                 <v-avatar size="75" rounded="0">
                   <v-img v-bind:src="f.avatar" alt="avatar" cover class="rounded-xl"></v-img>
                 </v-avatar>
@@ -70,26 +81,11 @@
 </template>
 
 <script setup>
-import { ref, onBeforeMount, onUnmounted, watch } from 'vue'
+import { ref, onBeforeMount, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useCatchError } from '@/common/catchError'
 import { useRequestGet } from "@/common/requestGet"
 import { useRequestPost } from "@/common/requestPost"
-import { useStorage } from '@vueuse/core'
-import { useRoute } from 'vue-router'
-import { useSettings } from '@/common/settings'
-import { useParseSettings } from "@/common/parseSettings"
-import { Setting } from "@/common/setting"
-
-const parseSettings = useParseSettings()
-
-const route = useRoute()
-
-const settings = ref(new Setting())
-
-const storageSettings = useStorage('redocean', settings)
-const settingsManager = useSettings(settings.value)
-const userSettings = ref(null)
 
 const store = useStore()
 const requestGet = useRequestGet(store)
@@ -105,18 +101,23 @@ const feedUris = ref([
 const feeds = ref(new Array())
 
 const subscribedFeeds = ref(new Array())
+const pinnedFeeds = ref(new Array())
+
+let preferences = null
 
 onBeforeMount(async () => {
-  userSettings.value = await settingsManager.getUser(route.params.did, route.params.handle)
-  if (userSettings.value.feeds) {
-    subscribedFeeds.value = userSettings.value.feeds
+  const res = await requestGet.get("app.bsky.actor.getPreferences")
+  preferences = res.res.preferences
+  for (let i = 0; i < res.res.preferences.length; i++) {
+    const preferences = res.res.preferences[i]
+    if (preferences.$type == "app.bsky.actor.defs#savedFeedsPref") {
+      subscribedFeeds.value = preferences.saved
+      pinnedFeeds.value = preferences.pinned
+    }
   }
   await getFeedGenerators()
 });
 
-onUnmounted(async () => {
-  parseSettings.upload()
-})
 
 const subscribe = async (uri) => {
   if (!subscribedFeeds.value.includes(uri)) {
@@ -129,6 +130,21 @@ const unSubscribe = async (uri) => {
     const feedUri = subscribedFeeds.value[i]
     if (uri == feedUri) {
       subscribedFeeds.value.splice(i, 1)
+    }
+  }
+}
+
+const pinned = async (uri) => {
+  if (!pinnedFeeds.value.includes(uri)) {
+    pinnedFeeds.value.push(uri)
+  }
+}
+
+const unPinned = async (uri) => {
+  for (let i = 0; i < pinnedFeeds.value.length; i++) {
+    const feedUri = pinnedFeeds.value[i]
+    if (uri == feedUri) {
+      pinnedFeeds.value.splice(i, 1)
     }
   }
 }
@@ -189,13 +205,15 @@ const getFeedGenerators = async () => {
   }
 }
 
-watch(() => subscribedFeeds, () => {
-  for (let i = 0; i < settings.value.users.length; i++) {
-    const user = settings.value.users[i]
-    if (route.params.did == user.did) {
-      storageSettings.value.users[i].feeds = subscribedFeeds.value
+watch(() => [subscribedFeeds, pinnedFeeds], async () => {
+  for (let i = 0; i < preferences.length; i++) {
+    if (preferences[i].$type == "app.bsky.actor.defs#savedFeedsPref") {
+      preferences[i].saved = subscribedFeeds.value
+      preferences[i].pinned = pinnedFeeds.value
     }
   }
+  const param = { preferences: preferences }
+  await requestPost.post("app.bsky.actor.putPreferences", param)
 }, { deep: true }
 );
 
