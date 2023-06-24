@@ -25,10 +25,11 @@ import { trackRouter } from "vue-gtag-next";
 import Sync from "@/components/SyncView.vue"
 import CustomFeedList from "@/components/CustomFeedListView"
 import AccountSettingsMuteWords from '@/components/AccountSettingsMuteWordsView'
+import Dsescription from '@/components/DsescriptionView'
 import Home from '@/components/HomeView'
 const routes = [
   {
-    path: '/login',
+    path: '/',
     name: 'login',
     component: Login
   },
@@ -184,8 +185,8 @@ const routes = [
     component: Sync
   },
   {
-    path: '/',
-    name: 'home',
+    path: '/home',
+    name: 'Home',
     component: Home
   },
   {
@@ -197,6 +198,11 @@ const routes = [
     path: '/accountSettingsMuteWords/:did/:handle',
     name: 'accountSettingsMuteWords',
     component: AccountSettingsMuteWords
+  },
+  {
+    path: '/dsescription',
+    name: 'dsescription',
+    component: Dsescription
   }
 ];
 
