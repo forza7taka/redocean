@@ -164,21 +164,6 @@ const update = async () => {
   await requestPost.post("app.bsky.actor.putPreferences", { preferences: response.res.preferences })
 }
 
-const pinned = async (uri) => {
-  if (!pinnedFeeds.value.includes(uri)) {
-    pinnedFeeds.value.push(uri)
-  }
-}
-
-const unPinned = async (uri) => {
-  for (let i = 0; i < pinnedFeeds.value.length; i++) {
-    const feedUri = pinnedFeeds.value[i]
-    if (uri == feedUri) {
-      pinnedFeeds.value.splice(i, 1)
-    }
-  }
-}
-
 const like = async (feed) => {
   try {
     if (!store.getters.hasLike(feed.uri)) {
@@ -236,14 +221,7 @@ const getFeedGenerators = async () => {
 }
 
 watch(() => [subscribedFeeds, pinnedFeeds], async () => {
-  for (let i = 0; i < preferences.length; i++) {
-    if (preferences[i].$type == "app.bsky.actor.defs#savedFeedsPref") {
-      preferences[i].saved = subscribedFeeds.value
-      preferences[i].pinned = pinnedFeeds.value
-    }
-  }
-  const param = { preferences: preferences }
-  await requestPost.post("app.bsky.actor.putPreferences", param)
+  update()
 }, { deep: true }
 );
 
