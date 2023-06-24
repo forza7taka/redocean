@@ -80,20 +80,11 @@
 </template>
 
 <script setup>
-import { ref, onBeforeMount, onUnmounted } from 'vue'
+import { ref, onBeforeMount, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useCatchError } from '@/common/catchError'
 import { useRequestGet } from "@/common/requestGet"
 import { useRequestPost } from "@/common/requestPost"
-// import { useRoute } from 'vue-router'
-import { useParseSettings } from "@/common/parseSettings"
-// import { Setting } from "@/common/setting"
-
-const parseSettings = useParseSettings()
-
-// const route = useRoute()
-
-// const settings = ref(new Setting())
 
 const store = useStore()
 const requestGet = useRequestGet(store)
@@ -125,9 +116,6 @@ onBeforeMount(async () => {
   await getFeedGenerators()
 });
 
-onUnmounted(async () => {
-  parseSettings.upload()
-})
 
 const subscribe = async (uri) => {
   if (!subscribedFeeds.value.includes(uri)) {
@@ -174,6 +162,21 @@ const update = async () => {
     }
   }
   await requestPost.post("app.bsky.actor.putPreferences", { preferences: response.res.preferences })
+}
+
+const pinned = async (uri) => {
+  if (!pinnedFeeds.value.includes(uri)) {
+    pinnedFeeds.value.push(uri)
+  }
+}
+
+const unPinned = async (uri) => {
+  for (let i = 0; i < pinnedFeeds.value.length; i++) {
+    const feedUri = pinnedFeeds.value[i]
+    if (uri == feedUri) {
+      pinnedFeeds.value.splice(i, 1)
+    }
+  }
 }
 
 const like = async (feed) => {
@@ -232,13 +235,16 @@ const getFeedGenerators = async () => {
   }
 }
 
-// watch(() => [subscribedFeeds, pinnedFeeds], async () => {
-//   for (let i = 0; i < settings.value.users.length; i++) {
-//     const user = settings.value.users[i]
-//     if (route.params.did == user.did) {
-//     }
-//   }
-// }, { deep: true }
-// );
+watch(() => [subscribedFeeds, pinnedFeeds], async () => {
+  for (let i = 0; i < preferences.length; i++) {
+    if (preferences[i].$type == "app.bsky.actor.defs#savedFeedsPref") {
+      preferences[i].saved = subscribedFeeds.value
+      preferences[i].pinned = pinnedFeeds.value
+    }
+  }
+  const param = { preferences: preferences }
+  await requestPost.post("app.bsky.actor.putPreferences", param)
+}, { deep: true }
+);
 
 </script>
