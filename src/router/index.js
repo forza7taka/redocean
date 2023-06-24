@@ -26,9 +26,10 @@ import Sync from "@/components/SyncView.vue"
 import CustomFeedList from "@/components/CustomFeedListView"
 import AccountSettingsMuteWords from '@/components/AccountSettingsMuteWordsView'
 import Dsescription from '@/components/DsescriptionView'
+import Home from '@/components/HomeView'
 const routes = [
   {
-    path: '/login',
+    path: '/',
     name: 'login',
     component: Login
   },
@@ -184,9 +185,9 @@ const routes = [
     component: Sync
   },
   {
-    path: '/',
-    name: 'login',
-    component: Login
+    path: '/home',
+    name: 'Home',
+    component: Home
   },
   {
     path: '/customFeedList/:did/:handle',
@@ -202,7 +203,7 @@ const routes = [
     path: '/dsescription',
     name: 'dsescription',
     component: Dsescription
-  },
+  }
 ];
 
 const router = createRouter({

@@ -3,6 +3,7 @@ module.exports = defineConfig({
   configureWebpack: {
     devtool: 'source-map'
   },
+  runtimeCompiler: true,
   pluginOptions: {
     vuetify: {
       // https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vuetify-loader

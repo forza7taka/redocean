@@ -2,11 +2,11 @@
   <template v-if="defProps.post && !isFilter">
     <v-card :class="['mx-auto mt-5', { 'v-card--depth': depth !== 0 }]" variant="flat">
       <template v-if="defProps.reason && defProps.reason.by">
-        <v-card-subtitle>Reposted by {{ defProps.reason.by.displayName }}(@{{ defProps.reason.by.handle
+        <v-card-subtitle>{{ $t('post.repostedBy') }} {{ defProps.reason.by.displayName }}(@{{ defProps.reason.by.handle
         }})</v-card-subtitle>
       </template>
       <template v-if="defProps.parent && defProps.parent.author">
-        <v-card-subtitle>Replied to {{ defProps.parent.author.displayName }}(@{{ defProps.parent.author.handle
+        <v-card-subtitle>{{ $t('post.repliedTo') }} {{ defProps.parent.author.displayName }}(@{{ defProps.parent.author.handle
         }})</v-card-subtitle>
       </template>
       <v-card-actions>
@@ -14,14 +14,14 @@
       </v-card-actions>
       <template v-if="warnLabels">
         <v-card-title @click="isWarn = !isWarn">
-          [Warning] {{ warnLabels }}
+          [{{ $t('post.warn') }}] {{ warnLabels }}
         </v-card-title>
       </template>
       <template v-if="!isWarn">
         <template v-if="defProps.post && defProps.post.record && defProps.post.record.text">
           <template v-if="isMuteWord">
             <v-card-title @click="visivleMuteWord = !visivleMuteWord">
-              [Contains MuteWords]
+              [{{$t("post.containsMuteWords")}}]
             </v-card-title>
           </template>
           <template v-if="!visivleMuteWord">
@@ -83,7 +83,7 @@
               <v-card-text class="text-pre-wrap" :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
                 <template v-if="isMuteWordQuote">
                   <v-card-title @click="visivleMuteWordQuote = !visivleMuteWordQuote">
-                    [Contains MuteWords]
+                    [{{$t("post.containsMuteWords")}}]
                   </v-card-title>
                 </template>
                 <template v-if="!visivleMuteWordQuote">
@@ -120,7 +120,7 @@
                   </v-card-actions>
                   <template v-if="isMuteWordQuote">
                     <v-card-title @click="visivleMuteWordQuote = !visivleMuteWordQuote">
-                      [Contains MuteWords]
+                      [{{$t("post.containsMuteWords")}}]
                     </v-card-title>
                   </template>
                   <template v-if="!visivleMuteWordQuote">
@@ -151,10 +151,10 @@
           </template>
           <v-list>
             <v-list-item @click="repost(defProps.post)">
-              <v-icon size="24">mdi-repeat</v-icon>Repost
+              <v-icon size="24">mdi-repeat</v-icon>{{ $t('post.repost') }}
             </v-list-item>
             <v-list-item :to="`/quoteRepost/${encodeURIComponent(defProps.post.uri)}`">
-              <v-icon size="24">mdi-comma-circle-outline</v-icon>Quote Repost
+              <v-icon size="24">mdi-comma-circle-outline</v-icon>{{$t('post.quoteRepost')}}
             </v-list-item>
           </v-list>
         </v-menu>
@@ -180,11 +180,11 @@
           </template>
           <v-list>
             <v-list-item :to="`/reportPost/${encodeURIComponent(defProps.post.uri)}`">
-              <v-icon size="24">mdi-alert-circle-outline</v-icon>Report Post
+              <v-icon size="24">mdi-alert-circle-outline</v-icon>{{ $t('post.reportPost') }}
             </v-list-item>
             <v-list-item v-if="defProps.post.author.handle == store.getters.getHandle"
               @click="deletePost(defProps.post.uri)">
-              <v-icon size="24">mdi-delete</v-icon>Delete
+              <v-icon size="24">mdi-delete</v-icon>{{$t('post.delete')}}
             </v-list-item>
           </v-list>
         </v-menu>

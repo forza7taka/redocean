@@ -133,10 +133,16 @@ const userSettings = ref(null)
 const settingsManager = useSettings(settings.value)
 const menuItems = ref([
   {
+    icon: "mdi-login",
+    name: "Login",
+    link: "/",
+    login: false
+  },
+  {
     icon: "mdi-home",
     name: "Home",
     link: "/",
-    login: false
+    login: true
   },
   {
     icon: "mdi-view-list",
@@ -222,7 +228,6 @@ onMounted(async () => {
       if (!completedFollows.value) {
         await getFollows(followsCursor)
       }
-
       if (!completedLikes.value) {
         await getLikes(likesCursor)
       }
@@ -376,10 +381,8 @@ const getFollows = async (cursor) => {
   try {
     response = await requestGet.get("app.bsky.graph.getFollows", params)
   } catch (e) {
-    if (!(e.response && e.response.status === 400)) {
-      completedReposts.value = true
-      throw e
-    }
+    completedFollows.value = true
+    throw e
   }
   followsCursor.value = response.res.cursor
   if (response.res.follows.length == 0) {
@@ -393,6 +396,8 @@ watch(
   () => store.getters.getDid,
   async () => {
     userSettings.value = await settingsManager.getUser(store.getters.getDid, store.getters.getHandle)
+    followsCursor.value = null
+    completedFollows.value = false    
     likesCursor.value = null
     completedLikes.value = false
     repostsCursor.value = null

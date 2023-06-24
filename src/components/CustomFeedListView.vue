@@ -16,17 +16,16 @@
                     <v-icon>mdi-playlist-check</v-icon>
                   </v-btn>
                 </template>
-                <template v-if="!pinnedFeeds.includes(f.uri)">
-                  <v-btn icon @click="pinned(f.uri)">
-                    <v-icon>mdi-pin-outline</v-icon>
-                  </v-btn>
-                </template>
-                <template v-else>
-                  <v-btn icon @click="unPinned(f.uri)" color="blue">
-                    <v-icon>mdi-pin-outline</v-icon>
-                  </v-btn>
-                </template>
-
+                  <template v-if="!pinnedFeeds.includes(f.uri)">
+                    <v-btn icon @click="pinned(f.uri)">
+                      <v-icon>mdi-pin-outline</v-icon>
+                    </v-btn>
+                  </template>
+                  <template v-else>
+                    <v-btn icon @click="unPinned(f.uri)" color="blue">
+                      <v-icon>mdi-pin-outline</v-icon>
+                    </v-btn>
+                  </template>
                 <v-avatar size="75" rounded="0">
                   <v-img v-bind:src="f.avatar" alt="avatar" cover class="rounded-xl"></v-img>
                 </v-avatar>
@@ -92,6 +91,7 @@ const requestGet = useRequestGet(store)
 const requestPost = useRequestPost(store)
 
 const feedUris = ref([
+  "at://did:plc:au6x2h2niz27male2krpwmzz/app.bsky.feed.generator/hashtagTrends",  
   "at://did:plc:au6x2h2niz27male2krpwmzz/app.bsky.feed.generator/includesWord",
   "at://did:plc:au6x2h2niz27male2krpwmzz/app.bsky.feed.generator/hashtagTrends",
   "at://did:plc:hiptcrt4k63szzz4ty3dhwcp/app.bsky.feed.generator/ko-images",
@@ -103,16 +103,14 @@ const feeds = ref(new Array())
 const subscribedFeeds = ref(new Array())
 const pinnedFeeds = ref(new Array())
 
-let preferences = null
-
 onBeforeMount(async () => {
-  const res = await requestGet.get("app.bsky.actor.getPreferences")
-  preferences = res.res.preferences
-  for (let i = 0; i < res.res.preferences.length; i++) {
-    const preferences = res.res.preferences[i]
-    if (preferences.$type == "app.bsky.actor.defs#savedFeedsPref") {
-      subscribedFeeds.value = preferences.saved
-      pinnedFeeds.value = preferences.pinned
+  const response = await requestGet.get("app.bsky.actor.getPreferences")
+  for (let i = 0; i < response.res.preferences.length; i++) {
+    const preference = response.res.preferences[i]
+    if (preference.$type == "app.bsky.actor.defs#savedFeedsPref") {
+      subscribedFeeds.value = preference.saved
+      pinnedFeeds.value = preference.pinned
+      break
     }
   }
   await getFeedGenerators()
@@ -123,6 +121,7 @@ const subscribe = async (uri) => {
   if (!subscribedFeeds.value.includes(uri)) {
     subscribedFeeds.value.push(uri)
   }
+  update()
 }
 
 const unSubscribe = async (uri) => {
@@ -132,6 +131,37 @@ const unSubscribe = async (uri) => {
       subscribedFeeds.value.splice(i, 1)
     }
   }
+  update()
+}
+
+const pinned = async (uri) => {
+  if (!pinnedFeeds.value.includes(uri)) {
+    pinnedFeeds.value.push(uri)
+  }
+  update()
+}
+
+const unPinned = async (uri) => {
+  for (let i = 0; i < pinnedFeeds.value.length; i++) {
+    const feedUri = pinnedFeeds.value[i]
+    if (uri == feedUri) {
+      pinnedFeeds.value.splice(i, 1)
+    }
+  }
+  update()
+}
+
+
+const update = async () => {
+  const response = await requestGet.get("app.bsky.actor.getPreferences")
+  for (let i = 0; i < response.res.preferences.length; i++) {
+    if (response.res.preferences[i].$type == "app.bsky.actor.defs#savedFeedsPref") {
+      response.res.preferences[i].saved = subscribedFeeds.value
+      response.res.preferences[i].pinned = pinnedFeeds.value
+      break
+    }
+  }
+  await requestPost.post("app.bsky.actor.putPreferences", { preferences: response.res.preferences })
 }
 
 const pinned = async (uri) => {

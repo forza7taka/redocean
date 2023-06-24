@@ -1,47 +1,36 @@
 <template>
   <div class="displayArea mx-auto">
-    <v-toolbar title="Likes"></v-toolbar>
-    <div v-for="(f, fIndex) in timeline.array" :key="fIndex">
-      <v-list-item>
-        <v-row>
-          <v-col class="justify-center align-center">
-            <PostView v-if="f.reply" :post="f.post" :reason="f.reason" :parent="f.reply.parent" :root="f.reply.root"
-              :depth="0" @deletePost="deletePost"></PostView>
-            <PostView v-if="!f.reply" :post="f.post" :reason="f.reason" :depth="0" @deletePost="deletePost"></PostView>
-          </v-col>
-        </v-row>
-      </v-list-item>
-    </div>
-    <div ref="loading">
-      <v-container class="my-5">
-        <v-row justify="center">
-          <v-progress-circular indeterminate v-if="!completed" model-value="20"></v-progress-circular>
-        </v-row>
-      </v-container>
-    </div>
+         <v-card class="mx-auto mt-5" variant="flat">
+            <v-card-actions>
+              <v-list-item class="w-100">
+            <template v-slot:prepend>
+                  <div style="padding-right: 10px">
+                    <router-link :to="`/profile/${f.handle}`">
+                      <v-avatar color="surface-variant">
+                        <v-img cover v-bind:src=f.avatar alt="avatar"></v-img>
+                      </v-avatar>
+                    </router-link>
+                  </div>
+                </template>
 
-
-    <!-- <v-list-item v-for="(f, fIndex) in timeline.array" :key="fIndex">
-      <v-row>
-        <v-col class="d-flex justify-center align-center">
-          <PostView v-if="f.reply" :post="f.post" :reason="f.reason" :parent="f.reply.parent" :root="f.reply.root"
-            :depth="0" @deletePost="deletePost"></PostView>
-          <PostView v-if="!f.reply" :post="f.post" :reason="f.reason" :depth="0" @deletePost="deletePost"></PostView>
-        </v-col>
-      </v-row>
-    </v-list-item> -->
-    <!-- <div ref="loading">
-      <v-container class="my-5">
-        <v-row justify="center">
-          <v-progress-circular indeterminate v-if="!completed" model-value="20"></v-progress-circular>
-        </v-row>
-      </v-container>
-    </div> -->
-  </div>
+                <v-list-item-title>{{ f.displayName }}</v-list-item-title>
+                <v-list-item-subtitle>@{{ f.handle }}</v-list-item-subtitle>
+                <template v-slot:append>
+                  <div class="justify-self-end">
+                    <v-btn v-if="store.getters.getFollows.includes(f.did)"
+                      @click.prevent="unFollow(store.getters.getDid, f.did)"
+                      icon><v-icon>mdi-account-remove</v-icon></v-btn>
+                    <v-btn v-if="!store.getters.getFollows.includes(f.did)" @click.prevent="follow(f.did)"
+                      icon><v-icon>mdi-account-check</v-icon></v-btn>
+                  </div>
+                </template>
+              </v-list-item>
+            </v-card-actions>
+          </v-card>
+</div>
 </template>
 
 <script setup>
-import PostView from "./PostView.vue"
 import { ref, watch, onBeforeMount, onUnmounted } from 'vue'
 import { useStore } from 'vuex'
 import { useRequestGet } from '../common/requestGet.js'
@@ -64,9 +53,6 @@ const handle = ref(null)
 const loading = ref(null)
 const loadingCount = ref(0)
 
-const deletePost = async (uri) => {
-  timeline.value.delete(uri)
-}
 
 onBeforeMount(async () => {
   if (historyState.action === 'reload') {
