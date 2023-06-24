@@ -25,6 +25,7 @@ import { trackRouter } from "vue-gtag-next";
 import Sync from "@/components/SyncView.vue"
 import CustomFeedList from "@/components/CustomFeedListView"
 import AccountSettingsMuteWords from '@/components/AccountSettingsMuteWordsView'
+import Home from '@/components/HomeView'
 const routes = [
   {
     path: '/login',
@@ -184,8 +185,8 @@ const routes = [
   },
   {
     path: '/',
-    name: 'login',
-    component: Login
+    name: 'home',
+    component: Home
   },
   {
     path: '/customFeedList/:did/:handle',

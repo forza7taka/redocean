@@ -13,7 +13,15 @@ import HistoryStatePlugin from 'vue-history-state'
 import './registerServiceWorker'
 // import qs from 'qs'
 import urlJoin from 'url-join'
+import { createI18n } from 'vue-i18n';
+import messages from '@/lang/message';
+
 loadFonts()
+
+const i18n = createI18n({
+  locale: 'en',
+  messages,
+});
 
 createApp(App)
   .use(router)
@@ -24,6 +32,7 @@ createApp(App)
   .use(toaster)
   .use(HistoryStatePlugin, {/* optional options */ })
   .component("infinite-loading", infiniteLoading)
+  .use(i18n)
   .mount('#app')
 
 axios.interceptors.request.use(

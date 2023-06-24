@@ -1,7 +1,7 @@
 <template>
   <div class="displayArea mx-auto">
 
-    <v-toolbar title="Sync Settings Not Working"></v-toolbar>
+    <v-toolbar :title="$t('sync.syncSettings')"></v-toolbar>
     <v-card class="mx-auto pa-4" variant="flat">
       <v-card-subtitle>
         <v-card-actions>
@@ -15,13 +15,13 @@
           <template v-else>
             <v-badge offset-x="36" offset-y="40" color="transparent" class="ma-3">
               <template #badge>
-                <span>upload</span>
+                <span>{{ $t('sync.upload')}}</span>
               </template>
               <v-btn @click.prevent="parseSettings.upload()" icon><v-icon>mdi-upload</v-icon></v-btn>
             </v-badge>
             <v-badge offset-x="45" offset-y="40" color="transparent" class="ma-3">
               <template #badge>
-                <span>download</span>
+                <span>{{ $t('sync.download' ) }}</span>
               </template>
               <v-btn @click.prevent="parseSettings.download()" icon><v-icon>mdi-download</v-icon></v-btn>
             </v-badge>

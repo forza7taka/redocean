@@ -1,6 +1,6 @@
 <template>
   <div class="displayArea mx-auto">
-    <v-toolbar title="Notifications"></v-toolbar>
+    <v-toolbar :title="$t('notification.notification')"></v-toolbar>
     <v-list v-if="notifications">
       <v-list-item v-for="(n, nIndex) in notifications.array" :key="nIndex">
         <v-card v-if="!store.getters.getMutes.includes(n.author.did)" class="mx-auto mt-5" variant="flat">

@@ -92,6 +92,9 @@ export function useParseSettings() {
             }
             for (let j = 0; j < u.labels.length; j++) {
                 const label = u.labels[j]
+                if (label.name) {
+                    continue
+                }
                 const labelsSetting = new LabelsSetting();
                 labelsSetting.setACL(new Parse.ACL(Parse.User.current()));
                 labelsSetting.set("did", u.did)

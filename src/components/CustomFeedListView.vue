@@ -16,6 +16,16 @@
                     <v-icon>mdi-playlist-check</v-icon>
                   </v-btn>
                 </template>
+                  <template v-if="!pinnedFeeds.includes(f.uri)">
+                    <v-btn icon @click="pinned(f.uri)">
+                      <v-icon>mdi-pin-outline</v-icon>
+                    </v-btn>
+                  </template>
+                  <template v-else>
+                    <v-btn icon @click="unPinned(f.uri)" color="blue">
+                      <v-icon>mdi-pin-outline</v-icon>
+                    </v-btn>
+                  </template>
                 <v-avatar size="75" rounded="0">
                   <v-img v-bind:src="f.avatar" alt="avatar" cover class="rounded-xl"></v-img>
                 </v-avatar>
@@ -70,32 +80,27 @@
 </template>
 
 <script setup>
-import { ref, onBeforeMount, onUnmounted, watch } from 'vue'
+import { ref, onBeforeMount, onUnmounted } from 'vue'
 import { useStore } from 'vuex'
 import { useCatchError } from '@/common/catchError'
 import { useRequestGet } from "@/common/requestGet"
 import { useRequestPost } from "@/common/requestPost"
-import { useStorage } from '@vueuse/core'
-import { useRoute } from 'vue-router'
-import { useSettings } from '@/common/settings'
+// import { useRoute } from 'vue-router'
 import { useParseSettings } from "@/common/parseSettings"
-import { Setting } from "@/common/setting"
+// import { Setting } from "@/common/setting"
 
 const parseSettings = useParseSettings()
 
-const route = useRoute()
+// const route = useRoute()
 
-const settings = ref(new Setting())
-
-const storageSettings = useStorage('redocean', settings)
-const settingsManager = useSettings(settings.value)
-const userSettings = ref(null)
+// const settings = ref(new Setting())
 
 const store = useStore()
 const requestGet = useRequestGet(store)
 const requestPost = useRequestPost(store)
 
 const feedUris = ref([
+  "at://did:plc:au6x2h2niz27male2krpwmzz/app.bsky.feed.generator/hashtagTrends",  
   "at://did:plc:au6x2h2niz27male2krpwmzz/app.bsky.feed.generator/includesWord",
   "at://did:plc:hiptcrt4k63szzz4ty3dhwcp/app.bsky.feed.generator/ko-images",
   "at://did:plc:hiptcrt4k63szzz4ty3dhwcp/app.bsky.feed.generator/ja-images",
@@ -104,11 +109,17 @@ const feedUris = ref([
 const feeds = ref(new Array())
 
 const subscribedFeeds = ref(new Array())
+const pinnedFeeds = ref(new Array())
 
 onBeforeMount(async () => {
-  userSettings.value = await settingsManager.getUser(route.params.did, route.params.handle)
-  if (userSettings.value.feeds) {
-    subscribedFeeds.value = userSettings.value.feeds
+  const response = await requestGet.get("app.bsky.actor.getPreferences")
+  for (let i = 0; i < response.res.preferences.length; i++) {
+    const preference = response.res.preferences[i]
+    if (preference.$type == "app.bsky.actor.defs#savedFeedsPref") {
+      subscribedFeeds.value = preference.saved
+      pinnedFeeds.value = preference.pinned
+      break
+    }
   }
   await getFeedGenerators()
 });
@@ -121,6 +132,7 @@ const subscribe = async (uri) => {
   if (!subscribedFeeds.value.includes(uri)) {
     subscribedFeeds.value.push(uri)
   }
+  update()
 }
 
 const unSubscribe = async (uri) => {
@@ -130,6 +142,37 @@ const unSubscribe = async (uri) => {
       subscribedFeeds.value.splice(i, 1)
     }
   }
+  update()
+}
+
+const pinned = async (uri) => {
+  if (!pinnedFeeds.value.includes(uri)) {
+    pinnedFeeds.value.push(uri)
+  }
+  update()
+}
+
+const unPinned = async (uri) => {
+  for (let i = 0; i < pinnedFeeds.value.length; i++) {
+    const feedUri = pinnedFeeds.value[i]
+    if (uri == feedUri) {
+      pinnedFeeds.value.splice(i, 1)
+    }
+  }
+  update()
+}
+
+
+const update = async () => {
+  const response = await requestGet.get("app.bsky.actor.getPreferences")
+  for (let i = 0; i < response.res.preferences.length; i++) {
+    if (response.res.preferences[i].$type == "app.bsky.actor.defs#savedFeedsPref") {
+      response.res.preferences[i].saved = subscribedFeeds.value
+      response.res.preferences[i].pinned = pinnedFeeds.value
+      break
+    }
+  }
+  await requestPost.post("app.bsky.actor.putPreferences", { preferences: response.res.preferences })
 }
 
 const like = async (feed) => {
@@ -188,14 +231,13 @@ const getFeedGenerators = async () => {
   }
 }
 
-watch(() => subscribedFeeds, () => {
-  for (let i = 0; i < settings.value.users.length; i++) {
-    const user = settings.value.users[i]
-    if (route.params.did == user.did) {
-      storageSettings.value.users[i].feeds = subscribedFeeds.value
-    }
-  }
-}, { deep: true }
-);
+// watch(() => [subscribedFeeds, pinnedFeeds], async () => {
+//   for (let i = 0; i < settings.value.users.length; i++) {
+//     const user = settings.value.users[i]
+//     if (route.params.did == user.did) {
+//     }
+//   }
+// }, { deep: true }
+// );
 
 </script>

@@ -133,6 +133,12 @@ const userSettings = ref(null)
 const settingsManager = useSettings(settings.value)
 const menuItems = ref([
   {
+    icon: "mdi-login",
+    name: "Login",
+    link: "/Login",
+    login: false
+  },
+  {
     icon: "mdi-home",
     name: "Home",
     link: "/",
@@ -377,6 +383,8 @@ watch(
   () => store.getters.getDid,
   async () => {
     userSettings.value = await settingsManager.getUser(store.getters.getDid, store.getters.getHandle)
+    followsCursor.value = null
+    completedFollows.value = false    
     likesCursor.value = null
     completedLikes.value = false
     repostsCursor.value = null

@@ -1,5 +1,5 @@
 <template>
-  <div class="displayArea">
+  <div class="displayArea mx-auto">
     <v-card>
       <v-card-text>
         <v-tabs v-model="tab">
@@ -33,12 +33,12 @@
               <v-window-item :value=index>
                 <v-card class="mx-auto pa-4">
                   <v-combobox v-model="l.server"
-                    :items="['https://bsky.social', 'https://boobee.blue', 'https://redocean.one']" label="server"
+                    :items="['https://bsky.social', 'https://boobee.blue', 'https://redocean.one']" :label="$t('login.server')"
                     placeholder="https://bsky.social" color="green darken-5" clearable dense
                     variant="outlined"></v-combobox>
                   <v-text-field label="xxxx.bsky.social" placeholder="xxxx.bsky.social" color="green darken-5" clearable
                     dense v-model="l.handle" variant="outlined"></v-text-field>
-                  <v-text-field label="app password" placeholder="app password" color="green darken-5" clearable dense
+                  <v-text-field :label="$t('login.appPassword')" placeholder="app password" color="green darken-5" clearable dense
                     type="password" v-model="l.password" :rules="AppPasswordRules" variant="outlined"></v-text-field>
                   <br>
                   <v-btn @click.prevent="login(index, l.server, l.handle, l.password)" icon="mdi-login" size="42"
@@ -72,6 +72,7 @@ import { useCatchError } from '@/common/catchError';
 import { useSettings } from '@/common/settings'
 import { useParseSettings } from "@/common/parseSettings"
 import { Setting } from "@/common/setting"
+
 const parseSettings = useParseSettings()
 
 const tab = ref(null)

@@ -1,20 +1,24 @@
 <template>
   <div class="displayArea mx-auto">
-    <v-toolbar title="Settings"></v-toolbar>
+    <v-toolbar :title="$t('settings.settings')"></v-toolbar>
     <v-card>
+        <!-- <v-card-text>
+          <v-combobox v-model="i18n.locale" :items="['ja', 'en']" :label="$t('settings.language')" placeholder="en"
+              color="green darken-5" clearable dense variant="outlined"></v-combobox>
+        </v-card-text> -->
       <v-card-text>
-        <v-text-field label="Google Cloud Translation API Key" color="green darken-5" clearable dense
+        <v-text-field :label="$t('settings.GoogleCloudTranslationAPIKey')" color="green darken-5" clearable dense
           v-model="settings.translationApiKey" variant="outlined"></v-text-field>
-        <v-combobox v-model="settings.translationLang" :items="['ja', 'en']" label="language" placeholder="en"
+        <v-combobox v-model="settings.translationLang" :items="['ja', 'en']" :label="$t('settings.language')" placeholder="en"
           color="green darken-5" clearable dense variant="outlined"></v-combobox>
       </v-card-text>
       <v-card-text>
-        Dominant Hand
+        {{$t('settings.dominantHand') }}
         <template v-if="settings.handed">
-          <v-switch v-model="settings.handed" label="Right-handed"></v-switch>
+          <v-switch v-model="settings.handed" :label="$t('settings.rightHanded')"></v-switch>
         </template>
         <template v-else>
-          <v-switch v-model="settings.handed" label="Left-handed"></v-switch>
+          <v-switch v-model="settings.handed" :label="$t('settings.leftHanded')"></v-switch>
         </template>
       </v-card-text>
     </v-card>
