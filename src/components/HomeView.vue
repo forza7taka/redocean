@@ -56,8 +56,9 @@ const pinnedFeeds = ref(new Array())
 const deletePost = async (uri) => {
   timeline.value.delete(uri)
 }
+
 onBeforeMount(async () => {
-  
+
   const res = await requestGet.get("app.bsky.actor.getPreferences")
   for (let i = 0; i < res.res.preferences.length; i++) {
     const preference = res.res.preferences[i]
@@ -67,38 +68,49 @@ onBeforeMount(async () => {
       break
     }
   }
-  
+
   await getFeedGenerators()
-  const uri = await getUri(tab.value)
 
   if (historyState.action === 'reload') {
+    tab.value = await getIndex(historyState.data.uri)
     timeline.value = new Timeline()
+    const uri = historyState.data.uri
     await getTimeline(uri)
     return
   }
+
   if (historyState.action === 'back' || historyState.action === 'forward') {
     if (historyState.action === 'back' && (historyState.getItems()[historyState.page + 1].item[1].name == 'post')) {
+      const uri = historyState.data.uri
+      tab.value = await getIndex(uri)
       await getTimeline(uri)
     }
-    tab.value = historyState.data.index
-    timeline.value.setArray(Object.values(historyState.data.timeline))
+    for (let i = 0; i < pinnedFeeds.value.length; i++) {
+      if (historyState.data == pinnedFeeds.value[i])  {
+        break;
+      }
+    }
+    const uri = historyState.data.uri
+    tab.value = await getIndex(uri)
+    await timeline.value.setArray(Object.values(historyState.data.timeline))
+    window.moveTo(0, await historyState.getItems()[historyState.page].item[3].window.top) 
     return
   }
-  await getTimeline(uri)  
+  tab.value = 0
+  await getTimeline(null)  
 });
 
 onBackupState(() => ({
   timeline: timeline.value.array,
-  index: tab.value,
+  uri: pinnedFeeds.value[tab.value],
 }));
+
 useIntersectionObserver(
   loading,
   async ([{ isIntersecting }]) => {
     if (isIntersecting && !completed.value && loadingCount.value != 0) {
-      console.log(tab.value)
       const uri = await getUri(tab.value)
       await getTimeline(uri, cursor)
-      console.log(uri)
     }
     loadingCount.value = loadingCount.value + 1
   }
@@ -112,6 +124,21 @@ const getUri = async (index) => {
     return null
   }
   return pinnedFeeds.value[index]
+}
+
+const getIndex = async (uri) => {
+  if (!pinnedFeeds.value) {
+    return 0
+  }
+  if (pinnedFeeds.value.length == 0) {
+    return 0
+  }
+  for (let i = 0; i < pinnedFeeds.value.length; i++) {
+    if (uri == pinnedFeeds.value[i]) {
+      return i
+    }
+  }
+  return 0
 }
 
 const getFeedGenerators = async () => {
@@ -166,10 +193,11 @@ const getTimeline = async (uri, cur) => {
   }
 }
 
-watch(() => tab, () => {
+watch(async () =>  tab, () => {
   completed.value = false
   timeline.value = new Timeline()
   cursor.value = null
+  loadingCount.value =0
 }, { deep: true }
 );
 
