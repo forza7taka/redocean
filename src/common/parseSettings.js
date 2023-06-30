@@ -49,6 +49,7 @@ export function useParseSettings() {
                 accountSetting = new AccountSetting();
             }
             accountSetting.setACL(new Parse.ACL(Parse.User.current()));
+            accountSetting.set("index", i)
             accountSetting.set("server", u.server)
             accountSetting.set("did", u.did)
             accountSetting.set("handle", u.handle)
@@ -105,28 +106,28 @@ export function useParseSettings() {
             }
         }
 
-        const FeedsSetting = Parse.Object.extend("feedsSetting");
-        const feedsSettingQuery = new Parse.Query(FeedsSetting);
-        feedsSettingQuery.equalTo("parent", setting.id);
-        const feedsSettings = await feedsSettingQuery.find();
-        for (let i = 0; i < feedsSettings.length; i++) {
-            feedsSettings[i].destroy();
-        }
-        for (let i = 0; i < settings.value.users.length; i++) {
-            const u = settings.value.users[i]
-            if (!u.feeds) {
-                continue
-            }
-            for (let j = 0; j < u.feeds.length; j++) {
-                const feed = u.feeds[j]
-                const feedsSetting = new FeedsSetting();
-                feedsSetting.setACL(new Parse.ACL(Parse.User.current()));
-                feedsSetting.set("did", u.did)
-                feedsSetting.set("uri", feed)
-                feedsSetting.set("parent", setting);
-                feedsSetting.save()
-            }
-        }
+        // const FeedsSetting = Parse.Object.extend("feedsSetting");
+        // const feedsSettingQuery = new Parse.Query(FeedsSetting);
+        // feedsSettingQuery.equalTo("parent", setting.id);
+        // const feedsSettings = await feedsSettingQuery.find();
+        // for (let i = 0; i < feedsSettings.length; i++) {
+        //     feedsSettings[i].destroy();
+        // }
+        // for (let i = 0; i < settings.value.users.length; i++) {
+        //     const u = settings.value.users[i]
+        //     if (!u.feeds) {
+        //         continue
+        //     }
+        //     for (let j = 0; j < u.feeds.length; j++) {
+        //         const feed = u.feeds[j]
+        //         const feedsSetting = new FeedsSetting();
+        //         feedsSetting.setACL(new Parse.ACL(Parse.User.current()));
+        //         feedsSetting.set("did", u.did)
+        //         feedsSetting.set("uri", feed)
+        //         feedsSetting.set("parent", setting);
+        //         feedsSetting.save()
+        //     }
+        // }
         const MuteWordsSetting = Parse.Object.extend("muteWordsSetting");
         const muteWordsSettingQuery = new Parse.Query(MuteWordsSetting);
         muteWordsSettingQuery.equalTo("parent", setting.id);
@@ -144,6 +145,7 @@ export function useParseSettings() {
                 const muteWordsSetting = new MuteWordsSetting();
                 muteWordsSetting.setACL(new Parse.ACL(Parse.User.current()));
                 muteWordsSetting.set("did", u.did)
+                muteWordsSetting.set("index", j)
                 muteWordsSetting.set("value", muteWord.value)
                 muteWordsSetting.set("parent", setting);
                 muteWordsSetting.save()
@@ -190,6 +192,7 @@ export function useParseSettings() {
         const AccountSetting = Parse.Object.extend("accountSetting");
         const query2 = new Parse.Query(AccountSetting);
         query2.equalTo("parent", object.id);
+        query2.ascending("index")
         const results2 = await query2.find();
         settings.value.users = []
         for (let i = 0; i < results2.length; i++) {
@@ -226,23 +229,24 @@ export function useParseSettings() {
                 })
             }
         }
-        const FeedsSetting = Parse.Object.extend("feedsSetting");
-        const query4 = new Parse.Query(FeedsSetting);
-        query4.equalTo("parent", object.id);
-        const results4 = await query4.find();
-        for (let i = 0; i < settings.value.users.length; i++) {
-            settings.value.users[i].feeds = []
-            for (let j = 0; j < results4.length; j++) {
-                if (results4[j].get("did") != settings.value.users[i].did) {
-                    continue
-                }
-                settings.value.users[i].labels.push(results4[j].get("uri"))
-            }
-        }
+        // const FeedsSetting = Parse.Object.extend("feedsSetting");
+        // const query4 = new Parse.Query(FeedsSetting);
+        // query4.equalTo("parent", object.id);
+        // const results4 = await query4.find();
+        // for (let i = 0; i < settings.value.users.length; i++) {
+        //     settings.value.users[i].feeds = []
+        //     for (let j = 0; j < results4.length; j++) {
+        //         if (results4[j].get("did") != settings.value.users[i].did) {
+        //             continue
+        //         }
+        //         settings.value.users[i].labels.push(results4[j].get("uri"))
+        //     }
+        // }
 
         const MuteWordsSetting = Parse.Object.extend("muteWordsSetting");
         const query5 = new Parse.Query(MuteWordsSetting);
         query5.equalTo("parent", object.id);
+        query5.ascending("index")
         const results5 = await query5.find();
         for (let i = 0; i < settings.value.users.length; i++) {
             settings.value.users[i].muteWords = []

@@ -16,16 +16,16 @@
                     <v-icon>mdi-playlist-check</v-icon>
                   </v-btn>
                 </template>
-                  <template v-if="!pinnedFeeds.includes(f.uri)">
-                    <v-btn icon @click="pinned(f.uri)">
-                      <v-icon>mdi-pin-outline</v-icon>
-                    </v-btn>
-                  </template>
-                  <template v-else>
-                    <v-btn icon @click="unPinned(f.uri)" color="blue">
-                      <v-icon>mdi-pin-outline</v-icon>
-                    </v-btn>
-                  </template>
+                <template v-if="!pinnedFeeds.includes(f.uri)">
+                  <v-btn icon @click="pinned(f.uri)">
+                    <v-icon>mdi-pin-outline</v-icon>
+                  </v-btn>
+                </template>
+                <template v-else>
+                  <v-btn icon @click="unPinned(f.uri)" color="blue">
+                    <v-icon>mdi-pin-outline</v-icon>
+                  </v-btn>
+                </template>
                 <v-avatar size="75" rounded="0">
                   <v-img v-bind:src="f.avatar" alt="avatar" cover class="rounded-xl"></v-img>
                 </v-avatar>
@@ -91,7 +91,7 @@ const requestGet = useRequestGet(store)
 const requestPost = useRequestPost(store)
 
 const feedUris = ref([
-  "at://did:plc:au6x2h2niz27male2krpwmzz/app.bsky.feed.generator/hashtagTrends",  
+  "at://did:plc:au6x2h2niz27male2krpwmzz/app.bsky.feed.generator/hashtagTrends",
   "at://did:plc:au6x2h2niz27male2krpwmzz/app.bsky.feed.generator/includesWord",
   "at://did:plc:au6x2h2niz27male2krpwmzz/app.bsky.feed.generator/hashtagTrends",
   "at://did:plc:hiptcrt4k63szzz4ty3dhwcp/app.bsky.feed.generator/ko-images",
@@ -161,7 +161,13 @@ const update = async () => {
       break
     }
   }
-  await requestPost.post("app.bsky.actor.putPreferences", { preferences: response.res.preferences })
+  let array = []
+  for (let i = 0; i < 8; i++) {
+    array.push(response.res.preferences[i])
+  }
+
+  await requestPost.post("app.bsky.actor.putPreferences", { preferences: array })
+  //await requestPost.post("app.bsky.actor.putPreferences", { preferences: response.res.preferences })
 }
 
 const like = async (feed) => {

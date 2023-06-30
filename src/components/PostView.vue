@@ -6,7 +6,8 @@
         }})</v-card-subtitle>
       </template>
       <template v-if="defProps.parent && defProps.parent.author">
-        <v-card-subtitle>{{ $t('post.repliedTo') }} {{ defProps.parent.author.displayName }}(@{{ defProps.parent.author.handle
+        <v-card-subtitle>{{ $t('post.repliedTo') }} {{ defProps.parent.author.displayName }}(@{{
+          defProps.parent.author.handle
         }})</v-card-subtitle>
       </template>
       <v-card-actions>
@@ -21,7 +22,7 @@
         <template v-if="defProps.post && defProps.post.record && defProps.post.record.text">
           <template v-if="isMuteWord">
             <v-card-title @click="visivleMuteWord = !visivleMuteWord">
-              [{{$t("post.containsMuteWords")}}]
+              [{{ $t("post.containsMuteWords") }}]
             </v-card-title>
           </template>
           <template v-if="!visivleMuteWord">
@@ -58,12 +59,18 @@
 
         <template v-if="defProps.post.embed && defProps.post.embed.external">
           <template v-if="defProps.post.embed.$type == 'app.bsky.embed.external#view'">
-            <a class="no-underline" :href="defProps.post.embed.external.uri">
+
+            <a class="link" :href="defProps.post.embed.external.uri">
               <v-card class="mx-auto" variant="outlined">
+                <v-card-text class="text-pre-wrap">
+
+                  <v-img v-bind:src=defProps.post.embed.external.thumb class="rounded-xl" alt=""></v-img>
+                </v-card-text>
                 <v-card-text class="text-pre-wrap">
                   <template v-if="defProps.post.embed.external">
                     {{ defProps.post.embed.external.title }}</template>
-                  <v-img v-bind:src=defProps.post.embed.external.thumb class="rounded-xl" alt=""></v-img>
+                </v-card-text>
+                <v-card-text class="text-pre-wrap">
                   <template v-if="defProps.post.embed.external">
                     {{ defProps.post.embed.external.description }}</template>
                 </v-card-text>
@@ -83,7 +90,7 @@
               <v-card-text class="text-pre-wrap" :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
                 <template v-if="isMuteWordQuote">
                   <v-card-title @click="visivleMuteWordQuote = !visivleMuteWordQuote">
-                    [{{$t("post.containsMuteWords")}}]
+                    [{{ $t("post.containsMuteWords") }}]
                   </v-card-title>
                 </template>
                 <template v-if="!visivleMuteWordQuote">
@@ -120,7 +127,7 @@
                   </v-card-actions>
                   <template v-if="isMuteWordQuote">
                     <v-card-title @click="visivleMuteWordQuote = !visivleMuteWordQuote">
-                      [{{$t("post.containsMuteWords")}}]
+                      [{{ $t("post.containsMuteWords") }}]
                     </v-card-title>
                   </template>
                   <template v-if="!visivleMuteWordQuote">
@@ -154,7 +161,7 @@
               <v-icon size="24">mdi-repeat</v-icon>{{ $t('post.repost') }}
             </v-list-item>
             <v-list-item :to="`/quoteRepost/${encodeURIComponent(defProps.post.uri)}`">
-              <v-icon size="24">mdi-comma-circle-outline</v-icon>{{$t('post.quoteRepost')}}
+              <v-icon size="24">mdi-comma-circle-outline</v-icon>{{ $t('post.quoteRepost') }}
             </v-list-item>
           </v-list>
         </v-menu>
@@ -184,7 +191,7 @@
             </v-list-item>
             <v-list-item v-if="defProps.post.author.handle == store.getters.getHandle"
               @click="deletePost(defProps.post.uri)">
-              <v-icon size="24">mdi-delete</v-icon>{{$t('post.delete')}}
+              <v-icon size="24">mdi-delete</v-icon>{{ $t('post.delete') }}
             </v-list-item>
           </v-list>
         </v-menu>

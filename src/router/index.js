@@ -27,6 +27,7 @@ import CustomFeedList from "@/components/CustomFeedListView"
 import AccountSettingsMuteWords from '@/components/AccountSettingsMuteWordsView'
 import Dsescription from '@/components/DsescriptionView'
 import Home from '@/components/HomeView'
+import CustomFeedSort from '@/components/CustomFeedSortView'
 const routes = [
   {
     path: '/',
@@ -203,6 +204,12 @@ const routes = [
     path: '/dsescription',
     name: 'dsescription',
     component: Dsescription
+  },
+  {
+    path: '/customFeedSort',
+    name: 'customFeedSort',
+    component: CustomFeedSort
+
   }
 ];
 

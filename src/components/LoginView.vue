@@ -33,13 +33,14 @@
               <v-window-item :value=index>
                 <v-card class="mx-auto pa-4">
                   <v-combobox v-model="l.server"
-                    :items="['https://bsky.social', 'https://boobee.blue', 'https://redocean.one']" :label="$t('login.server')"
-                    placeholder="https://bsky.social" color="green darken-5" clearable dense
+                    :items="['https://bsky.social', 'https://boobee.blue', 'https://redocean.one']"
+                    :label="$t('login.server')" placeholder="https://bsky.social" color="green darken-5" clearable dense
                     variant="outlined"></v-combobox>
                   <v-text-field label="xxxx.bsky.social" placeholder="xxxx.bsky.social" color="green darken-5" clearable
                     dense v-model="l.handle" variant="outlined"></v-text-field>
-                  <v-text-field :label="$t('login.appPassword')" placeholder="app password" color="green darken-5" clearable dense
-                    type="password" v-model="l.password" :rules="AppPasswordRules" variant="outlined"></v-text-field>
+                  <v-text-field :label="$t('login.appPassword')" placeholder="app password" color="green darken-5"
+                    clearable dense type="password" v-model="l.password" :rules="AppPasswordRules"
+                    variant="outlined"></v-text-field>
                   <br>
                   <v-btn @click.prevent="login(index, l.server, l.handle, l.password)" icon="mdi-login" size="42"
                     :disabled="!(l.server && l.handle && l.password)"></v-btn>
@@ -51,6 +52,14 @@
                   &nbsp;
                   <v-btn v-if="l.server && l.handle && l.password && index == settings.users.length - 1"
                     @click="add(index)" size="42" icon="mdi-plus"></v-btn>
+                  &nbsp;
+                  <template v-if="l.server && l.handle && index != 0">
+                    <v-btn size="42" icon="mdi-arrow-left" @click="left(index)"></v-btn>
+                    &nbsp;
+                  </template>
+                  <template v-if="l.server && l.handle && index != settings.users.length - 1">
+                    <v-btn size="42" icon="mdi-arrow-right" @click="right(index)"></v-btn>
+                  </template>
                 </v-card>
               </v-window-item>
             </div>
@@ -120,6 +129,22 @@ const add = async (index) => {
 const del = async (index) => {
   settings.value.users.splice(index, 1)
   tab.value = index - 1
+}
+
+const right = async (index) => {
+  const user1 = settings.value.users[index]
+  const user2 = settings.value.users[index + 1]
+  settings.value.users[index + 1] = user1
+  settings.value.users[index] = user2
+  tab.value = index + 1
+}
+const left = async (index) => {
+  const user1 = settings.value.users[index]
+  const user2 = settings.value.users[index - 1]
+  settings.value.users[index - 1] = user1
+  settings.value.users[index] = user2
+  tab.value = index - 1
+
 }
 
 onBeforeMount(async () => {
