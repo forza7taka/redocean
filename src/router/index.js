@@ -191,7 +191,7 @@ const routes = [
     component: Home
   },
   {
-    path: '/customFeedList/:did/:handle',
+    path: '/customFeedList',
     name: 'customFeedList',
     component: CustomFeedList
   },

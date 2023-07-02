@@ -161,13 +161,13 @@ const update = async () => {
       break
     }
   }
-  let array = []
-  for (let i = 0; i < 8; i++) {
-    array.push(response.res.preferences[i])
-  }
+  // let array = []
+  // for (let i = 0; i < 8; i++) {
+  //   array.push(response.res.preferences[i])
+  // }
 
-  await requestPost.post("app.bsky.actor.putPreferences", { preferences: array })
-  //await requestPost.post("app.bsky.actor.putPreferences", { preferences: response.res.preferences })
+//  await requestPost.post("app.bsky.actor.putPreferences", { preferences: array })
+  await requestPost.post("app.bsky.actor.putPreferences", { preferences: response.res.preferences })
 }
 
 const like = async (feed) => {

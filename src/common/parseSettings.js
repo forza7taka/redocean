@@ -55,15 +55,30 @@ export function useParseSettings() {
             accountSetting.set("handle", u.handle)
             accountSetting.set("avatar", u.avatar)
             accountSetting.set("color", u.color)
+            accountSetting.set("parent", setting)
             if (u.push) {
-                setting.set("pushEnable", u.push.enable)
-                setting.set("pushEnableFollowed", u.push.enableFollowed)
-                setting.set("pushEnableReposted", u.push.enableReposted)
-                setting.set("pushEnableReplied", u.push.enableReplied)
-                setting.set("pushEnableLiked", u.push.enableLiked)
-                setting.set("pushEnableMention", u.push.enableMention)
+                accountSetting.set("pushEnable", u.push.enable)
+                accountSetting.set("pushEnableFollowed", u.push.enableFollowed)
+                accountSetting.set("pushEnableReposted", u.push.enableReposted)
+                accountSetting.set("pushEnableReplied", u.push.enableReplied)
+                accountSetting.set("pushEnableLiked", u.push.enableLiked)
+                accountSetting.set("pushEnableMention", u.push.enableMention)
             }
-            accountSetting.set("parent", setting);
+            if (u.langs[0]) {
+                accountSetting.set("langs1", u.langs[0])
+            } else{
+                accountSetting.set("langs1", "")
+            }
+            if (u.langs[1]) {
+                accountSetting.set("langs2", u.langs[1])
+            } else{
+                accountSetting.set("langs2", "")
+            }
+            if (u.langs[2]) {
+                accountSetting.set("langs3", u.langs[2])
+            } else{
+                accountSetting.set("langs3", "")
+            }
             accountSetting.save()
             map.set(u.did, u.did)
         }
@@ -162,7 +177,8 @@ export function useParseSettings() {
             avatar: null,
             color: null,
             labels: null,
-            feeds: null
+            feeds: null,
+            langs: null
         }])
         const settings = ref({
             translationApiKey: null,
@@ -210,7 +226,10 @@ export function useParseSettings() {
                     enableReplied: results2[i].get("pushEnableReplied"),
                     enableLiked: results2[i].get("pushEnableLiked"),
                     enableMention: results2[i].get("pushEnableMention")
-                }
+                },
+                langs: [results2[i].get("langs1"),
+                        results2[i].get("langs2"),
+                        results2[i].get("langs3")] 
             })
         }
         const LabelsSetting = Parse.Object.extend("labelsSetting");

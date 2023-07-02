@@ -1,6 +1,6 @@
 <template>
   <div class="displayArea mx-auto">
-    <template v-if="feeds">
+    <template v-if="pinnedFeeds">
       <v-tabs v-model="tab">
         <div v-for="(f, index) in pinnedFeeds" :key="index" :value=index>
           <v-tab :value=index @click="getTimeline(f)">
@@ -42,7 +42,7 @@ const timeline = ref(new Timeline())
 const store = useStore()
 const loading = ref(null)
 const loadingCount = ref(0)
-const feeds = ref([])
+// const feeds = ref([])
 const requestGet = useRequestGet(store)
 
 const tab = ref(0)
@@ -59,19 +59,9 @@ const deletePost = async (uri) => {
 
 onBeforeMount(async () => {
 
-  const res = await requestGet.get("app.bsky.actor.getPreferences")
-  for (let i = 0; i < res.res.preferences.length; i++) {
-    const preference = res.res.preferences[i]
-    if (preference.$type == "app.bsky.actor.defs#savedFeedsPref") {
-      pinnedFeeds.value = preference.pinned
-      pinnedFeeds.value.unshift(null)
-      break
-    }
-  }
-
-  await getFeedGenerators()
-
   if (historyState.action === 'reload') {
+    pinnedFeeds.value = await getPinnedFeeds()
+    await getFeedGenerators()
     tab.value = await getIndex(historyState.data.uri)
     timeline.value = new Timeline()
     const uri = historyState.data.uri
@@ -81,27 +71,30 @@ onBeforeMount(async () => {
 
   if (historyState.action === 'back' || historyState.action === 'forward') {
     if (historyState.action === 'back' && (historyState.getItems()[historyState.page + 1].item[1].name == 'post')) {
+      pinnedFeeds.value = await getPinnedFeeds()
+      await getFeedGenerators()
       const uri = historyState.data.uri
       tab.value = await getIndex(uri)
       await getTimeline(uri)
+      return
     }
-    for (let i = 0; i < pinnedFeeds.value.length; i++) {
-      if (historyState.data == pinnedFeeds.value[i])  {
-        break;
-      }
-    }
+    pinnedFeeds.value = historyState.data.pinnedFeeds
+    displayNameMap.value = new Map(Object.entries(historyState.data.displayNameMap))
     const uri = historyState.data.uri
     tab.value = await getIndex(uri)
-    await timeline.value.setArray(Object.values(historyState.data.timeline))
-    window.moveTo(0, await historyState.getItems()[historyState.page].item[3].window.top) 
+     await timeline.value.setArray(Object.values(historyState.data.timeline))
     return
   }
+  pinnedFeeds.value = await getPinnedFeeds()
+  await getFeedGenerators()
   tab.value = 0
   await getTimeline(null)  
 });
 
 onBackupState(() => ({
   timeline: timeline.value.array,
+  pinnedFeeds: pinnedFeeds.value,
+  displayNameMap: Array.from(displayNameMap.value),
   uri: pinnedFeeds.value[tab.value],
 }));
 
@@ -115,6 +108,19 @@ useIntersectionObserver(
     loadingCount.value = loadingCount.value + 1
   }
 )
+
+const getPinnedFeeds = async () => {
+  const res = await requestGet.get("app.bsky.actor.getPreferences")
+  for (let i = 0; i < res.res.preferences.length; i++) {
+    const preference = res.res.preferences[i]
+    if (preference.$type == "app.bsky.actor.defs#savedFeedsPref") {
+      let pinnedFeeds = preference.pinned
+      pinnedFeeds.unshift(null)
+      return pinnedFeeds
+    }
+  }
+  return null
+}
 
 const getUri = async (index) => {
   if (!pinnedFeeds.value) {
@@ -152,7 +158,7 @@ const getFeedGenerators = async () => {
     const params = { feeds: pinnedFeeds.value }
     const response = await requestGet.get("app.bsky.feed.getFeedGenerators", params)
 
-    feeds.value = response.res.feeds
+    // feeds.value = response.res.feeds
     for (let i = 0; i < response.res.feeds.length; i++) {
       displayNameMap.value.set(response.res.feeds[i].uri, response.res.feeds[i].displayName)
     }
