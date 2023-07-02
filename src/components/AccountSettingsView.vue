@@ -9,6 +9,23 @@
     </v-card>
     <v-divider></v-divider>
     <v-card class="mx-auto pa-4" variant="flat">
+        <template v-if="userSettings">
+        <v-combobox v-model="userSettings.langs[0]"
+                      :items="['ja', 'en']"
+                      label="langs" color="green darken-5" clearable dense
+                      variant="outlined"></v-combobox>
+        <v-combobox v-model="userSettings.langs[1]"
+                      :items="['ja', 'en']"
+                      label="langs" color="green darken-5" clearable dense
+                      variant="outlined"></v-combobox>
+        <v-combobox v-model="userSettings.langs[2]"
+                      :items="['ja', 'en']"
+                      label="langs" color="green darken-5" clearable dense
+                      variant="outlined"></v-combobox>
+        </template>
+    </v-card>
+    <v-divider></v-divider>
+    <v-card class="mx-auto pa-4" variant="flat">
       <v-btn :to="`/accountSettingsPush/${route.params.did}/${route.params.handle}`">Push Notification</v-btn>
     </v-card>
     <v-divider></v-divider>
@@ -44,6 +61,9 @@ const userSettings = ref(null)
 
 onBeforeMount(async () => {
   userSettings.value = await settingsManager.getUser(route.params.did, route.params.handle)
+  if (!userSettings.value.langs) {
+    userSettings.value.langs = ["","",""]
+  }
 });
 
 onUnmounted(async () => {

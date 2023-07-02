@@ -62,6 +62,9 @@ import { useRoute, useRouter } from "vue-router"
 import { useToast } from 'vue-toastification'
 import { useStore } from 'vuex'
 import { useCatchError } from '@/common/catchError';
+import { useSettings } from '@/common/settings'
+import { Setting } from "@/common/setting"
+import { useStorage } from '@vueuse/core'
 
 const { files, open, onChange } = useFileDialog()
 
@@ -90,8 +93,16 @@ const parent = ref(null)
 const quotePost = ref(null)
 const editPost = ref(null)
 
+const settings = ref(new Setting())
+useStorage('redocean', settings)
+const settingsManager = useSettings(settings.value)
+const userSettings = ref(null)
+
+
 onBeforeMount(async () => {
   try {
+    userSettings.value = await settingsManager.getUser(route.params.did, route.params.handle)
+
     imageUrls.value = []
 
     if (route.path.startsWith("/post")) {
@@ -205,6 +216,7 @@ const postWithImage = async () => {
       record: {
         text: contents.value,
         createdAt: new Date(),
+        langs: userSettings.value.langs,
         facets: await getRichTexts(contents.value),
         embed: {
           $type: "app.bsky.embed.images",
@@ -223,6 +235,7 @@ const reply = async () => {
     record: {
       text: contents.value,
       createdAt: new Date(),
+      langs: userSettings.value.langs,
       facets: await getRichTexts(contents.value),
       reply: {
         handle: store.getters.getHandle,
@@ -249,6 +262,7 @@ const replyWithImage = async () => {
       record: {
         text: contents.value,
         createdAt: new Date(),
+        langs: userSettings.value.langs,
         facets: await getRichTexts(contents.value),
         embed: {
           $type: "app.bsky.embed.images",
@@ -272,6 +286,7 @@ const quoteRepost = async () => {
     record: {
       text: contents.value,
       createdAt: new Date(),
+      langs: userSettings.value.langs,
       facets: await getRichTexts(contents.value),
       embed: {
         $type: "app.bsky.embed.record",

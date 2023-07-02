@@ -1,6 +1,6 @@
 <template>
   <div class="displayArea mx-auto">
-    <template v-if="feeds">
+    <template v-if="pinnedFeeds">
       <v-tabs v-model="tab">
         <div v-for="(f, index) in pinnedFeeds" :key="index" :value=index>
           <v-tab :value=index @click="getTimeline(f)">
@@ -42,7 +42,7 @@ const timeline = ref(new Timeline())
 const store = useStore()
 const loading = ref(null)
 const loadingCount = ref(0)
-const feeds = ref([])
+// const feeds = ref([])
 const requestGet = useRequestGet(store)
 
 const tab = ref(0)
@@ -56,53 +56,71 @@ const pinnedFeeds = ref(new Array())
 const deletePost = async (uri) => {
   timeline.value.delete(uri)
 }
+
 onBeforeMount(async () => {
-  
-  const res = await requestGet.get("app.bsky.actor.getPreferences")
-  for (let i = 0; i < res.res.preferences.length; i++) {
-    const preference = res.res.preferences[i]
-    if (preference.$type == "app.bsky.actor.defs#savedFeedsPref") {
-      pinnedFeeds.value = preference.pinned
-      pinnedFeeds.value.unshift(null)
-      break
-    }
-  }
-  
-  await getFeedGenerators()
-  const uri = await getUri(tab.value)
 
   if (historyState.action === 'reload') {
+    pinnedFeeds.value = await getPinnedFeeds()
+    await getFeedGenerators()
+    tab.value = await getIndex(historyState.data.uri)
     timeline.value = new Timeline()
+    const uri = historyState.data.uri
     await getTimeline(uri)
     return
   }
+
   if (historyState.action === 'back' || historyState.action === 'forward') {
     if (historyState.action === 'back' && (historyState.getItems()[historyState.page + 1].item[1].name == 'post')) {
+      pinnedFeeds.value = await getPinnedFeeds()
+      await getFeedGenerators()
+      const uri = historyState.data.uri
+      tab.value = await getIndex(uri)
       await getTimeline(uri)
+      return
     }
-    tab.value = historyState.data.index
-    timeline.value.setArray(Object.values(historyState.data.timeline))
+    pinnedFeeds.value = historyState.data.pinnedFeeds
+    displayNameMap.value = new Map(Object.entries(historyState.data.displayNameMap))
+    const uri = historyState.data.uri
+    tab.value = await getIndex(uri)
+     await timeline.value.setArray(Object.values(historyState.data.timeline))
     return
   }
-  await getTimeline(uri)  
+  pinnedFeeds.value = await getPinnedFeeds()
+  await getFeedGenerators()
+  tab.value = 0
+  await getTimeline(null)  
 });
 
 onBackupState(() => ({
   timeline: timeline.value.array,
-  index: tab.value,
+  pinnedFeeds: pinnedFeeds.value,
+  displayNameMap: Array.from(displayNameMap.value),
+  uri: pinnedFeeds.value[tab.value],
 }));
+
 useIntersectionObserver(
   loading,
   async ([{ isIntersecting }]) => {
     if (isIntersecting && !completed.value && loadingCount.value != 0) {
-      console.log(tab.value)
       const uri = await getUri(tab.value)
       await getTimeline(uri, cursor)
-      console.log(uri)
     }
     loadingCount.value = loadingCount.value + 1
   }
 )
+
+const getPinnedFeeds = async () => {
+  const res = await requestGet.get("app.bsky.actor.getPreferences")
+  for (let i = 0; i < res.res.preferences.length; i++) {
+    const preference = res.res.preferences[i]
+    if (preference.$type == "app.bsky.actor.defs#savedFeedsPref") {
+      let pinnedFeeds = preference.pinned
+      pinnedFeeds.unshift(null)
+      return pinnedFeeds
+    }
+  }
+  return null
+}
 
 const getUri = async (index) => {
   if (!pinnedFeeds.value) {
@@ -112,6 +130,21 @@ const getUri = async (index) => {
     return null
   }
   return pinnedFeeds.value[index]
+}
+
+const getIndex = async (uri) => {
+  if (!pinnedFeeds.value) {
+    return 0
+  }
+  if (pinnedFeeds.value.length == 0) {
+    return 0
+  }
+  for (let i = 0; i < pinnedFeeds.value.length; i++) {
+    if (uri == pinnedFeeds.value[i]) {
+      return i
+    }
+  }
+  return 0
 }
 
 const getFeedGenerators = async () => {
@@ -125,7 +158,7 @@ const getFeedGenerators = async () => {
     const params = { feeds: pinnedFeeds.value }
     const response = await requestGet.get("app.bsky.feed.getFeedGenerators", params)
 
-    feeds.value = response.res.feeds
+    // feeds.value = response.res.feeds
     for (let i = 0; i < response.res.feeds.length; i++) {
       displayNameMap.value.set(response.res.feeds[i].uri, response.res.feeds[i].displayName)
     }
@@ -166,10 +199,11 @@ const getTimeline = async (uri, cur) => {
   }
 }
 
-watch(() => tab, () => {
+watch(async () =>  tab, () => {
   completed.value = false
   timeline.value = new Timeline()
   cursor.value = null
+  loadingCount.value =0
 }, { deep: true }
 );
 

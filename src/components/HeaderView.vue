@@ -141,7 +141,7 @@ const menuItems = ref([
   {
     icon: "mdi-home",
     name: "Home",
-    link: "/",
+    link: "/home",
     login: true
   },
   {

@@ -2,9 +2,12 @@
   <div class="displayArea mx-auto">
     <v-card variant="flat">
       <v-card-text>
-        <v-btn :to="`/customFeedList/${store.getters.getDid}/${store.getters.getHandle}`"
+        <v-btn to="/customFeedList/"
           icon><v-icon>mdi-playlist-check</v-icon></v-btn>
-      </v-card-text>
+          &nbsp;
+          <v-btn to="/customFeedSort/"
+            icon><v-icon>mdi-sort</v-icon></v-btn>
+        </v-card-text>
     </v-card>
     <template v-if="feeds">
       <v-tabs v-model="tab">
