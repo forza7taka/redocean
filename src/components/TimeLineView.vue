@@ -1,7 +1,10 @@
 <template>
   <div class="displayArea mx-auto">
-    <v-bottom-navigation :elevation="0">
+    <!-- <v-bottom-navigation :elevation="0">
       <v-row justify="center" rowa="auto">
+        <v-col cols="auto">
+
+        </v-col>
         <v-col cols="auto">
           <v-switch v-model="isShowRepost" label="Repost"></v-switch>
         </v-col>
@@ -9,7 +12,7 @@
           <v-switch v-model="isShowReply" label="Reply"></v-switch>
         </v-col>
       </v-row>
-    </v-bottom-navigation>
+    </v-bottom-navigation> -->
     <FeedView :feeds="timeline.array" :isShowReply="isShowReply" :isShowRepost="isShowRepost" @deletePost="deletePost">
     </FeedView>
     <div ref="loading">
@@ -46,6 +49,12 @@ const deletePost = async (uri) => {
 }
 
 onBeforeMount(async () => {
+
+  setInterval(async () => {
+    await loadTimeline()
+  }, 10000)
+
+
   if (historyState.action === 'reload') {
     timeline.value = new Timeline()
     await getTimeline()
@@ -94,5 +103,19 @@ const getTimeline = async (cur) => {
     ce.catchError(e)
   }
 }
+
+const loadTimeline = async () => {
+  const params = { limit: 25 }
+  try {
+    const req = useRequestGet(store)
+    const response = await req.get("app.bsky.feed.getTimeline", params)
+    timeline.value.setArray(response.res.feed)
+  } catch (e) {
+    const ce = useCatchError()
+    ce.catchError(e)
+  }
+}
+
+
+
 </script>
-<style scoped></style>

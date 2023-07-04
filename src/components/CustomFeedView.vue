@@ -2,12 +2,10 @@
   <div class="displayArea mx-auto">
     <v-card variant="flat">
       <v-card-text>
-        <v-btn to="/customFeedList/"
-          icon><v-icon>mdi-playlist-check</v-icon></v-btn>
-          &nbsp;
-          <v-btn to="/customFeedSort/"
-            icon><v-icon>mdi-sort</v-icon></v-btn>
-        </v-card-text>
+        <v-btn to="/customFeedList/" icon><v-icon>mdi-playlist-check</v-icon></v-btn>
+        &nbsp;
+        <v-btn to="/customFeedSort/" icon><v-icon>mdi-sort</v-icon></v-btn>
+      </v-card-text>
     </v-card>
     <template v-if="feeds">
       <v-tabs v-model="tab">
@@ -20,13 +18,13 @@
     </template>
     <FeedView :feeds="timeline.array" @deletePost="deletePost"></FeedView>
     <template v-if="feeds && feeds.length != 0">
-    <div ref="loading">
-      <v-container class="my-5">
-        <v-row justify="center">
-          <v-progress-circular indeterminate v-if="!completed" model-value="20"></v-progress-circular>
-        </v-row>
-      </v-container>
-    </div>
+      <div ref="loading">
+        <v-container class="my-5">
+          <v-row justify="center">
+            <v-progress-circular indeterminate v-if="!completed" model-value="20"></v-progress-circular>
+          </v-row>
+        </v-container>
+      </div>
     </template>
   </div>
 </template>
@@ -59,6 +57,9 @@ const deletePost = async (uri) => {
   timeline.value.delete(uri)
 }
 onBeforeMount(async () => {
+  setInterval(async () => {
+    await loadTimeline(uri)
+  }, 60000)
   await getFeedGenerators()
   const uri = await getUri(tab.value)
   await getTimeline(uri)
@@ -127,6 +128,20 @@ const getTimeline = async (uri, cur) => {
     if (response.res.feed.length == 0) {
       completed.value = true
     }
+  } catch (e) {
+    const ce = useCatchError()
+    ce.catchError(e)
+  }
+}
+
+const loadTimeline = async (uri) => {
+  if (!uri) {
+    return
+  }
+  const params = { feed: uri, limit: 25 }
+  try {
+    const response = await requestGet.get("app.bsky.feed.getFeed", params)
+    timeline.value.setArray(response.res.feed)
   } catch (e) {
     const ce = useCatchError()
     ce.catchError(e)

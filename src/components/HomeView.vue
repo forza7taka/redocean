@@ -59,6 +59,10 @@ const deletePost = async (uri) => {
 
 onBeforeMount(async () => {
 
+  setInterval(async () => {
+    await loadTimeline(await getUri(tab.value))
+  }, 60000)
+
   if (historyState.action === 'reload') {
     pinnedFeeds.value = await getPinnedFeeds()
     await getFeedGenerators()
@@ -82,13 +86,13 @@ onBeforeMount(async () => {
     displayNameMap.value = new Map(Object.entries(historyState.data.displayNameMap))
     const uri = historyState.data.uri
     tab.value = await getIndex(uri)
-     await timeline.value.setArray(Object.values(historyState.data.timeline))
+    await timeline.value.setArray(Object.values(historyState.data.timeline))
     return
   }
   pinnedFeeds.value = await getPinnedFeeds()
   await getFeedGenerators()
   tab.value = 0
-  await getTimeline(null)  
+  await getTimeline(null)
 });
 
 onBackupState(() => ({
@@ -174,9 +178,9 @@ const getTimeline = async (uri, cur) => {
     let response
     if (uri == null) {
       if (!cur) {
-        params = {  limit: 25 }
+        params = { limit: 25 }
       } else {
-        params = {  limit: 25, cursor: cur.value }
+        params = { limit: 25, cursor: cur.value }
       }
       response = await requestGet.get("app.bsky.feed.getTimeline", params)
     } else {
@@ -199,11 +203,29 @@ const getTimeline = async (uri, cur) => {
   }
 }
 
-watch(async () =>  tab, () => {
+const loadTimeline = async (uri) => {
+  let params = {}
+  try {
+    let response
+    if (uri == null) {
+      params = { limit: 25 }
+      response = await requestGet.get("app.bsky.feed.getTimeline", params)
+    } else {
+      params = { feed: uri, limit: 25 }
+      response = await requestGet.get("app.bsky.feed.getFeed", params)
+    }
+    timeline.value.setArray(response.res.feed)
+  } catch (e) {
+    const ce = useCatchError()
+    ce.catchError(e)
+  }
+}
+
+watch(async () => tab.value, () => {
   completed.value = false
   timeline.value = new Timeline()
   cursor.value = null
-  loadingCount.value =0
+  loadingCount.value = 0
 }, { deep: true }
 );
 
