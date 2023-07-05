@@ -52,7 +52,7 @@ onBeforeMount(async () => {
 
   setInterval(async () => {
     await loadTimeline()
-  }, 10000)
+  }, 60000)
 
 
   if (historyState.action === 'reload') {
