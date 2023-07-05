@@ -31,12 +31,12 @@
       </template>
 
 <script setup>
-// import { useFollow } from "@/common/follow"
+import { useFollow } from "@/common/follow"
 import { defineProps } from 'vue'
 import { useStore } from 'vuex'
 
 const store = useStore()
-// const { follow, unFollow } = useFollow(store)
+const { follow, unFollow } = useFollow(store)
 const props = defineProps({
   user: Object
 })
