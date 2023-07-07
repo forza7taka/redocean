@@ -100,6 +100,9 @@ const settings = ref(new Setting())
 const storageSettings = useStorage('redocean', settings)
 const settingsManager = useSettings(settings.value)
 
+const passwords = ref(new Array({ did: null, password: null }))
+const storagePasswords = useStorage('passwords', passwords)
+
 const settings1 = ref(null)
 const settings2 = ref(null)
 const settings3 = ref(null)
@@ -172,6 +175,18 @@ onBeforeMount(async () => {
       }
     }
     storageSettings2.value = null
+
+    for (let i = 0; i < settings.value.users.length; i++) {
+      const user = settings.value.users[i]
+      if (user.password) {
+        continue
+      }
+      for (let j = 0; j < passwords.value.length; j++) {
+        const password = passwords[j]
+        if (user.did == password.did)
+          user.password = password.password
+      }
+    }
 
     store.dispatch('doSetHanded', settings.value.handed)
   } catch (e) {
@@ -273,6 +288,12 @@ watch(
   () => settings,
   async () => {
     storageSettings.value = settings.value
+    let passwords = new Array()
+    for (let i = 0; i < settings.value.users.length; i++) {
+      let user = settings.value.users[i]
+      passwords.push({ did: user.did, password: user.password })
+    }
+    storagePasswords.value = passwords
   }, { deep: true }
 )
 

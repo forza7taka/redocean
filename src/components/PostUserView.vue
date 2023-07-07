@@ -1,7 +1,9 @@
 <template>
   <v-card-item class="w-100">
+    {{ defProps.author }}
     <template v-slot:prepend>
-      <div style="padding-right: 10px">
+      <div v-if="defProps.author" style="padding-right: 10px">
+
         <router-link :to="`/profile/${defProps.author.handle}`">
           <v-avatar color="surface-variant">
             <v-img cover v-bind:src=defProps.author.avatar alt="avatar"></v-img>
