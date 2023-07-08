@@ -8,11 +8,15 @@
         <v-icon>mdi-plus</v-icon>
       </v-btn>
     </v-main>
-  </v-app>
+    <template v-if="visibleFooter">    
+      <Footer />
+    </template>
+    </v-app>
 </template>
 
 <script setup>
 import Header from '@/components/HeaderView.vue'
+import Footer from '@/components/FooterView.vue'
 import { ref, watch, onBeforeMount } from 'vue'
 import { useStore } from 'vuex'
 import { useRoute } from "vue-router"
@@ -25,6 +29,7 @@ const store = useStore()
 const route = useRoute()
 const gtag = useGtag()
 const visiblePost = ref(false)
+const visibleFooter = ref(false)
 const color = ref(null)
 const parseSettings = useParseSettings()
 
@@ -41,15 +46,6 @@ onBeforeMount(async () => {
   Parse.serverURL = process.env.VUE_APP_PARSE_SERVER_URI
   await parseSettings.download()
 
-  // const firebaseConfig = {
-  //   apiKey: process.env.VUE_APP_FIREBASE_API_KEY,
-  //   authDomain: process.env.VUE_APP_FIREBASE_AUTH_DOMAIN,
-  //   projectId: process.env.VUE_APP_FIREBASE_PROJECT_ID,
-  //   storageBucket: process.env.VUE_APP_FIREBASE_STORAGE_BUCKET,
-  //   messagingSenderId: process.env.VUE_APP_FIREBASE_MESSAGING_SENFER_ID,
-  //   appId: process.env.VUE_APP_FIREBASE_APP_ID
-  // };
-  // initializeApp(firebaseConfig);
 })
 
 watch(() => store.getters.getColor, () => {
@@ -61,6 +57,9 @@ onBeforeMount(async () => {
 })
 
 watch(() => route.path, (newPath) => {
+  if (newPath !== '') {
+    visibleFooter.value = true
+  }
   if (newPath.startsWith('/timeline')) {
     visiblePost.value = true
     return
@@ -70,6 +69,22 @@ watch(() => route.path, (newPath) => {
     return
   }
   if (newPath.startsWith('/popular')) {
+    visiblePost.value = true
+    return
+  }
+  if (newPath.startsWith('/home')) {
+    visiblePost.value = true
+    return
+  }
+  if (newPath.startsWith('/customFeed')) {
+    if (newPath.startsWith('/customFeedList')) {
+      visiblePost.value = false
+      return
+    }
+    if (newPath.startsWith('/customFeedSort')) {
+      visiblePost.value = false
+      return
+    }
     visiblePost.value = true
     return
   }
@@ -99,7 +114,7 @@ watch(() => route.path, (newPath) => {
 
 .floating-button {
   position: fixed;
-  bottom: 20px;
+  bottom: 50px;
   left: v-bind('store.getters.getHanded ? `auto` : `20px`');
   right: v-bind('store.getters.getHanded ? `20px` : `auto`');
   z-index: 9999;
