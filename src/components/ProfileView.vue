@@ -104,7 +104,8 @@
               <template #badge>
                 <span>Blocked</span>
               </template>
-              <v-btn @click.prevent=" doUnBlock()" icon><svg-icon type="mdi" :path=mdiAccountLockOpen></svg-icon></v-btn>
+              <v-btn @click.prevent=" doUnBlock()" icon><svg-icon type="mdi"
+                  :path=mdiAccountLockOpen></svg-icon></v-btn>
             </v-badge>
 
             <v-badge v-if="profile && store.getters.getBlocks && !store.getters.getBlocks.includes(profile.did)"
@@ -140,7 +141,8 @@
       </v-container>
     </div>
     <div v-else ref="root">
-      <FeedView :feeds="timeline.array" :isShowReply="isShowReply" :isShowRepost="isShowRepost" @deletePost="deletePost">
+      <FeedView :feeds="timeline.array" :isShowReply="isShowReply" :isShowRepost="isShowRepost"
+        @deletePost="deletePost">
       </FeedView>
       <div ref="loading">
         <v-container class="my-5">
@@ -333,10 +335,10 @@ const getMutes = async (cursor) => {
   }
   const response = await requestGet.get("app.bsky.graph.getMutes", params)
   mutesCursor.value = response.res.cursor
-  if (response.res.mutes.length == 0) {
+  mutes.value = mutes.value.concat(response.res.mutes)
+  if (!response.res.cursor || response.res.mutes.length == 0) {
     completedMutes.value = true
   }
-  mutes.value = mutes.value.concat(response.res.mutes)
 }
 
 const getBlocks = async (cursor) => {
@@ -348,10 +350,11 @@ const getBlocks = async (cursor) => {
   }
   const response = await requestGet.get("app.bsky.graph.getBlocks", params)
   blocksCursor.value = response.res.cursor
-  if (response.res.blocks.length == 0) {
+  blocks.value = blocks.value.concat(response.res.blocks)
+  if (!response.res.cursor || response.res.blocks.length == 0) {
     completedBlocks.value = true
   }
-  blocks.value = blocks.value.concat(response.res.blocks)
+
 }
 
 const getLikes = async (handle, cursor) => {
@@ -373,7 +376,7 @@ const getLikes = async (handle, cursor) => {
   const response = await requestGet.get("com.atproto.repo.listRecords", params)
   likes.value = likes.value.concat(response.res.records)
   likesCursor.value = response.res.cursor
-  if (response.res.records.length == 0) {
+  if (!response.res.cursor || response.res.records.length == 0) {
     completedLikes.value = true
     return
   }

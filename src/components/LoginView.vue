@@ -245,11 +245,12 @@ const getFollows = async (handle, cur) => {
   }
   const response = await requestGet.get("app.bsky.graph.getFollows", params)
   followsCursor.value = response.res.cursor
-  if (response.res.follows.length == 0) {
+  store.dispatch('doAddFollows', response.res)
+  if (!response.res.cursor || response.res.follows.length == 0) {
     completed.value = true
     return
   }
-  store.dispatch('doAddFollows', response.res)
+
 }
 
 const getMutes = async (cur) => {
@@ -260,16 +261,12 @@ const getMutes = async (cur) => {
     params = { cursor: cur.value }
   }
   const response = await requestGet.get("app.bsky.graph.getMutes", params)
-  if (response.res.mutes.length == 0) {
-    completed.value = true
-    return
-  }
-  if (mutesCursor.value === response.res.cursor) {
-    completed.value = true
-    return
-  }
   mutesCursor.value = response.res.cursor
   store.dispatch('doAddMutes', response.res)
+  if (!response.res.cursor || response.res.mutes.length == 0) {
+    completed.value = true
+    return
+  }
 }
 
 const getBlocks = async (cur) => {
@@ -280,17 +277,13 @@ const getBlocks = async (cur) => {
     params = { cursor: cur.value }
   }
   const response = await requestGet.get("app.bsky.graph.getBlocks", params)
-
-  if (response.res.blocks.length == 0) {
-    completed.value = true
-    return
-  }
-  if (blocksCursor.value === response.res.cursor) {
-    completed.value = true
-    return
-  }
   blocksCursor.value = response.res.cursor
   store.dispatch('doAddBlocks', response.res)
+  if (!response.res.cursor || response.res.blocks.length == 0) {
+    completed.value = true
+    return
+  }
+
 }
 
 watch(
