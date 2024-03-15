@@ -163,12 +163,6 @@ const menuItems = ref([
     login: true
   },
   {
-    icon: "mdi-fire",
-    name: "Popular",
-    link: "/popular",
-    login: true
-  },
-  {
     icon: "mdi-star",
     name: "Suggestions",
     link: "/suggestions",
@@ -196,11 +190,11 @@ const menuItems = ref([
 ])
 
 watch(() => store.getters.getColor, () => {
-  color.value = store.getters.getColor || 'pink-lighten-2'
+  color.value = store.getters.getColor || 'red-lighten-1'
 })
 
 onBeforeMount(async () => {
-  color.value = store.getters.getColor || 'pink-lighten-2'
+  color.value = store.getters.getColor || 'red-lighten-1'
   userSettings.value = await settingsManager.getUser(store.getters.getDid, store.getters.getHandle)
 })
 
@@ -397,7 +391,7 @@ watch(
   async () => {
     userSettings.value = await settingsManager.getUser(store.getters.getDid, store.getters.getHandle)
     followsCursor.value = null
-    completedFollows.value = false    
+    completedFollows.value = false
     likesCursor.value = null
     completedLikes.value = false
     repostsCursor.value = null

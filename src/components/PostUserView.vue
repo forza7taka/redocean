@@ -1,6 +1,6 @@
 <template>
   <v-card-item class="w-100">
-    {{ defProps.author }}
+    <!-- {{ defProps.author }} -->
     <template v-slot:prepend>
       <div v-if="defProps.author" style="padding-right: 10px">
 

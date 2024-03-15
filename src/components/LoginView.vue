@@ -260,11 +260,15 @@ const getMutes = async (cur) => {
     params = { cursor: cur.value }
   }
   const response = await requestGet.get("app.bsky.graph.getMutes", params)
-  mutesCursor.value = response.res.cursor
   if (response.res.mutes.length == 0) {
     completed.value = true
     return
   }
+  if (mutesCursor.value === response.res.cursor) {
+    completed.value = true
+    return
+  }
+  mutesCursor.value = response.res.cursor
   store.dispatch('doAddMutes', response.res)
 }
 
@@ -276,11 +280,16 @@ const getBlocks = async (cur) => {
     params = { cursor: cur.value }
   }
   const response = await requestGet.get("app.bsky.graph.getBlocks", params)
-  blocksCursor.value = response.res.cursor
+
   if (response.res.blocks.length == 0) {
     completed.value = true
     return
   }
+  if (blocksCursor.value === response.res.cursor) {
+    completed.value = true
+    return
+  }
+  blocksCursor.value = response.res.cursor
   store.dispatch('doAddBlocks', response.res)
 }
 
