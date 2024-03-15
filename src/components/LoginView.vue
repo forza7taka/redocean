@@ -1,6 +1,6 @@
 <template>
   <div class="displayArea mx-auto">
-    <v-card class="mx-auto mt-5" variant="flat">
+    <v-card>
       <v-card-text>
         <v-tabs v-model="tab">
           <div v-for="(l, index) in settings.users" :key="index" :value=index>
@@ -40,7 +40,7 @@
                     dense v-model="l.handle" variant="outlined"></v-text-field>
                   <v-text-field :label="$t('login.appPassword')" placeholder="app password" color="green darken-5"
                     clearable dense type="password" v-model="l.password" :rules="AppPasswordRules"
-                    variant="outlined"  v-on:keydown.enter="login(index, l.server, l.handle, l.password)" ></v-text-field>
+                    variant="outlined"></v-text-field>
                   <br>
                   <v-btn @click.prevent="login(index, l.server, l.handle, l.password)" icon="mdi-login" size="42"
                     :disabled="!(l.server && l.handle && l.password)"></v-btn>
@@ -77,11 +77,10 @@ import { useRequestGet } from '../common/requestGet.js'
 import { useRequestPost } from '../common/requestPost.js'
 import { useRouter } from "vue-router"
 import { useStorage } from '@vueuse/core'
-import { useCatchError } from '@/common/catchError'
+import { useCatchError } from '@/common/catchError';
 import { useSettings } from '@/common/settings'
 import { useParseSettings } from "@/common/parseSettings"
 import { Setting } from "@/common/setting"
-import { Buffer } from 'buffer'
 
 const parseSettings = useParseSettings()
 
@@ -101,8 +100,16 @@ const settings = ref(new Setting())
 const storageSettings = useStorage('redocean', settings)
 const settingsManager = useSettings(settings.value)
 
-const passwords = ref([])
+const passwords = ref(new Array({ did: null, password: null }))
 const storagePasswords = useStorage('passwords', passwords)
+
+const settings1 = ref(null)
+const settings2 = ref(null)
+const settings3 = ref(null)
+
+const storageSettings1 = useStorage('settings', settings1)
+const storageSettings2 = useStorage('userSettings', settings2)
+const storageSettings3 = useStorage('logins', settings3)
 
 const AppPasswordRules = [
   (value) => {
@@ -140,36 +147,54 @@ const left = async (index) => {
   settings.value.users[index - 1] = user1
   settings.value.users[index] = user2
   tab.value = index - 1
+
 }
 
 onBeforeMount(async () => {
   try {
-    store.dispatch('doSetHanded', settings.value.handed)
-    for (let i = 0; i < settings.value.users.length; i++) {
-      const password = await getPassword(settings.value.users[i].did)
-      console.log(password)
-      settings.value.users[i].password = password
+    if (settings1.value) {
+      const value = JSON.parse(settings1.value)
+      settings.value.translationApiKey = value.translationApiKey
+      settings.value.translationLang = value.translationLang
+      settings.value.handed = value.handed
     }
+    storageSettings1.value = null
+    if (settings3.value) {
+      const value = JSON.parse(settings3.value)
+      settings.value.users = value
+    }
+    storageSettings3.value = null
+    if (settings2.value) {
+      const value = JSON.parse(settings2.value)
+      for (let i = 0; i < value.length; i++) {
+        for (let j = 0; j < settings.value.users.length; j++) {
+          if (settings.value.users[j].did == value[i][0]) {
+            settings.value.users[j].color = value[i][1].color
+          }
+        }
+      }
+    }
+    storageSettings2.value = null
+
+    for (let i = 0; i < settings.value.users.length; i++) {
+      const user = settings.value.users[i]
+      if (user.password) {
+        continue
+      }
+      for (let j = 0; j < passwords.value.length; j++) {
+        const password = passwords[j]
+        if (user.did == password.did)
+          user.password = password.password
+      }
+    }
+
+    store.dispatch('doSetHanded', settings.value.handed)
   } catch (e) {
     failed.value = true
     const ce = useCatchError()
     ce.catchError(e)
   }
 })
-
-const getPassword = async (did) => {
-  if (!passwords.value) {
-    return null
-  }
-  for (let i = 0; i < passwords.value.length; i++) {
-    if (did == passwords.value[i].did) {
-      if (!passwords.value[i].password) {
-        return null
-      }
-      return Buffer.from(passwords.value[i].password, 'base64').toString() 
-    }
-  }
-}
 
 onUnmounted(async () => {
   parseSettings.upload()
@@ -192,17 +217,6 @@ const login = async (index, server, handle, password) => {
     settings.value.users[index].handle = login.res.handle
     settings.value.users[index].avatar = profile.res.avatar
 
-    let passwordSaved = false
-    for (let i = 0; i < passwords.value.length; i++) {
-      if (login.res.did == passwords.value[i].did) {
-        passwords.value[i].password = Buffer.from(password).toString('base64')
-        storagePasswords.value = passwords.value
-        passwordSaved = true
-      }
-    }
-    if (!passwordSaved) {
-      storagePasswords.value.push({did: login.res.did, password: Buffer.from(password).toString('base64') })
-    }
     while (!completed.value) {
       await getFollows(handle, followsCursor)
     }
@@ -214,7 +228,7 @@ const login = async (index, server, handle, password) => {
     while (!completed.value) {
       await getBlocks(blocksCursor)
     }
-    route.push('/home')
+    route.push('/timeline')
   } catch (e) {
     console.log(e)
     const ce = useCatchError()
@@ -246,11 +260,15 @@ const getMutes = async (cur) => {
     params = { cursor: cur.value }
   }
   const response = await requestGet.get("app.bsky.graph.getMutes", params)
-  mutesCursor.value = response.res.cursor
   if (response.res.mutes.length == 0) {
     completed.value = true
     return
   }
+  if (mutesCursor.value === response.res.cursor) {
+    completed.value = true
+    return
+  }
+  mutesCursor.value = response.res.cursor
   store.dispatch('doAddMutes', response.res)
 }
 
@@ -262,11 +280,16 @@ const getBlocks = async (cur) => {
     params = { cursor: cur.value }
   }
   const response = await requestGet.get("app.bsky.graph.getBlocks", params)
-  blocksCursor.value = response.res.cursor
+
   if (response.res.blocks.length == 0) {
     completed.value = true
     return
   }
+  if (blocksCursor.value === response.res.cursor) {
+    completed.value = true
+    return
+  }
+  blocksCursor.value = response.res.cursor
   store.dispatch('doAddBlocks', response.res)
 }
 
@@ -274,6 +297,12 @@ watch(
   () => settings,
   async () => {
     storageSettings.value = settings.value
+    let passwords = new Array()
+    for (let i = 0; i < settings.value.users.length; i++) {
+      let user = settings.value.users[i]
+      passwords.push({ did: user.did, password: user.password })
+    }
+    storagePasswords.value = passwords
   }, { deep: true }
 )
 

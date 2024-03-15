@@ -13,31 +13,26 @@
       <v-card-actions>
         <PostUserView :author="defProps.post.author" :createdAt="defProps.post.record.createdAt" />
       </v-card-actions>
-      <template v-if="warnLabels && isMuteWord">
-        <div @click="isWarn = !isWarn; visibleMuteWord = !visibleMuteWord">
-          <v-alert color="warning" icon="$warning" :title="warnLabels + ' ' + $t('post.containsMuteWords')"></v-alert>
-        </div>
+      <template v-if="warnLabels">
+        <v-card-title @click="isWarn = !isWarn">
+          [{{ $t('post.warn') }}] {{ warnLabels }}
+        </v-card-title>
       </template>
-      <template v-else>
-        <template v-if="warnLabels">
-          <div @click="isWarn = !isWarn">
-            <v-alert color="warning" icon="$warning" :title="warnLabels"></v-alert>
-          </div>
-        </template>
-          <template v-if="isMuteWord">
-            <div @click="visibleMuteWord = !visibleMuteWord">
-              <v-alert color="warning" icon="$warning" :title="$t('post.containsMuteWords')"></v-alert>
-            </div>
-          </template>
-      </template>
-      <template v-if="!isWarn && !visibleMuteWord">
+      <template v-if="!isWarn">
         <template v-if="defProps.post && defProps.post.record && defProps.post.record.text">
+          <template v-if="isMuteWord">
+            <v-card-title @click="visivleMuteWord = !visivleMuteWord">
+              [{{ $t("post.containsMuteWords") }}]
+            </v-card-title>
+          </template>
+          <template v-if="!visivleMuteWord">
             <v-card-text class="text-pre-wrap">
               {{ defProps.post.record.text }}
             </v-card-text>
             <v-card-text v-if="translateText" class="text-pre-wrap">
               {{ translateText }}
             </v-card-text>
+          </template>
         </template>
         <div v-for="(facet, facetIndex) in defProps.post.record.facets" :key="facetIndex">
           <div v-for="(feature, featureIndex) in facet.features" :key="featureIndex">
@@ -68,6 +63,7 @@
             <a class="link" :href="defProps.post.embed.external.uri">
               <v-card class="mx-auto" variant="outlined">
                 <v-card-text class="text-pre-wrap">
+
                   <v-img v-bind:src=defProps.post.embed.external.thumb class="rounded-xl" alt=""></v-img>
                 </v-card-text>
                 <v-card-text class="text-pre-wrap">
@@ -93,11 +89,11 @@
               </v-card-actions>
               <v-card-text class="text-pre-wrap" :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
                 <template v-if="isMuteWordQuote">
-                  <v-card-title @click="visibleMuteWordQuote = !visibleMuteWordQuote">
-                    <v-alert color="warning" icon="$warning" :title="$t('post.containsMuteWords')"></v-alert>
+                  <v-card-title @click="visivleMuteWordQuote = !visivleMuteWordQuote">
+                    [{{ $t("post.containsMuteWords") }}]
                   </v-card-title>
                 </template>
-                <template v-if="!visibleMuteWordQuote">
+                <template v-if="!visivleMuteWordQuote">
                   <template
                     v-if="defProps.post.embed && defProps.post.embed.record && defProps.post.embed.record.record && defProps.post.embed.record.record.value">
                     {{ defProps.post.embed.record.record.value.text }}</template>
@@ -130,11 +126,11 @@
                       :indexedAt="defProps.post.embed.record.indexedAt" />
                   </v-card-actions>
                   <template v-if="isMuteWordQuote">
-                    <v-card-title @click="visibleMuteWordQuote = !visibleMuteWordQuote">
-                      <v-alert color="warning" icon="$warning" :title="$t('post.containsMuteWords')"></v-alert>
-                     </v-card-title>
+                    <v-card-title @click="visivleMuteWordQuote = !visivleMuteWordQuote">
+                      [{{ $t("post.containsMuteWords") }}]
+                    </v-card-title>
                   </template>
-                  <template v-if="!visibleMuteWordQuote">
+                  <template v-if="!visivleMuteWordQuote">
                     <v-card-text class="text-pre-wrap"
                       :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
                       <div v-if="defProps.post.embed && defProps.post.embed.record">{{
@@ -245,9 +241,9 @@ const isWarn = ref(false)
 const isFilter = ref(false)
 const warnLabels = ref(null)
 const isMuteWord = ref(false)
-const visibleMuteWord = ref(false)
+const visivleMuteWord = ref(false)
 const isMuteWordQuote = ref(false)
-const visibleMuteWordQuote = ref(false)
+const visivleMuteWordQuote = ref(false)
 
 const translateText = ref(null)
 
@@ -261,15 +257,15 @@ onBeforeMount(async () => {
     warnLabels.value = value.join(' ')
   }
   isMuteWord.value = await containsMuteWords(defProps.post.record.text)
-  visibleMuteWord.value = isMuteWord.value
+  visivleMuteWord.value = isMuteWord.value
   if (defProps.post && defProps.post.embed && defProps.post.embed.record) {
     if (defProps.post.embed.record.value) {
       isMuteWordQuote.value = await containsMuteWords(defProps.post.embed.record.value.text)
-      visibleMuteWordQuote.value = isMuteWordQuote.value
+      visivleMuteWordQuote.value = isMuteWordQuote.value
     }
     if (defProps.post.embed.record.record && defProps.post.embed.record.record.value) {
       isMuteWordQuote.value = await containsMuteWords(defProps.post.embed.record.record.value.text)
-      visibleMuteWordQuote.value = isMuteWordQuote.value
+      visivleMuteWordQuote.value = isMuteWordQuote.value
     }
   }
 });

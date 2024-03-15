@@ -11,7 +11,7 @@ export default {
             quoteRepost: "Quote Repost",
             reportPost: "Report Post",
             delete: "Delete",
-            containsMuteWords: "MuteWords",
+            containsMuteWords: "Contains MuteWords",
             warn: "Warn"
         },
         accountSettingsFilter: {
@@ -46,7 +46,7 @@ export default {
             quoteRepost: "引用リポスト",
             reportPost: "通報",
             delete: "削除",
-            containsMuteWords: "ミュートワード",
+            containsMuteWords: "ミュートワードあり",
             warn: "警告"
         },
         accountSettingsFilter: {
