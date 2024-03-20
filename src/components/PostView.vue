@@ -3,12 +3,12 @@
     <v-card :class="['mx-auto mt-5', { 'v-card--depth': depth !== 0 }]" variant="flat">
       <template v-if="defProps.reason && defProps.reason.by">
         <v-card-subtitle>{{ $t('post.repostedBy') }} {{ defProps.reason.by.displayName }}(@{{ defProps.reason.by.handle
-        }})</v-card-subtitle>
+          }})</v-card-subtitle>
       </template>
       <template v-if="defProps.parent && defProps.parent.author">
         <v-card-subtitle>{{ $t('post.repliedTo') }} {{ defProps.parent.author.displayName }}(@{{
-          defProps.parent.author.handle
-        }})</v-card-subtitle>
+    defProps.parent.author.handle
+  }})</v-card-subtitle>
       </template>
       <v-card-actions>
         <PostUserView :author="defProps.post.author" :createdAt="defProps.post.record.createdAt" />
@@ -75,6 +75,7 @@
                     {{ defProps.post.embed.external.description }}</template>
                 </v-card-text>
               </v-card>
+
             </a>
           </template>
         </template>
@@ -134,7 +135,12 @@
                     <v-card-text class="text-pre-wrap"
                       :to="`/thread/${encodeURIComponent(defProps.post.embed.record.uri)}`">
                       <div v-if="defProps.post.embed && defProps.post.embed.record">{{
-                        defProps.post.embed.record.value.text }}</div>
+    defProps.post.embed.record.value.text }}</div>
+                      <template v-if="defProps.post.embed && defProps.post.embed.record && defProps.post.embed.record.embeds
+    && defProps.post.embed.record.embeds[0] && defProps.post.embed.record.embeds[0].images">
+                        <PostImageView :images="defProps.post.embed.record.embeds[0].images" />
+                      </template>
+
                     </v-card-text>
                   </template>
                 </v-card>
@@ -152,8 +158,8 @@
 
         <v-menu offset-y>
           <template v-slot:activator="{ props }">
-            <v-btn v-bind="props" v-if="store.getters.hasRepost(defProps.post.uri)" class="ma-2" variant="text" size="32"
-              color="red" icon="mdi-repeat" />
+            <v-btn v-bind="props" v-if="store.getters.hasRepost(defProps.post.uri)" class="ma-2" variant="text"
+              size="32" color="red" icon="mdi-repeat" />
             <v-btn v-bind="props" v-else class="ma-2" variant="text" size="32" icon="mdi-repeat" />
           </template>
           <v-list>
@@ -248,6 +254,7 @@ const visivleMuteWordQuote = ref(false)
 const translateText = ref(null)
 
 onBeforeMount(async () => {
+  console.log(defProps.post)
   userSettings.value = await settingsManager.getUser(store.getters.getDid, store.getters.getHandle)
 
   isWarn.value = await contains("warn")
